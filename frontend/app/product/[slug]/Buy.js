@@ -14,7 +14,7 @@ export default function Buy({ p }) {
     <div className="lbl">Delivery</div>
     <div className="pin"><input value={pin} maxLength={6} inputMode="numeric" placeholder="Enter pincode" onChange={e => setPin(e.target.value.replace(/\D/g, ''))} /><button className="btn ghost" onClick={check}>Check</button></div>
     {res && (res.ok ? <div className="ok">✓ Delivery by {res.eta} · COD available</div> : <div className="bad">{res.message}</div>)}
-    <div style={{ display: 'flex', gap: 10, margin: '16px 0' }}>
+    <div className="pdp-actions">
       <AddButton product={p} variant={variant} className="btn ghost" /><button className="btn alt" onClick={() => { add(p, variant); router.push('/checkout'); }}>Buy now</button>
     </div>
     <div className="sticky"><AddButton product={p} variant={variant} /></div>

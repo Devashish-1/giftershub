@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
+import ContactWidget from './ContactWidget';
 
 const NAV = [['Hampers', 'gift-hampers'], ['Idols', 'idols'], ['Car Murtis', 'car-murtis'], ['Malas', 'malas'], ['Pooja', 'pooja']];
 const SOCIAL = [
@@ -17,7 +18,7 @@ const MAP_URL = 'https://www.google.com/maps?q=28.6297333,76.996915';
 const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=15&output=embed';
 
 export default function Shell({ children }) {
-  const { count, setOpen } = useCart(), router = useRouter(), [copied, setCopied] = useState(false);
+  const { count, setOpen } = useCart(), router = useRouter(), pathname = usePathname(), [copied, setCopied] = useState(false);
   const copy = () => { navigator.clipboard?.writeText('GIFTHUB10'); setCopied(true); setTimeout(() => setCopied(false), 1500); };
   return (<>
     <div className="ann">Free shipping over ₹999 · Code <button onClick={copy}>{copied ? 'Copied!' : 'GIFTHUB10'}</button> for 10% off</div>
@@ -60,6 +61,7 @@ export default function Shell({ children }) {
       <button onClick={() => setOpen(true)}><span>◌</span>Cart{count > 0 ? ` (${count})` : ''}</button>
     </nav>
     <Drawer />
+    <ContactWidget productPage={pathname.startsWith('/product/')} />
   </>);
 }
 
