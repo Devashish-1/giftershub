@@ -7,21 +7,23 @@ const CATS = [
   { name: 'Gift Hampers', slug: 'gift-hampers', image: 'diwali-hamper-premium', note: 'Make their moment' },
   { name: 'Idols & Decor', slug: 'idols', image: 'shiva-trishul-damru-idol', note: 'Bring meaning home' },
   { name: 'Car Murtis', slug: 'car-murtis', image: 'ganesha-dashboard-murti', note: 'A blessing on the go' },
-  { name: 'Malas', slug: 'malas', image: 'karungali-rudraksha-mala', note: 'For mindful moments' },
+  { name: 'Photo Frames', slug: 'photo-frames', image: 'ganesha-bubble-crystal-photoframe', note: 'Make a memory shine' },
 ];
 
 export default async function Home() {
   const all = (await get('/api/products?sort=rating')) || [];
+  const featured = all.filter(p => p.category !== 'photo-frames').slice(0, 2)
+    .concat(all.filter(p => p.category === 'photo-frames').slice(0, 2));
   return (<div className="wrap">
     <section className="hero">
       <div className="hero-copy">
         <div className="eyebrow">For rituals, homes &amp; heartfelt giving</div>
         <h1>Give a little <em>meaning.</em></h1>
-        <p>Thoughtful murtis, pooja favourites and festive gifts for the moments that bring us together.</p>
+        <p>Thoughtful murtis, crystal photo frames and festive gifts for the moments that bring us together.</p>
         <div className="btns"><Link className="btn" href="/shop?category=gift-hampers">Find a thoughtful gift</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <div className="art">
-        <img className="hero-main" src="/products/pooja-thali-gift-box.jpg" alt="A festive pooja thali, ready to gift" />
+        <img className="hero-main" src="/products/ganesha-bubble-crystal-photoframe.jpg" alt="The Gifters Hub Bubble Crystal Ganesha Photoframe" />
         <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
         <div className="hero-seal" aria-hidden="true">With<br />love</div>
       </div>
@@ -41,15 +43,15 @@ export default async function Home() {
 
     <section className="collection-section" aria-labelledby="popular-heading">
       <div className="section-heading">
-        <div><div className="eyebrow">The ones customers come back to</div><h2 id="popular-heading">A few much-loved finds</h2></div>
+        <div><div className="eyebrow">Customer favourites and new listings</div><h2 id="popular-heading">A few much-loved finds</h2></div>
         <Link href="/shop?sort=rating">Shop all favourites <span aria-hidden="true">→</span></Link>
       </div>
-      <Reveal className="grid">{all.slice(0, 4).map(p => <ProductCard key={p.slug} p={p} />)}</Reveal>
+      <Reveal className="grid">{featured.map(p => <ProductCard key={p.slug} p={p} />)}</Reveal>
     </section>
 
     <Reveal className="story">
       <div className="story-art">
-        <img className="story-main" src="/products/brass-diya-set.jpg" alt="Brass diya set for a warm pooja setting" loading="lazy" />
+        <img className="story-main" src="/products/ganesha-bubble-crystal-photoframe.jpg" alt="Glossy devotional photo frame with Lord Ganesha" loading="lazy" />
         <img className="story-detail" src="/products/lakshmi-ganesh-pair.jpg" alt="" loading="lazy" />
         <span className="story-caption">Little details. A lot of heart.</span>
       </div>
@@ -96,7 +98,7 @@ export default async function Home() {
         <a className="text-link" href="tel:+919555532044">Call us: +91 95555 32044 <span aria-hidden="true">↗</span></a>
       </div>
       <div className="guide-faq">
-        <details><summary>How do I choose the right mala or bracelet?</summary><p>Check the product listing for bead count, size and available options. If you need help choosing, call us or send a message on Instagram.</p></details>
+        <details><summary>How do I choose a thoughtful gift?</summary><p>Browse by collection and occasion, then check each listing for materials, dimensions and care details. If you need help choosing, call us or send a message on Instagram.</p></details>
         <details><summary>Can you help with a personalised gift?</summary><p>Yes. The Gifter’s Hub features bubble crystal and light frames, divine idols and family portraits. Message us to discuss designs and availability.</p></details>
         <details><summary>Do you deliver across India?</summary><p>Pan-India delivery is listed on our Instagram profile. Message or call us to confirm delivery options for your pin code and item.</p></details>
         <details><summary>How does gift wrapping work?</summary><p>Add gift wrap and a greeting card at checkout. For wholesale or custom requests, contact us directly.</p></details>

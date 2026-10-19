@@ -8,9 +8,11 @@ export default function ProductCard({ p }) {
   return (
     <div className="card">
       <Link href={`/product/${p.slug}`} className="img">
-        {p.badge === 'New' && <span className="badge">New</span>}
+        {p.demoVisual && <span className="badge">Demo visual</span>}
+        {!p.demoVisual && p.sourceName && <span className="badge">{p.sourceName} listing</span>}
+        {!p.demoVisual && !p.sourceName && p.badge === 'New' && <span className="badge">New</span>}
         <span className="ph">{p.name[0]}</span>
-        <img src={`/products/${p.slug}.jpg`} alt={p.name} loading="lazy" onError={e => e.currentTarget.remove()} />
+        <img src={p.image || `/products/${p.slug}.jpg`} alt={p.demoVisual ? `Demo illustration for ${p.name}` : p.name} loading="lazy" onError={e => e.currentTarget.remove()} />
         <button className="heart" aria-label="Wishlist" onClick={e => { e.preventDefault(); toggleWish(p.slug); }}>{wish.includes(p.slug) ? '♥' : '♡'}</button>
         <div className="quick"><AddButton product={p} label="Quick add" /></div>
       </Link>

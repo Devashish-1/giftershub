@@ -6,7 +6,7 @@ import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
 import ContactWidget from './ContactWidget';
 
-const NAV = [['Hampers', 'gift-hampers'], ['Idols', 'idols'], ['Car Murtis', 'car-murtis'], ['Malas', 'malas'], ['Pooja', 'pooja']];
+const NAV = [['Hampers', 'gift-hampers'], ['Idols', 'idols'], ['Car Murtis', 'car-murtis'], ['Photo Frames', 'photo-frames']];
 const SOCIAL = [
   ['Instagram', 'https://www.instagram.com/thegiftershub/'],
   ['Facebook', 'https://www.facebook.com/p/thegiftershub-61563390688639'],

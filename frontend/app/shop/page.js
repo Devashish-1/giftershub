@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { get } from '../../lib/api';
 import Reveal from '../../components/Reveal';
 import ProductCard from '../../components/ProductCard';
-const CATS = [['All', ''], ['Malas & Bracelets', 'malas'], ['Car Murtis', 'car-murtis'], ['Idols', 'idols'], ['Pooja Essentials', 'pooja'], ['Gift Hampers', 'gift-hampers']];
+const CATS = [['All', ''], ['Car Murtis', 'car-murtis'], ['Idols', 'idols'], ['Photo Frames', 'photo-frames'], ['Gift Hampers', 'gift-hampers']];
 const PRICE_RANGES = [
   ['Any price', null, null],
   ['Under ₹500', null, '499'],
