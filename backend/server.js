@@ -107,7 +107,9 @@ async function getProducts() {
 
 function price(items, code, gift, catalog) {
   const lines = items.map(item => {
-    const product = catalog.find(value => value.slug === item.slug);
+    const product = catalog.find(value =>
+      value.slug === item.slug && value.available !== false &&
+      Number.isFinite(value.price) && value.price > 0);
     return product && {
       slug: product.slug,
       name: product.name,
@@ -145,7 +147,7 @@ app.get('/health', (req, res) => res.json({ ok: true, database: database ? 'conn
 
 app.get('/api/products', async (req, res, next) => {
   try {
-    const { category, q, sort, min, max } = req.query;
+    const { category, subject, q, sort, min, max } = req.query;
     const minimum = min === undefined ? null : Number(min);
     const maximum = max === undefined ? null : Number(max);
     if ((minimum !== null && (!Number.isFinite(minimum) || minimum < 0)) ||
@@ -154,12 +156,13 @@ app.get('/api/products', async (req, res, next) => {
     }
     let list = (await getProducts()).filter(product =>
       (!category || product.category === category) &&
+      (!subject || product.subject === subject) &&
       (!q || (product.name + product.desc).toLowerCase().includes(String(q).toLowerCase())) &&
-      (minimum === null || product.price >= minimum) &&
-      (maximum === null || product.price <= maximum));
+      (minimum === null || (Number.isFinite(product.price) && product.price >= minimum)) &&
+      (maximum === null || (Number.isFinite(product.price) && product.price <= maximum)));
     const sorters = {
-      low: (a, b) => a.price - b.price,
-      high: (a, b) => b.price - a.price,
+      low: (a, b) => a.price == null ? (b.price == null ? 0 : 1) : b.price == null ? -1 : a.price - b.price,
+      high: (a, b) => a.price == null ? (b.price == null ? 0 : 1) : b.price == null ? -1 : b.price - a.price,
       rating: (a, b) => b.rating - a.rating,
     };
     if (sorters[sort]) list = [...list].sort(sorters[sort]);
@@ -183,10 +186,13 @@ app.get('/api/products/:slug', async (req, res, next) => {
 
 app.post('/api/auth/register', authLimiter, dbRequired, async (req, res, next) => {
   try {
-    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    const suppliedName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    const name = suppliedName || 'Customer';
     const email = normalizeEmail(req.body.email);
     const password = req.body.password;
-    if (name.length < 2 || name.length > 100) return res.status(400).json({ error: 'Enter your name (2–100 characters).' });
+    if (suppliedName && (suppliedName.length < 2 || suppliedName.length > 100)) {
+      return res.status(400).json({ error: 'Name must be between 2 and 100 characters.' });
+    }
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (typeof password !== 'string' || password.length < 10 || password.length > 128) {
       return res.status(400).json({ error: 'Use a password between 10 and 128 characters.' });
@@ -299,7 +305,12 @@ app.post('/api/cart/price', async (req, res, next) => {
         items.some(item => !item || typeof item.slug !== 'string' || !Number.isInteger(item.qty) || item.qty < 1 || item.qty > 99)) {
       return res.status(400).json({ error: 'Cart items are invalid.' });
     }
-    res.json(price(items, req.body.coupon, !!req.body.gift, await getProducts()));
+    const catalog = await getProducts();
+    const pricedItems = items.every(item => catalog.some(product =>
+      product.slug === item.slug && product.available !== false &&
+      Number.isFinite(product.price) && product.price > 0));
+    if (!pricedItems) return res.status(409).json({ error: 'One or more products are not available for purchase yet.' });
+    res.json(price(items, req.body.coupon, !!req.body.gift, catalog));
   } catch (error) {
     next(error);
   }
@@ -355,6 +366,8 @@ async function start() {
   if (mongoClient) {
     await mongoClient.connect();
     database = mongoClient.db(DATABASE_NAME);
+    const productSlugs = products.map(product => product.slug);
+    await database.collection('products').deleteMany({ slug: { $nin: productSlugs } });
     await Promise.all([
       database.collection('users').createIndex({ email: 1 }, { unique: true }),
       database.collection('sessions').createIndex({ tokenHash: 1 }, { unique: true }),

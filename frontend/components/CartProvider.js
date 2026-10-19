@@ -4,7 +4,12 @@ const Ctx = createContext(null);
 export const useCart = () => useContext(Ctx);
 export default function CartProvider({ children }) {
   const [items, setItems] = useState([]), [open, setOpen] = useState(false), [wish, setWish] = useState([]), [toast, setToast] = useState('');
-  useEffect(() => { try { setItems(JSON.parse(localStorage.getItem('gh-cart') || '[]')); setWish(JSON.parse(localStorage.getItem('gh-wish') || '[]')); } catch {} }, []);
+  useEffect(() => {
+    localStorage.removeItem('gh-cart');
+    localStorage.removeItem('gh-wish');
+    setItems([]);
+    setWish([]);
+  }, []);
   useEffect(() => { localStorage.setItem('gh-cart', JSON.stringify(items)); }, [items]);
   useEffect(() => { localStorage.setItem('gh-wish', JSON.stringify(wish)); }, [wish]);
   useEffect(() => { document.documentElement.classList.toggle('cart-open', open); document.body.style.overflow = open ? 'hidden' : ''; }, [open]);

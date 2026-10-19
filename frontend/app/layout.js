@@ -3,7 +3,7 @@ import CartProvider from '../components/CartProvider';
 import AuthProvider from '../components/AuthProvider';
 import Shell from '../components/Shell';
 import Cursor from '../components/Cursor';
-export const metadata = { title: 'The Gifter’s Hub | Gifts & Decor', description: 'Photo frames, car murtis, idols and festive gift hampers.' };
+export const metadata = { title: 'The Gifter’s Hub | Gifts & Decor', description: 'Devotional wall frames and family photo frames from The Gifter’s Hub catalogue.' };
 export default function RootLayout({ children }) {
   return (<html lang="en"><head>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

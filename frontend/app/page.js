@@ -4,26 +4,24 @@ import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
 
 const CATS = [
-  { name: 'Gift Hampers', slug: 'gift-hampers', image: 'diwali-hamper-premium', note: 'Make their moment' },
-  { name: 'Idols & Decor', slug: 'idols', image: 'shiva-trishul-damru-idol', note: 'Bring meaning home' },
-  { name: 'Car Murtis', slug: 'car-murtis', image: 'ganesha-dashboard-murti', note: 'A blessing on the go' },
-  { name: 'Photo Frames', slug: 'photo-frames', image: 'ganesha-bubble-crystal-photoframe', note: 'Make a memory shine' },
+  { name: 'God Frames', slug: 'god-frames', image: 'radha-ka-mohan-radha-krishna', note: 'Bring devotion home' },
+  { name: 'Family Photo Frames', slug: 'family-frames', image: 'heart-family-photo-frame', note: 'Keep a memory close' },
 ];
 
 export default async function Home() {
-  const all = (await get('/api/products?sort=rating')) || [];
-  const featured = all.filter(p => p.category !== 'photo-frames').slice(0, 2)
-    .concat(all.filter(p => p.category === 'photo-frames').slice(0, 2));
+  const all = (await get('/api/products')) || [];
+  const featured = all.filter(p => p.category === 'god-frames').slice(0, 3)
+    .concat(all.filter(p => p.category === 'family-frames').slice(0, 1));
   return (<div className="wrap">
     <section className="hero">
       <div className="hero-copy">
-        <div className="eyebrow">For rituals, homes &amp; heartfelt giving</div>
+        <div className="eyebrow">Devotional art &amp; meaningful keepsakes</div>
         <h1>Give a little <em>meaning.</em></h1>
-        <p>Thoughtful murtis, crystal photo frames and festive gifts for the moments that bring us together.</p>
-        <div className="btns"><Link className="btn" href="/shop?category=gift-hampers">Find a thoughtful gift</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
+        <p>Explore devotional wall frames and family photo frames from The Gifter’s Hub catalogue.</p>
+        <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <div className="art">
-        <img className="hero-main" src="/products/ganesha-bubble-crystal-photoframe.jpg" alt="The Gifters Hub Bubble Crystal Ganesha Photoframe" />
+        <img className="hero-main" src="/products/radha-ka-mohan-radha-krishna-main.webp" alt="Radha Ka Mohan devotional wall frame" />
         <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
         <div className="hero-seal" aria-hidden="true">With<br />love</div>
       </div>
@@ -35,7 +33,7 @@ export default async function Home() {
         <Link href="/shop">Explore everything <span aria-hidden="true">→</span></Link>
       </div>
       <Reveal className="cats">{CATS.map(({ name, slug, image, note }) => <Link className="cat" key={slug} href={`/shop?category=${slug}`}>
-        <img src={`/products/${image}.jpg`} alt="" loading="lazy" />
+        <img src={`/products/${image}-main.webp`} alt="" loading="lazy" />
         <span className="cat-shade" />
         <span className="cat-copy"><small>{note}</small><b>{name}</b><span className="cat-link">Discover <span aria-hidden="true">↗</span></span></span>
       </Link>)}</Reveal>
@@ -43,49 +41,43 @@ export default async function Home() {
 
     <section className="collection-section" aria-labelledby="popular-heading">
       <div className="section-heading">
-        <div><div className="eyebrow">Customer favourites and new listings</div><h2 id="popular-heading">A few much-loved finds</h2></div>
-        <Link href="/shop?sort=rating">Shop all favourites <span aria-hidden="true">→</span></Link>
+        <div><div className="eyebrow">From our product catalogue</div><h2 id="popular-heading">Explore the collection</h2></div>
+        <Link href="/shop">Browse all frames <span aria-hidden="true">→</span></Link>
       </div>
       <Reveal className="grid">{featured.map(p => <ProductCard key={p.slug} p={p} />)}</Reveal>
     </section>
 
     <Reveal className="story">
       <div className="story-art">
-        <img className="story-main" src="/products/ganesha-bubble-crystal-photoframe.jpg" alt="Glossy devotional photo frame with Lord Ganesha" loading="lazy" />
-        <img className="story-detail" src="/products/lakshmi-ganesh-pair.jpg" alt="" loading="lazy" />
+        <img className="story-main" src="/products/30-no-ganesha-main.webp" alt="Ganesha devotional wall frame" loading="lazy" />
+        <img className="story-detail" src="/products/heart-family-photo-frame-main.webp" alt="" loading="lazy" />
         <span className="story-caption">Little details. A lot of heart.</span>
       </div>
       <div className="story-copy">
-        <div className="eyebrow">A gift that feels like you</div>
-        <h2>Make the moment more personal.</h2>
-        <p>Choose something meaningful, then add gift wrap and a greeting card at checkout. A thoughtful touch for celebrations, new beginnings and just-because days.</p>
-        <Link className="text-link" href="/shop?category=gift-hampers">Explore gifts <span aria-hidden="true">→</span></Link>
-        <div className="story-points"><span><b>01</b> Find a favourite</span><span><b>02</b> Add a personal touch</span><span><b>03</b> Make it memorable</span></div>
+        <div className="eyebrow">Inspired by our catalogue</div>
+        <h2>Art for meaningful spaces.</h2>
+        <p>Browse devotional scenes and family keepsakes, with catalogue dimensions and finish details shown on each product page.</p>
+        <Link className="text-link" href="/shop?category=god-frames">Explore god frames <span aria-hidden="true">→</span></Link>
+        <div className="story-points"><span><b>01</b> Browse the designs</span><span><b>02</b> Check the dimensions</span><span><b>03</b> Choose your favourite</span></div>
       </div>
     </Reveal>
 
     <section className="offer-section" aria-labelledby="offer-heading">
       <div className="section-heading">
-        <div><div className="eyebrow">More ways to make it yours</div><h2 id="offer-heading">Gifts with a personal touch</h2></div>
+        <div><div className="eyebrow">Browse by style</div><h2 id="offer-heading">Frames for meaningful moments</h2></div>
       </div>
       <Reveal className="offer-grid">
         <article className="offer-card offer-crystal">
           <span className="offer-number">01 / KEEP A MEMORY CLOSE</span>
-          <h3>Crystal &amp; light frames</h3>
-          <p>Turn a favourite photo into a glowing keepsake. Ask us about personalised designs and wholesale options.</p>
-          <a className="text-link" href="https://www.instagram.com/thegiftershub/" target="_blank" rel="noreferrer">Ask us on Instagram <span aria-hidden="true">↗</span></a>
+          <h3>Devotional wall frames</h3>
+          <p>Explore catalogue designs featuring beloved deities, with listed dimensions and finish options on each product page.</p>
+          <Link className="text-link" href="/shop?category=god-frames">Browse god frames <span aria-hidden="true">→</span></Link>
         </article>
         <article className="offer-card offer-family">
           <span className="offer-number">02 / MADE FOR GIVING</span>
-          <h3>Divine idols &amp; family portraits</h3>
-          <p>Explore meaningful pieces for your home, celebrations and the people you love.</p>
-          <Link className="text-link" href="/shop?category=idols">Browse idols <span aria-hidden="true">→</span></Link>
-        </article>
-        <article className="offer-card offer-wholesale">
-          <span className="offer-number">03 / GIFTING AT YOUR SCALE</span>
-          <h3>Looking for wholesale?</h3>
-          <p>Request the wholesale catalogue directly. Pan-India delivery is available; message us for product and delivery details.</p>
-          <a className="text-link" href="https://www.instagram.com/thegiftershub/" target="_blank" rel="noreferrer">Request the catalogue <span aria-hidden="true">↗</span></a>
+          <h3>Family photo frames</h3>
+          <p>Keep favourite family memories close with the catalogue’s decorative photo-frame design.</p>
+          <Link className="text-link" href="/shop?category=family-frames">Browse family frames <span aria-hidden="true">→</span></Link>
         </article>
       </Reveal>
     </section>
@@ -98,13 +90,12 @@ export default async function Home() {
         <a className="text-link" href="tel:+919555532044">Call us: +91 95555 32044 <span aria-hidden="true">↗</span></a>
       </div>
       <div className="guide-faq">
-        <details><summary>How do I choose a thoughtful gift?</summary><p>Browse by collection and occasion, then check each listing for materials, dimensions and care details. If you need help choosing, call us or send a message on Instagram.</p></details>
-        <details><summary>Can you help with a personalised gift?</summary><p>Yes. The Gifter’s Hub features bubble crystal and light frames, divine idols and family portraits. Message us to discuss designs and availability.</p></details>
-        <details><summary>Do you deliver across India?</summary><p>Pan-India delivery is listed on our Instagram profile. Message or call us to confirm delivery options for your pin code and item.</p></details>
-        <details><summary>How does gift wrapping work?</summary><p>Add gift wrap and a greeting card at checkout. For wholesale or custom requests, contact us directly.</p></details>
+        <details><summary>How do I choose a frame?</summary><p>Browse the catalogue, then check the model, artwork, dimensions, and listed finish details on each product page.</p></details>
+        <details><summary>Are the products ready to order?</summary><p>The catalogue is being added for retail. Prices and ordering will become available after retail pricing is confirmed.</p></details>
+        <details><summary>Can I ask about a design?</summary><p>Yes. Call The Gifter’s Hub at +91 95555 32044 for questions about a product shown in the catalogue.</p></details>
       </div>
     </section>
 
-    <div className="strip"><span><b>Free shipping</b> over ₹999</span><span><b>Gift wrap</b> and greeting card available</span><span><b>Cash on delivery</b> available</span></div>
+    <div className="strip"><span><b>66 catalogue designs</b></span><span><b>Retail prices</b> coming soon</span><span><b>Browse details</b> and catalogue images</span></div>
   </div>);
 }

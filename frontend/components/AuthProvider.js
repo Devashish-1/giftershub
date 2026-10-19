@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -9,9 +10,11 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('login');
+  const [method, setMethod] = useState('choose');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [form, setForm] = useState({ email: '', password: '' });
   const pendingAction = useRef(null);
 
   useEffect(() => {
@@ -54,6 +57,7 @@ export default function AuthProvider({ children }) {
   const openLogin = useCallback(() => {
     pendingAction.current = null;
     setMode('login');
+    setMethod('choose');
     setError('');
     setOpen(true);
   }, []);
@@ -69,6 +73,7 @@ export default function AuthProvider({ children }) {
     }
     pendingAction.current = action;
     setMode('login');
+    setMethod('choose');
     setError('');
     setOpen(true);
   }, [loading, user]);
@@ -102,7 +107,7 @@ export default function AuthProvider({ children }) {
       if (!response.ok) throw new Error(result.error || 'Could not sign in. Please try again.');
       setUser(result.user);
       setOpen(false);
-      setForm({ name: '', email: '', password: '' });
+      setForm({ email: '', password: '' });
       const action = pendingAction.current;
       pendingAction.current = null;
       if (action) action();
@@ -116,7 +121,13 @@ export default function AuthProvider({ children }) {
   const switchMode = nextMode => {
     setMode(nextMode);
     setError('');
+    setAcceptedTerms(false);
     setForm(current => ({ ...current, password: '' }));
+  };
+
+  const chooseEmail = () => {
+    setMethod('email');
+    setError('');
   };
 
   return (
@@ -128,28 +139,45 @@ export default function AuthProvider({ children }) {
         <section className="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
           <button className="auth-close" type="button" aria-label="Close sign-in" onClick={() => setOpen(false)} disabled={busy}>×</button>
           <div className="auth-eyebrow">The Gifter’s Hub</div>
-          <h2 id="auth-title">{mode === 'register' ? 'Create your account' : 'Sign in'}</h2>
-          <p className="auth-intro">{mode === 'register' ? 'Create an account to continue with your cart and checkout.' : 'Sign in to continue with your cart and checkout.'}</p>
-          <form onSubmit={submit} className="auth-form">
-            {mode === 'register' && <label>Your name
-              <input required autoComplete="name" minLength={2} maxLength={100} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} />
-            </label>}
-            <label>Email address
-              <input required type="email" autoComplete="email" maxLength={254} value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
-            </label>
-            <label>Password
-              <input required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} minLength={mode === 'register' ? 10 : 1} maxLength={128} value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} />
-              {mode === 'register' && <small>Use at least 10 characters.</small>}
-            </label>
-            {error && <p className="auth-error" role="alert">{error}</p>}
-            <button className="btn alt auth-submit" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'register' ? 'Create account' : 'Continue'}</button>
-          </form>
-          <p className="auth-switch">
-            {mode === 'register' ? 'Already have an account?' : 'New to The Gifter’s Hub?'}{' '}
-            <button type="button" onClick={() => switchMode(mode === 'register' ? 'login' : 'register')} disabled={busy}>
-              {mode === 'register' ? 'Sign in' : 'Create account'}
-            </button>
-          </p>
+          {method === 'choose' ? <>
+            <h2 id="auth-title">Sign in or create account</h2>
+            <p className="auth-intro">Choose how you’d like to continue.</p>
+            <div className="auth-methods">
+              <button className="auth-method auth-google" type="button" disabled>
+                <span className="auth-google-mark" aria-hidden="true">G</span>
+                Continue with Google <small>Coming soon</small>
+              </button>
+              <button className="auth-method" type="button" onClick={chooseEmail}>
+                <span aria-hidden="true">✉</span> Continue with email
+              </button>
+              <button className="auth-method" type="button" onClick={() => setError('Phone sign-in will be available after Firebase is set up.')}>
+                <span aria-hidden="true">☎</span> Continue with phone <small>Coming soon</small>
+              </button>
+            </div>
+            {error && <p className="auth-error" role="status">{error}</p>}
+          </> : <>
+            <button className="auth-back" type="button" onClick={() => { setMethod('choose'); setError(''); }} disabled={busy}>← All sign-in options</button>
+            <h2 id="auth-title">{mode === 'register' ? 'Create your account' : 'Sign in with email'}</h2>
+            <p className="auth-intro">{mode === 'register' ? 'Create an account to continue with your cart and checkout.' : 'Sign in to continue with your cart and checkout.'}</p>
+            <form onSubmit={submit} className="auth-form">
+              <label>Email address
+                <input required type="email" autoComplete="email" maxLength={254} value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
+              </label>
+              <label>Password
+                <input required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} minLength={mode === 'register' ? 10 : 1} maxLength={128} value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} />
+                {mode === 'register' && <small>Use at least 10 characters.</small>}
+              </label>
+              {mode === 'register' && <label className="auth-terms"><input required type="checkbox" checked={acceptedTerms} onChange={event => setAcceptedTerms(event.target.checked)} /><span>I agree to the <Link href="/terms" target="_blank">Terms &amp; Conditions</Link> and have read the <Link href="/privacy" target="_blank">Privacy Policy</Link>.</span></label>}
+              {error && <p className="auth-error" role="alert">{error}</p>}
+              <button className="btn alt auth-submit" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'register' ? 'Create account' : 'Continue'}</button>
+            </form>
+            <p className="auth-switch">
+              {mode === 'register' ? 'Already have an account?' : 'New to The Gifter’s Hub?'}{' '}
+              <button type="button" onClick={() => switchMode(mode === 'register' ? 'login' : 'register')} disabled={busy}>
+                {mode === 'register' ? 'Sign in' : 'Create account'}
+              </button>
+            </p>
+          </>}
         </section>
       </div>}
     </AuthContext.Provider>

@@ -30,15 +30,52 @@ nav.main a::after{content:'';position:absolute;left:0;bottom:0;height:1.5px;widt
 .auth-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--primary);font-weight:600}
 .auth-dialog h2{margin-top:8px;font-size:32px;color:var(--dark)}
 .auth-intro{margin-top:6px;color:var(--muted);font-size:13px}
+.auth-methods{display:grid;gap:11px;margin-top:24px}
+.auth-method{display:flex;align-items:center;gap:12px;width:100%;min-height:50px;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;text-align:left;font-size:13px;font-weight:600;transition:border-color .2s,background .2s}
+.auth-method:hover:not(:disabled){border-color:var(--primary);background:var(--alt)}
+.auth-method>span:first-child{display:grid;place-items:center;width:22px;height:22px;color:var(--dark);font-size:18px}
+.auth-method small{margin-left:auto;color:var(--muted);font-size:10px;font-weight:500}
+.auth-method:disabled{cursor:not-allowed;opacity:.72}
+.auth-google-mark{border:1px solid var(--line);border-radius:50%;font-family:Arial,sans-serif;font-weight:700}
+.auth-back{margin-top:17px;color:var(--primary);font-size:12px;font-weight:600}
+.auth-back:hover{text-decoration:underline;text-underline-offset:3px}
 .auth-form{display:grid;gap:16px;margin-top:22px}
 .auth-form label{display:grid;gap:6px;font-size:12px;font-weight:600;color:var(--text)}
 .auth-form input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:14px}
 .auth-form input:focus{outline:2px solid #9b2f2a30;border-color:var(--primary)}
 .auth-form small{font-size:11px;font-weight:400;color:var(--muted)}
+.auth-form .auth-terms{grid-template-columns:auto 1fr;align-items:start;gap:9px;color:var(--muted);font-size:11px;font-weight:400;line-height:1.5}
+.auth-form .auth-terms input{width:15px;height:15px;margin-top:2px;accent-color:var(--primary)}
+.auth-terms a,.checkout-policy a{color:var(--primary);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 .auth-submit{width:100%;margin-top:2px}
 .auth-error{font-size:12px;color:var(--primary);background:#fff3f0;padding:10px 12px;border-radius:9px}
 .auth-switch{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center}
 .auth-switch button{color:var(--primary);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.product-gallery-thumbnails{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.product-gallery-thumbnails button{aspect-ratio:1;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#fff}
+.product-gallery-thumbnails button.selected{border:2px solid var(--primary)}
+.product-gallery-thumbnails img{width:100%;height:100%;object-fit:contain}
+.product-coming-soon{display:grid;gap:6px;padding:15px 16px;border:1px solid var(--line);border-radius:12px;background:var(--alt);font-size:13px}
+.product-coming-soon span{color:var(--muted)}
+.product-coming-soon a{color:var(--primary);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.checkout-payment{display:grid;gap:8px;padding:17px;border:1px solid var(--line);border-radius:12px;background:var(--alt)}
+.checkout-payment h2{font-size:20px;color:var(--dark)}
+.checkout-payment p{font-size:12px;color:var(--muted)}
+.payment-placeholder{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:#fff;text-align:left;font-size:13px;font-weight:600}
+.payment-placeholder span{color:var(--muted);font-size:11px;font-weight:500}
+.payment-placeholder:disabled{cursor:not-allowed}
+.checkout-policy{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:9px;color:var(--muted);font-size:11px;line-height:1.5}
+.checkout-policy input{width:15px;height:15px;margin-top:2px;accent-color:var(--primary)}
+.legal-page{max-width:850px;padding-top:58px;padding-bottom:70px}
+.legal-page .eyebrow{margin-bottom:12px}
+.legal-page h1{font-size:clamp(36px,5vw,52px);line-height:1.1;color:var(--dark)}
+.legal-updated{margin-top:12px;color:var(--muted);font-size:13px}
+.legal-intro{margin:24px 0 34px;color:var(--muted);font-size:16px}
+.legal-page section{margin-top:27px}
+.legal-page h2{margin-bottom:8px;color:var(--dark);font-size:24px}
+.legal-page section p,.legal-page section li{color:var(--muted);font-size:14px;line-height:1.75}
+.legal-page section ul{padding-left:22px;margin-top:8px}
+.legal-page section li+li{margin-top:5px}
 .scrolled header.top{border-color:var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(12px)}.scrolled .bar{height:62px}.bar{transition:height .3s}
 /* buttons */
 .btn{position:relative;overflow:hidden;display:inline-block;background:var(--primary);color:#fff;padding:14px 28px;border-radius:999px;font-weight:600;font-size:14px;transition:background .25s,transform .25s var(--ease)}
@@ -159,6 +196,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .section-heading>a span,.text-link span{display:inline-block;transition:transform .25s var(--ease)}
 .section-heading>a:hover span,.text-link:hover span{transform:translateX(4px)}
 .cats{margin-top:0}
+.cats{grid-template-columns:repeat(2,minmax(0,1fr))}
 .cat{padding:0;isolation:isolate;color:#fff;box-shadow:0 8px 22px #35141112}
 .cat::before{content:none}
 .cat>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .8s var(--ease)}
@@ -224,7 +262,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 }
 
 .offer-section{margin-top:96px}
-.offer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.offer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 .offer-card{min-height:260px;padding:28px;border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;overflow:hidden;position:relative;background:#fbf3f1}
 .offer-card::before{position:absolute;right:-12px;top:-45px;font-family:'Playfair Display',Georgia,serif;font-size:190px;line-height:1;color:var(--primary);opacity:.07;transition:transform .5s var(--ease)}
 .offer-card:hover::before{transform:rotate(-8deg) scale(1.06)}

@@ -7,7 +7,7 @@ import { inr } from '../lib/api';
 import ContactWidget from './ContactWidget';
 import { useAuth } from './AuthProvider';
 
-const NAV = [['Hampers', 'gift-hampers'], ['Idols', 'idols'], ['Car Murtis', 'car-murtis'], ['Photo Frames', 'photo-frames']];
+const NAV = [['God Frames', 'god-frames'], ['Family Frames', 'family-frames']];
 const SOCIAL = [
   ['Instagram', 'https://www.instagram.com/thegiftershub/'],
   ['Facebook', 'https://www.facebook.com/p/thegiftershub-61563390688639'],
@@ -21,7 +21,7 @@ const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=1
 export default function Shell({ children }) {
   const { count, setOpen } = useCart(), { user, openLogin, logout, authError } = useAuth(), router = useRouter(), pathname = usePathname();
   return (<>
-    <div className="ann">Free shipping over ₹999</div>
+    <div className="ann">New catalogue collection · Retail prices coming soon</div>
     <header className="top"><div className="wrap bar">
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
       <nav className="main">{NAV.map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
@@ -45,6 +45,8 @@ export default function Shell({ children }) {
         <div className="footer-links">
           <h3>Explore</h3>
           <nav>{NAV.map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
+          <h3 className="footer-legal-heading">Policies</h3>
+          <nav><Link href="/terms">Terms &amp; Conditions</Link><Link href="/privacy">Privacy Policy</Link></nav>
         </div>
         <div className="footer-contact">
           <h3>Visit or get in touch</h3>
@@ -57,7 +59,7 @@ export default function Shell({ children }) {
           <a href={MAP_URL} target="_blank" rel="noreferrer">Jai Vihar, New Delhi <b>Open map ↗</b></a>
         </div>
       </div>
-      <div className="wrap footer-bottom"><span>© 2026 The Gifter’s Hub · Gifts &amp; Decor</span><span>Free shipping over ₹999 · Gift wrap available</span></div>
+      <div className="wrap footer-bottom"><span>© 2026 The Gifter’s Hub · Gifts &amp; Decor</span><span>Retail catalogue · Prices coming soon</span></div>
     </footer>
     <nav className="bottom">
       <Link href="/"><span>⌂</span>Home</Link><Link href="/shop"><span>▦</span>Shop</Link>

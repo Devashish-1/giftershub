@@ -9,6 +9,12 @@ export default function Buy({ p }) {
   const [pin, setPin] = useState(''), [res, setRes] = useState(null), { add } = useCart(), { requireAuth } = useAuth(), router = useRouter();
   const variant = Object.values(sel).join(' · ');
   const check = async () => { const r = await fetch('/api/pincode/' + pin); setRes(await r.json()); };
+  if (p.available === false || !Number.isFinite(p.price) || p.price <= 0) {
+    return <div className="product-coming-soon" role="status">
+      <b>Retail ordering is not enabled yet.</b>
+      <span>This catalogue item cannot be added to cart. For details, call <a href="tel:+919555532044">+91 95555 32044</a>.</span>
+    </div>;
+  }
   return (<>
     {Object.entries(p.options).map(([k, vals]) => <div key={k}><div className="lbl">{k}</div>
       <div className="chips">{vals.map(v => <button key={v} className={`chip ${sel[k] === v ? 'on' : ''}`} onClick={() => setSel({ ...sel, [k]: v })}>{v}</button>)}</div></div>)}

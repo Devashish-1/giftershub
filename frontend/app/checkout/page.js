@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCart } from '../../components/CartProvider';
 import { useAuth } from '../../components/AuthProvider';
 export default function Checkout() {
-  const { items, clear } = useCart(), { user, loading, openLogin } = useAuth(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false);
+  const { items, clear } = useCart(), { user, loading, openLogin } = useAuth(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false), [acceptedPolicies, setAcceptedPolicies] = useState(false);
   useEffect(() => { if (!loading && !user && items.length) openLogin(); }, [loading, user, items.length, openLogin]);
   const submit = async e => {
     e.preventDefault(); setBusy(true); setErr('');
@@ -32,6 +32,12 @@ export default function Checkout() {
     <input required placeholder="Pincode" maxLength={6} value={f.pincode} onChange={set('pincode')} />
     <textarea required rows={3} placeholder="Full address" value={f.address} onChange={set('address')} />
     <textarea rows={2} placeholder="Gift message (optional)" value={msg} onChange={e => setMsg(e.target.value)} />
+    <section className="checkout-payment" aria-labelledby="payment-title">
+      <h2 id="payment-title">Payment method</h2>
+      <button className="payment-placeholder" type="button" disabled>Pay online <span>Coming soon</span></button>
+      <p>Cash on Delivery is currently available.</p>
+    </section>
+    <label className="checkout-policy"><input required type="checkbox" checked={acceptedPolicies} onChange={event => setAcceptedPolicies(event.target.checked)} /><span>I agree to the <Link href="/terms" target="_blank">Terms &amp; Conditions</Link> and have read the <Link href="/privacy" target="_blank">Privacy Policy</Link>.</span></label>
     {err && <div className="bad">{err}</div>}
     <button className="btn alt" disabled={busy}>{busy ? 'Placing order…' : 'Place order (COD)'}</button>
   </form>);

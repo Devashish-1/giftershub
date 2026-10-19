@@ -1,10 +1,1815 @@
 [
-{"slug":"hanuman-dashboard-murti","name":"Hanuman Ji Dashboard Murti","category":"car-murtis","price":449,"mrp":899,"rating":4.5,"reviews":190,"badge":"New","tag":"3M tape included","stock":25,"desc":"Compact hand-painted resin Hanuman Ji for car dashboards. Heat-resistant base, 3M tape included.","options":{"Finish":["Orange","White"]}},
-{"slug":"ganesha-dashboard-murti","name":"Ganesha Crystal-Studded Murti","category":"car-murtis","price":549,"mrp":999,"rating":4.7,"reviews":327,"badge":"Bestseller","tag":"8 cm","stock":38,"desc":"Glossy resin Ganpati with crystal work. 8 x 3.5 x 5 cm, sits flat on dashboards, desks and mandirs.","options":{"Finish":["Gold","Orange"]}},
-{"slug":"krishna-laddu-gopal","name":"Laddu Gopal on Jhula","category":"car-murtis","price":649,"mrp":1199,"rating":4.6,"reviews":144,"badge":"","tag":"Swinging","stock":20,"desc":"Baby Krishna on a tiny jhula. A sweet gift for newlyweds and new homes.","options":{}},
-{"slug":"diwali-hamper-premium","name":"Diwali Gifting Hamper","category":"gift-hampers","price":1999,"mrp":2999,"rating":4.7,"reviews":298,"badge":"Festive","tag":"6 items","stock":14,"desc":"Brass diya, incense, dry fruits, candle and a mini Ganesha, packed in a gold-foil box.","options":{}},
-{"slug":"shiva-trishul-damru-idol","name":"Shiva Trishul Damru Idol","category":"idols","price":1299,"mrp":2199,"rating":4.6,"reviews":88,"badge":"","tag":"Metal","stock":12,"desc":"Metal Shiva idol with trishul, damru and Aum. Mandir or desk.","options":{}},
-{"slug":"lakshmi-ganesh-pair","name":"Lakshmi Ganesh Idol Pair","category":"idols","price":1799,"mrp":2899,"rating":4.8,"reviews":412,"badge":"Bestseller","tag":"Diwali puja","stock":22,"desc":"Classic pair for Diwali puja. Hand-painted polystone, 6 inch.","options":{}},
-{"slug":"ganesha-bubble-crystal-photoframe","name":"The Gifters Hub Bubble Crystal Ganesha Photoframe","category":"photo-frames","price":399,"mrp":899,"rating":0,"reviews":0,"badge":"Amazon listing","tag":"Glossy finish - wall mount","stock":null,"image":"/products/ganesha-bubble-crystal-photoframe.jpg","desc":"A multicolour wall-art print of Lord Ganesha seated on a lotus, presented in a glossy bubble-crystal frame. The listing describes a lightweight rectangular design for a puja room, living room, hallway, or office.","details":{"Brand":"The Gifters Hub","Artwork":"Lord Ganesha seated on a lotus","Frame":"Bubble crystal / crystal frame","Material":"Crystal glass, resin; PVC frame","Finish":"Glossy, multicolour","Mounting":"Wall mount","Size":"Amazon title says 12 x 18 in; specifications say 60 x 30 cm. Confirm dimensions with seller.","Weight":"750 g","Origin":"India"},"options":{},"sourceUrl":"https://www.amazon.in/Gifters-Hub-Crystal-Photoframe-Multicolour/dp/B0H51G6F4D","sourceName":"Amazon"},
-{"slug":"radha-krishna-bubble-crystal-photoframe","name":"The Gifters Hub Bubble Crystal Radha Krishna Photoframe","category":"photo-frames","price":599,"mrp":1499,"rating":0,"reviews":0,"badge":"Amazon listing","tag":"High-gloss finish - 18 x 24 in","stock":null,"image":"/products/radha-krishna-bubble-crystal-photoframe.jpg","desc":"A multicolour Radha Krishna wall-art photoframe featuring Krishna with a flute. The Amazon listing title describes a high-gloss bubble-crystal finish and an 18 x 24 inch format.","details":{"Brand":"The Gifters Hub","Artwork":"Radha Krishna with flute","Frame":"Bubble crystal photoframe","Finish":"High gloss, multicolour","Size":"18 x 24 inches (as stated in listing title)"},"availabilityNote":"Amazon showed one left when checked; price and availability can change.","options":{},"sourceUrl":"https://www.amazon.in/Gifters-Hub-Photoframe-Multicolour-Religious/dp/B0H518YVQ4","sourceName":"Amazon"}
+  {
+    "slug": "radha-ka-mohan-radha-krishna",
+    "name": "Radha Ka Mohan",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Radha Ka Mohan",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 10 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Radha Ka Mohan devotional wall frame. Catalogue size: 11 x 10 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. It brings colour and character to prayer corners and festive family displays. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/radha-ka-mohan-radha-krishna-main.webp",
+    "gallery": [
+      "/products/radha-ka-mohan-radha-krishna-main.webp",
+      "/products/radha-ka-mohan-radha-krishna-2.webp",
+      "/products/radha-ka-mohan-radha-krishna-3.webp"
+    ]
+  },
+  {
+    "slug": "radha-ka-mohan-delux-radha-krishna",
+    "name": "Radha Ka Mohan Delux",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Radha Ka Mohan Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 10 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Radha Ka Mohan Delux devotional wall frame. Catalogue size: 11 x 10 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A devotional accent for your home. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/radha-ka-mohan-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/radha-ka-mohan-delux-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "radha-ka-mohan-light-radha-krishna",
+    "name": "Radha Ka Mohan Light",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Radha Ka Mohan Light",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 10 inches",
+      "Finish options": "Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Radha Ka Mohan Light devotional wall frame. Catalogue size: 11 x 10 inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. A meaningful detail for prayer spaces and interiors. A meaningful choice for prayer corners, festive decor, and family occasions.",
+    "image": "/products/radha-ka-mohan-light-radha-krishna-main.webp",
+    "gallery": [
+      "/products/radha-ka-mohan-light-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "madhur-milan-radha-krishna",
+    "name": "Madhur Milan",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Madhur Milan",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 10 inches",
+      "Finish options": "Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Madhur Milan devotional wall frame. Catalogue size: 11 x 10 inches; finish options: Antique. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/madhur-milan-radha-krishna-main.webp",
+    "gallery": [
+      "/products/madhur-milan-radha-krishna-main.webp",
+      "/products/madhur-milan-radha-krishna-2.webp",
+      "/products/madhur-milan-radha-krishna-3.webp"
+    ]
+  },
+  {
+    "slug": "madhur-milan-delux-radha-krishna",
+    "name": "Madhur Milan Delux",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Madhur Milan Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 10 inches",
+      "Finish options": "Silver"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Madhur Milan Delux devotional wall frame. Catalogue size: 11 x 10 inches; finish options: Silver. Display it in a mandir, living room, study, or entryway. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays. A devotional accent for your home.",
+    "image": "/products/madhur-milan-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/madhur-milan-delux-radha-krishna-main.webp",
+      "/products/madhur-milan-delux-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "gopal-priya-radha-krishna",
+    "name": "Gopal Priya",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Gopal Priya",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 8.5 inches",
+      "Finish options": "Multicolour, Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Gopal Priya devotional wall frame. Catalogue size: 11 x 8.5 inches; finish options: Multicolour, Golden. Display it in a mandir, living room, study, or entryway. A meaningful detail for prayer spaces and interiors. It brings colour and character to prayer corners and festive family displays.",
+    "image": "/products/gopal-priya-radha-krishna-main.webp",
+    "gallery": [
+      "/products/gopal-priya-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "gopal-priya-light-radha-krishna",
+    "name": "Gopal Priya Light",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Gopal Priya Light",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 8.5 inches",
+      "Finish options": "Multicolour, Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Gopal Priya Light devotional wall frame. Catalogue size: 11 x 8.5 inches; finish options: Multicolour, Golden. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/gopal-priya-light-radha-krishna-main.webp",
+    "gallery": [
+      "/products/gopal-priya-light-radha-krishna-main.webp",
+      "/products/gopal-priya-light-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "madan-mohan-radha-krishna",
+    "name": "Madan Mohan",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Madan Mohan",
+      "Artwork": "Radha Krishna",
+      "Size": "11 x 8.5 inches",
+      "Finish options": "Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Madan Mohan devotional wall frame. Catalogue size: 11 x 8.5 inches; finish options: Antique. Display it in a mandir, living room, study, or entryway. It adds devotional character to your thoughtfully styled home. It brings colour and character to prayer corners and festive family displays.",
+    "image": "/products/madan-mohan-radha-krishna-main.webp",
+    "gallery": [
+      "/products/madan-mohan-radha-krishna-main.webp",
+      "/products/madan-mohan-radha-krishna-2.webp",
+      "/products/madan-mohan-radha-krishna-3.webp",
+      "/products/madan-mohan-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "krishna-priya-radha-krishna",
+    "name": "Krishna Priya",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Krishna Priya",
+      "Artwork": "Radha Krishna",
+      "Size": "15 x 7.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Krishna Priya devotional wall frame. Catalogue size: 15 x 7.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. It brings a thoughtful devotional touch to daily prayer and festive displays. It adds devotional character to your thoughtfully styled home.",
+    "image": "/products/krishna-priya-radha-krishna-main.webp",
+    "gallery": [
+      "/products/krishna-priya-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "govinda-antique-radha-krishna",
+    "name": "Govinda Antique",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Govinda Antique",
+      "Artwork": "Radha Krishna",
+      "Size": "15 x 7.5 inches",
+      "Finish options": "Golden, Silver, Copper, Brass"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Govinda Antique devotional wall frame. Catalogue size: 15 x 7.5 inches; finish options: Golden, Silver, Copper, Brass. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/govinda-antique-radha-krishna-main.webp",
+    "gallery": [
+      "/products/govinda-antique-radha-krishna-main.webp",
+      "/products/govinda-antique-radha-krishna-2.webp",
+      "/products/govinda-antique-radha-krishna-3.webp",
+      "/products/govinda-antique-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "govinda-delux-radha-krishna",
+    "name": "Govinda Delux",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Govinda Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "15 x 7.5 inches",
+      "Finish options": "Silver"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Govinda Delux devotional wall frame. Catalogue size: 15 x 7.5 inches; finish options: Silver. Display it in a mandir, living room, study, or entryway. A meaningful detail for prayer spaces and interiors. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/govinda-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/govinda-delux-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "govinda-multi-radha-krishna",
+    "name": "Govinda Multi",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Govinda Multi",
+      "Artwork": "Radha Krishna",
+      "Size": "15 x 7.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Govinda Multi devotional wall frame. Catalogue size: 15 x 7.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays. A graceful accent for devotional home decor.",
+    "image": "/products/govinda-multi-radha-krishna-main.webp",
+    "gallery": [
+      "/products/govinda-multi-radha-krishna-main.webp",
+      "/products/govinda-multi-radha-krishna-2.webp",
+      "/products/govinda-multi-radha-krishna-3.webp",
+      "/products/govinda-multi-radha-krishna-4.webp",
+      "/products/govinda-multi-radha-krishna-5.webp"
+    ]
+  },
+  {
+    "slug": "govinda-multi-delux-radha-krishna",
+    "name": "Govinda Multi Delux",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Govinda Multi Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "15 x 7.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Govinda Multi Delux devotional wall frame. Catalogue size: 15 x 7.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays. A devotional accent for your home.",
+    "image": "/products/govinda-multi-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/govinda-multi-delux-radha-krishna-main.webp",
+      "/products/govinda-multi-delux-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "kishan-kanhaiya-radha-krishna",
+    "name": "Kishan Kanhaiya",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Kishan Kanhaiya",
+      "Artwork": "Radha Krishna",
+      "Size": "10.5 x 5.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Kishan Kanhaiya devotional wall frame. Catalogue size: 10.5 x 5.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. Its expressive devotional artwork suits a mandir and other carefully styled home interiors. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/kishan-kanhaiya-radha-krishna-main.webp",
+    "gallery": [
+      "/products/kishan-kanhaiya-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "shyam-sunder-radha-krishna",
+    "name": "Shyam Sunder",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Shyam Sunder",
+      "Artwork": "Radha Krishna",
+      "Size": "10.5 x 5.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Shyam Sunder devotional wall frame. Catalogue size: 10.5 x 5.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/shyam-sunder-radha-krishna-main.webp",
+    "gallery": [
+      "/products/shyam-sunder-radha-krishna-main.webp",
+      "/products/shyam-sunder-radha-krishna-2.webp",
+      "/products/shyam-sunder-radha-krishna-3.webp"
+    ]
+  },
+  {
+    "slug": "shyam-sunder-delux-radha-krishna",
+    "name": "Shyam Sunder Delux",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Shyam Sunder Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "10.5 x 5.5 inches",
+      "Finish options": "Silver"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Shyam Sunder Delux devotional wall frame. Catalogue size: 10.5 x 5.5 inches; finish options: Silver. Display it in a mandir, living room, study, or entryway. It brings a thoughtful devotional touch to daily prayer and festive displays. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/shyam-sunder-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/shyam-sunder-delux-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "jugal-kishore-golden-radha-krishna",
+    "name": "Jugal Kishore Golden",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Jugal Kishore Golden",
+      "Artwork": "Radha Krishna",
+      "Size": "10.5 x 5.5 inches",
+      "Finish options": "Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Jugal Kishore Golden devotional wall frame. Catalogue size: 10.5 x 5.5 inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. It brings colour and character to prayer corners and festive family displays. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/jugal-kishore-golden-radha-krishna-main.webp",
+    "gallery": [
+      "/products/jugal-kishore-golden-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "jugal-kishore-radha-krishna",
+    "name": "Jugal Kishore",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Jugal Kishore",
+      "Artwork": "Radha Krishna",
+      "Size": "10.5 x 5.5 inches",
+      "Finish options": "Silver, Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Jugal Kishore devotional wall frame. Catalogue size: 10.5 x 5.5 inches; finish options: Silver, Golden. Display it in a mandir, living room, study, or entryway. A meaningful detail for prayer spaces and interiors. It brings colour and character to prayer corners and festive family displays.",
+    "image": "/products/jugal-kishore-radha-krishna-main.webp",
+    "gallery": [
+      "/products/jugal-kishore-radha-krishna-main.webp",
+      "/products/jugal-kishore-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "jugal-kishore-delux-radha-krishna",
+    "name": "Jugal Kishore Delux",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Jugal Kishore Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "10.5 x 5.5 Inches",
+      "Finish options": "Silver"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Jugal Kishore Delux devotional wall frame. Catalogue size: 10.5 x 5.5 Inches; finish options: Silver. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/jugal-kishore-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/jugal-kishore-delux-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "30-no-ganesha",
+    "name": "30 No. - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "30 No.",
+      "Artwork": "Ganesha",
+      "Size": "9 x 9 inches",
+      "Finish options": "Golden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the 30 No. - Ganesha devotional wall frame. Catalogue size: 9 x 9 inches; finish options: Golden, Antique. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/30-no-ganesha-main.webp",
+    "gallery": [
+      "/products/30-no-ganesha-main.webp",
+      "/products/30-no-ganesha-2.webp"
+    ]
+  },
+  {
+    "slug": "30-no-radha-krishna",
+    "name": "30 No. - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "30 No.",
+      "Artwork": "Radha Krishna",
+      "Size": "9 x 9 inches",
+      "Finish options": "Golden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the 30 No. - Radha Krishna devotional wall frame. Catalogue size: 9 x 9 inches; finish options: Golden, Antique. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. It brings a thoughtful devotional touch to daily prayer and festive displays.",
+    "image": "/products/30-no-radha-krishna-main.webp",
+    "gallery": [
+      "/products/30-no-radha-krishna-main.webp",
+      "/products/30-no-radha-krishna-2.webp",
+      "/products/30-no-radha-krishna-3.webp",
+      "/products/30-no-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "iskcon-temple-radha-krishna",
+    "name": "ISKCON Temple - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "ISKCON Temple",
+      "Artwork": "Radha Krishna",
+      "Size": "11.5 x 8.5 inches",
+      "Finish options": "Multicolour, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the ISKCON Temple - Radha Krishna devotional wall frame. Catalogue size: 11.5 x 8.5 inches; finish options: Multicolour, Golden, Wooden. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. A meaningful choice for prayer corners, festive decor, and family occasions.",
+    "image": "/products/iskcon-temple-radha-krishna-main.webp",
+    "gallery": [
+      "/products/iskcon-temple-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "iskcon-temple-ganesha",
+    "name": "ISKCON Temple - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "ISKCON Temple",
+      "Artwork": "Ganesha",
+      "Size": "11.5 x 8.5 inches",
+      "Finish options": "Multicolour, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the ISKCON Temple - Ganesha devotional wall frame. Catalogue size: 11.5 x 8.5 inches; finish options: Multicolour, Golden, Wooden. Display it in a mandir, living room, study, or entryway. Its detailed artwork suits prayer corners and festive home displays. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/iskcon-temple-ganesha-main.webp",
+    "gallery": [
+      "/products/iskcon-temple-ganesha-main.webp"
+    ]
+  },
+  {
+    "slug": "400-no-radha-krishna",
+    "name": "400 No. - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "400 No.",
+      "Artwork": "Radha Krishna",
+      "Size": "11.5 x 8.5 inches",
+      "Finish options": "Multicolour, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the 400 No. - Radha Krishna devotional wall frame. Catalogue size: 11.5 x 8.5 inches; finish options: Multicolour, Golden, Wooden. Display it in a mandir, living room, study, or entryway. A devotional accent for your home. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/400-no-radha-krishna-main.webp",
+    "gallery": [
+      "/products/400-no-radha-krishna-main.webp",
+      "/products/400-no-radha-krishna-2.webp",
+      "/products/400-no-radha-krishna-3.webp",
+      "/products/400-no-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "400-no-ganesha",
+    "name": "400 No. - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "400 No.",
+      "Artwork": "Ganesha",
+      "Size": "11.5 x 8.5 inches",
+      "Finish options": "Multicolour, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the 400 No. - Ganesha devotional wall frame. Catalogue size: 11.5 x 8.5 inches; finish options: Multicolour, Golden, Wooden. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/400-no-ganesha-main.webp",
+    "gallery": [
+      "/products/400-no-ganesha-main.webp",
+      "/products/400-no-ganesha-2.webp",
+      "/products/400-no-ganesha-3.webp",
+      "/products/400-no-ganesha-4.webp",
+      "/products/400-no-ganesha-5.webp"
+    ]
+  },
+  {
+    "slug": "600-no-ganesha",
+    "name": "600 No. - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "600 No.",
+      "Artwork": "Ganesha",
+      "Size": "11.5 x 11 Inches",
+      "Finish options": "Multicolour, Antique, Golden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the 600 No. - Ganesha devotional wall frame. Catalogue size: 11.5 x 11 Inches; finish options: Multicolour, Antique, Golden. Display it in a mandir, living room, study, or entryway. A devotional accent for your home. It brings a thoughtful devotional touch to daily prayer and festive displays.",
+    "image": "/products/600-no-ganesha-main.webp",
+    "gallery": [
+      "/products/600-no-ganesha-main.webp",
+      "/products/600-no-ganesha-2.webp"
+    ]
+  },
+  {
+    "slug": "600-no-radha-krishna",
+    "name": "600 No. - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "600 No.",
+      "Artwork": "Radha Krishna",
+      "Size": "11.5 x 11 Inches",
+      "Finish options": "Multicolour, Antique, Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the 600 No. - Radha Krishna devotional wall frame. Catalogue size: 11.5 x 11 Inches; finish options: Multicolour, Antique, Golden. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A thoughtful gift for celebrations.",
+    "image": "/products/600-no-radha-krishna-main.webp",
+    "gallery": [
+      "/products/600-no-radha-krishna-main.webp",
+      "/products/600-no-radha-krishna-2.webp",
+      "/products/600-no-radha-krishna-3.webp",
+      "/products/600-no-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "602-no-ganesha",
+    "name": "602 No. - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "602 No.",
+      "Artwork": "Ganesha",
+      "Size": "13.5 x 13 inches",
+      "Finish options": "Multicolour, Antique, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the 602 No. - Ganesha devotional wall frame. Catalogue size: 13.5 x 13 inches; finish options: Multicolour, Antique, Golden, Wooden. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. It brings colour and character to prayer corners and festive family displays.",
+    "image": "/products/602-no-ganesha-main.webp",
+    "gallery": [
+      "/products/602-no-ganesha-main.webp",
+      "/products/602-no-ganesha-2.webp",
+      "/products/602-no-ganesha-3.webp",
+      "/products/602-no-ganesha-4.webp"
+    ]
+  },
+  {
+    "slug": "602-no-radha-krishna",
+    "name": "602 No. - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "602 No.",
+      "Artwork": "Radha Krishna",
+      "Size": "13.5 x 13 inches",
+      "Finish options": "Multicolour, Antique, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the 602 No. - Radha Krishna devotional wall frame. Catalogue size: 13.5 x 13 inches; finish options: Multicolour, Antique, Golden, Wooden. Display it in a mandir, living room, study, or entryway. Its detailed artwork suits prayer corners and festive home displays. A graceful detail for prayer.",
+    "image": "/products/602-no-radha-krishna-main.webp",
+    "gallery": [
+      "/products/602-no-radha-krishna-main.webp",
+      "/products/602-no-radha-krishna-2.webp",
+      "/products/602-no-radha-krishna-3.webp",
+      "/products/602-no-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "jhopri-ganesha",
+    "name": "Jhopri - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Jhopri",
+      "Artwork": "Ganesha",
+      "Size": "12.5 x 7 Inches",
+      "Finish options": "Wooden, Golden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Jhopri - Ganesha devotional wall frame. Catalogue size: 12.5 x 7 Inches; finish options: Wooden, Golden, Antique. Display it in a mandir, living room, study, or entryway. It brings a thoughtful devotional touch to daily prayer and festive displays. A graceful accent for devotional home decor.",
+    "image": "/products/jhopri-ganesha-main.webp",
+    "gallery": [
+      "/products/jhopri-ganesha-main.webp",
+      "/products/jhopri-ganesha-2.webp",
+      "/products/jhopri-ganesha-3.webp",
+      "/products/jhopri-ganesha-4.webp",
+      "/products/jhopri-ganesha-5.webp"
+    ]
+  },
+  {
+    "slug": "jhopri-radha-krishna",
+    "name": "Jhopri - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Jhopri",
+      "Artwork": "Radha Krishna",
+      "Size": "12.5 x 7 Inches",
+      "Finish options": "Wooden, Golden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Jhopri - Radha Krishna devotional wall frame. Catalogue size: 12.5 x 7 Inches; finish options: Wooden, Golden, Antique. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. It brings a thoughtful devotional touch to daily prayer and festive displays.",
+    "image": "/products/jhopri-radha-krishna-main.webp",
+    "gallery": [
+      "/products/jhopri-radha-krishna-main.webp",
+      "/products/jhopri-radha-krishna-2.webp",
+      "/products/jhopri-radha-krishna-3.webp",
+      "/products/jhopri-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "shree-krishan-govind-radha-krishna",
+    "name": "Shree Krishan Govind",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Shree Krishan Govind",
+      "Artwork": "Radha Krishna",
+      "Size": "12 x 9 inches",
+      "Finish options": "Wooden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Shree Krishan Govind devotional wall frame. Catalogue size: 12 x 9 inches; finish options: Wooden, Antique. Display it in a mandir, living room, study, or entryway. It adds devotional character to your thoughtfully styled home. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/shree-krishan-govind-radha-krishna-main.webp",
+    "gallery": [
+      "/products/shree-krishan-govind-radha-krishna-main.webp",
+      "/products/shree-krishan-govind-radha-krishna-2.webp",
+      "/products/shree-krishan-govind-radha-krishna-3.webp",
+      "/products/shree-krishan-govind-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "338-no-ganesha",
+    "name": "338 No. - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "338 No.",
+      "Artwork": "Ganesha",
+      "Size": "13 x 10 inches",
+      "Finish options": "Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the 338 No. - Ganesha devotional wall frame. Catalogue size: 13 x 10 inches; finish options: Golden, Wooden. Display it in a mandir, living room, study, or entryway. It adds devotional character to your thoughtfully styled home. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/338-no-ganesha-main.webp",
+    "gallery": [
+      "/products/338-no-ganesha-main.webp",
+      "/products/338-no-ganesha-2.webp",
+      "/products/338-no-ganesha-3.webp",
+      "/products/338-no-ganesha-4.webp"
+    ]
+  },
+  {
+    "slug": "338-no-radha-krishna",
+    "name": "338 No. - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "338 No.",
+      "Artwork": "Radha Krishna",
+      "Size": "13 x 10 inches",
+      "Finish options": "Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the 338 No. - Radha Krishna devotional wall frame. Catalogue size: 13 x 10 inches; finish options: Golden, Wooden. Display it in a mandir, living room, study, or entryway. It brings colour and character to prayer corners and festive family displays. A graceful detail for prayer.",
+    "image": "/products/338-no-radha-krishna-main.webp",
+    "gallery": [
+      "/products/338-no-radha-krishna-main.webp",
+      "/products/338-no-radha-krishna-2.webp",
+      "/products/338-no-radha-krishna-3.webp",
+      "/products/338-no-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "338-no-ram-darbar",
+    "name": "338 No. - Ram Darbar",
+    "category": "god-frames",
+    "subject": "Ram Darbar",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "338 No.",
+      "Artwork": "Ram Darbar",
+      "Size": "13 x 10 inches",
+      "Finish options": "Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ram Darbar through the 338 No. - Ram Darbar devotional wall frame. Catalogue size: 13 x 10 inches; finish options: Golden, Wooden. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/338-no-ram-darbar-main.webp",
+    "gallery": [
+      "/products/338-no-ram-darbar-main.webp"
+    ]
+  },
+  {
+    "slug": "krishna-upvan-multi-radha-krishna",
+    "name": "Krishna Upvan Multi - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Krishna Upvan Multi",
+      "Artwork": "Radha Krishna",
+      "Size": "14 x 11 Inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Krishna Upvan Multi - Radha Krishna devotional wall frame. Catalogue size: 14 x 11 Inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. It brings a thoughtful devotional touch to daily prayer and festive displays.",
+    "image": "/products/krishna-upvan-multi-radha-krishna-main.webp",
+    "gallery": [
+      "/products/krishna-upvan-multi-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "krishna-upvan-multi-radha-krishna-with-back-board",
+    "name": "Krishna Upvan Multi - Radha Krishna with Back Board",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Krishna Upvan Multi",
+      "Artwork": "Radha Krishna",
+      "Size": "14 x 11 Inches",
+      "Finish options": "Multicolour",
+      "Back board": "Shown in the catalogue"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Krishna Upvan Multi - Radha Krishna with Back Board devotional wall frame. Catalogue size: 14 x 11 Inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. It adds devotional character to your thoughtfully styled home. A graceful detail for prayer.",
+    "image": "/products/krishna-upvan-multi-radha-krishna-with-back-board-main.webp",
+    "gallery": [
+      "/products/krishna-upvan-multi-radha-krishna-with-back-board-main.webp"
+    ]
+  },
+  {
+    "slug": "krishna-upvan-radha-krishna",
+    "name": "Krishna Upvan",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Krishna Upvan",
+      "Artwork": "Radha Krishna",
+      "Size": "14 x 11 Inches",
+      "Finish options": "Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Krishna Upvan devotional wall frame. Catalogue size: 14 x 11 Inches; finish options: Antique. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/krishna-upvan-radha-krishna-main.webp",
+    "gallery": [
+      "/products/krishna-upvan-radha-krishna-main.webp",
+      "/products/krishna-upvan-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "shree-ram-janki-ram-and-sita",
+    "name": "Shree Ram Janki - Ram and Sita",
+    "category": "god-frames",
+    "subject": "Ram and Sita",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Shree Ram Janki",
+      "Artwork": "Ram and Sita",
+      "Size": "13.5 x 10.5 inches",
+      "Finish options": "Golden, Antique, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ram and Sita through the Shree Ram Janki - Ram and Sita devotional wall frame. Catalogue size: 13.5 x 10.5 inches; finish options: Golden, Antique, Wooden. Display it in a mandir, living room, study, or entryway. A devotional accent for your home. A graceful accent for devotional home decor.",
+    "image": "/products/shree-ram-janki-ram-and-sita-main.webp",
+    "gallery": [
+      "/products/shree-ram-janki-ram-and-sita-main.webp",
+      "/products/shree-ram-janki-ram-and-sita-2.webp",
+      "/products/shree-ram-janki-ram-and-sita-3.webp",
+      "/products/shree-ram-janki-ram-and-sita-4.webp"
+    ]
+  },
+  {
+    "slug": "shree-ram-janki-ram-and-sita-with-back-board",
+    "name": "Shree Ram Janki - Ram and Sita with Back Board",
+    "category": "god-frames",
+    "subject": "Ram and Sita",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Shree Ram Janki",
+      "Artwork": "Ram and Sita",
+      "Size": "13.5 x 10.5 inches",
+      "Finish options": "Golden, Antique, Wooden",
+      "Back board": "Shown in the catalogue"
+    },
+    "options": {},
+    "desc": "Explore Ram and Sita through the Shree Ram Janki - Ram and Sita with Back Board devotional wall frame. Catalogue size: 13.5 x 10.5 inches; finish options: Golden, Antique, Wooden. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. A thoughtful gift for celebrations.",
+    "image": "/products/shree-ram-janki-ram-and-sita-with-back-board-main.webp",
+    "gallery": [
+      "/products/shree-ram-janki-ram-and-sita-with-back-board-main.webp"
+    ]
+  },
+  {
+    "slug": "shree-ram-janki-light-ram-and-sita",
+    "name": "Shree Ram Janki Light",
+    "category": "god-frames",
+    "subject": "Ram and Sita",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Shree Ram Janki Light",
+      "Artwork": "Ram and Sita",
+      "Size": "13.5 x 10.5 inches",
+      "Finish options": "Golden"
+    },
+    "options": {},
+    "desc": "Explore Ram and Sita through the Shree Ram Janki Light devotional wall frame. Catalogue size: 13.5 x 10.5 inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A graceful accent for devotional home decor.",
+    "image": "/products/shree-ram-janki-light-ram-and-sita-main.webp",
+    "gallery": [
+      "/products/shree-ram-janki-light-ram-and-sita-main.webp"
+    ]
+  },
+  {
+    "slug": "ram-darbar-ram-darbar",
+    "name": "Ram Darbar",
+    "category": "god-frames",
+    "subject": "Ram Darbar",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Ram Darbar",
+      "Artwork": "Ram Darbar",
+      "Size": "8.6 x 11 inches",
+      "Finish options": "Golden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Ram Darbar through the Ram Darbar devotional wall frame. Catalogue size: 8.6 x 11 inches; finish options: Golden, Antique. Display it in a mandir, living room, study, or entryway. Its expressive devotional artwork suits a mandir and other carefully styled home interiors. A graceful accent for devotional home decor.",
+    "image": "/products/ram-darbar-ram-darbar-main.webp",
+    "gallery": [
+      "/products/ram-darbar-ram-darbar-main.webp",
+      "/products/ram-darbar-ram-darbar-2.webp"
+    ]
+  },
+  {
+    "slug": "ram-darbar-with-light-ram-darbar",
+    "name": "Ram Darbar With Light",
+    "category": "god-frames",
+    "subject": "Ram Darbar",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Ram Darbar With Light",
+      "Artwork": "Ram Darbar",
+      "Size": "8.6 x 11 inches",
+      "Finish options": "Golden"
+    },
+    "options": {},
+    "desc": "Explore Ram Darbar through the Ram Darbar With Light devotional wall frame. Catalogue size: 8.6 x 11 inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. It brings colour and character to prayer corners and festive family displays.",
+    "image": "/products/ram-darbar-with-light-ram-darbar-main.webp",
+    "gallery": [
+      "/products/ram-darbar-with-light-ram-darbar-main.webp"
+    ]
+  },
+  {
+    "slug": "ram-manohar-ram-darbar",
+    "name": "Ram Manohar",
+    "category": "god-frames",
+    "subject": "Ram Darbar",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Ram Manohar",
+      "Artwork": "Ram Darbar",
+      "Size": "6 x 4 inches",
+      "Finish options": "Golden, Brass, Copper, Silver"
+    },
+    "options": {},
+    "desc": "Explore Ram Darbar through the Ram Manohar devotional wall frame. Catalogue size: 6 x 4 inches; finish options: Golden, Brass, Copper, Silver. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/ram-manohar-ram-darbar-main.webp",
+    "gallery": [
+      "/products/ram-manohar-ram-darbar-main.webp",
+      "/products/ram-manohar-ram-darbar-2.webp",
+      "/products/ram-manohar-ram-darbar-3.webp",
+      "/products/ram-manohar-ram-darbar-4.webp"
+    ]
+  },
+  {
+    "slug": "ayodhya-ram-mandir-antique-ram-mandir",
+    "name": "Ayodhya Ram Mandir Antique",
+    "category": "god-frames",
+    "subject": "Ram Mandir",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Ayodhya Ram Mandir Antique",
+      "Artwork": "Ram Mandir",
+      "Size": "9.5 x 8.5 Inches",
+      "Finish options": "Antique"
+    },
+    "options": {},
+    "desc": "Explore Ram Mandir through the Ayodhya Ram Mandir Antique devotional wall frame. Catalogue size: 9.5 x 8.5 Inches; finish options: Antique. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/ayodhya-ram-mandir-antique-ram-mandir-main.webp",
+    "gallery": [
+      "/products/ayodhya-ram-mandir-antique-ram-mandir-main.webp"
+    ]
+  },
+  {
+    "slug": "ayodhya-ram-mandir-golden-ram-mandir",
+    "name": "Ayodhya Ram Mandir Golden",
+    "category": "god-frames",
+    "subject": "Ram Mandir",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Ayodhya Ram Mandir Golden",
+      "Artwork": "Ram Mandir",
+      "Size": "9.5 x 8.5 Inches",
+      "Finish options": "Golden"
+    },
+    "options": {},
+    "desc": "Explore Ram Mandir through the Ayodhya Ram Mandir Golden devotional wall frame. Catalogue size: 9.5 x 8.5 Inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. It brings colour and character to prayer corners and festive family displays. A graceful accent for devotional home decor.",
+    "image": "/products/ayodhya-ram-mandir-golden-ram-mandir-main.webp",
+    "gallery": [
+      "/products/ayodhya-ram-mandir-golden-ram-mandir-main.webp"
+    ]
+  },
+  {
+    "slug": "mahadev-shambhu-shiva",
+    "name": "Mahadev Shambhu - Shiva",
+    "category": "god-frames",
+    "subject": "Shiva",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Mahadev Shambhu",
+      "Artwork": "Shiva",
+      "Size": "14 x 11 inches",
+      "Finish options": "Golden"
+    },
+    "options": {},
+    "desc": "Explore Shiva through the Mahadev Shambhu - Shiva devotional wall frame. Catalogue size: 14 x 11 inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. Its expressive devotional artwork suits a mandir and other carefully styled home interiors. A graceful accent for devotional home decor.",
+    "image": "/products/mahadev-shambhu-shiva-main.webp",
+    "gallery": [
+      "/products/mahadev-shambhu-shiva-main.webp"
+    ]
+  },
+  {
+    "slug": "mahadev-shambhu-shiva-with-back-board",
+    "name": "Mahadev Shambhu - Shiva with Back Board",
+    "category": "god-frames",
+    "subject": "Shiva",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Mahadev Shambhu",
+      "Artwork": "Shiva",
+      "Size": "14 x 11 inches",
+      "Finish options": "Golden",
+      "Back board": "Shown in the catalogue"
+    },
+    "options": {},
+    "desc": "Explore Shiva through the Mahadev Shambhu - Shiva with Back Board devotional wall frame. Catalogue size: 14 x 11 inches; finish options: Golden. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/mahadev-shambhu-shiva-with-back-board-main.webp",
+    "gallery": [
+      "/products/mahadev-shambhu-shiva-with-back-board-main.webp"
+    ]
+  },
+  {
+    "slug": "dayanidhi-ganesha",
+    "name": "Dayanidhi - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Dayanidhi",
+      "Artwork": "Ganesha",
+      "Size": "15.5 x 9.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Dayanidhi - Ganesha devotional wall frame. Catalogue size: 15.5 x 9.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/dayanidhi-ganesha-main.webp",
+    "gallery": [
+      "/products/dayanidhi-ganesha-main.webp"
+    ]
+  },
+  {
+    "slug": "dayanidhi-radha-krishna",
+    "name": "Dayanidhi - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Dayanidhi",
+      "Artwork": "Radha Krishna",
+      "Size": "15.5 x 9.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Dayanidhi - Radha Krishna devotional wall frame. Catalogue size: 15.5 x 9.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/dayanidhi-radha-krishna-main.webp",
+    "gallery": [
+      "/products/dayanidhi-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "haripriya-radha-krishna",
+    "name": "Haripriya",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Haripriya",
+      "Artwork": "Radha Krishna",
+      "Size": "15.5 x 9.5 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Haripriya devotional wall frame. Catalogue size: 15.5 x 9.5 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. It brings colour and character to prayer corners and festive family displays. Its detailed artwork suits prayer corners and festive home displays.",
+    "image": "/products/haripriya-radha-krishna-main.webp",
+    "gallery": [
+      "/products/haripriya-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "341-no-ganesha",
+    "name": "341 No. - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "341 No.",
+      "Artwork": "Ganesha",
+      "Size": "8.5 x 7 inches",
+      "Finish options": "Antique, Golden, Cherry"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the 341 No. - Ganesha devotional wall frame. Catalogue size: 8.5 x 7 inches; finish options: Antique, Golden, Cherry. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. A meaningful choice for prayer corners, festive decor, and family occasions.",
+    "image": "/products/341-no-ganesha-main.webp",
+    "gallery": [
+      "/products/341-no-ganesha-main.webp",
+      "/products/341-no-ganesha-2.webp"
+    ]
+  },
+  {
+    "slug": "341-no-radha-krishna",
+    "name": "341 No. - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "341 No.",
+      "Artwork": "Radha Krishna",
+      "Size": "8.5 x 7 inches",
+      "Finish options": "Antique, Golden, Cherry"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the 341 No. - Radha Krishna devotional wall frame. Catalogue size: 8.5 x 7 inches; finish options: Antique, Golden, Cherry. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A graceful detail for prayer.",
+    "image": "/products/341-no-radha-krishna-main.webp",
+    "gallery": [
+      "/products/341-no-radha-krishna-main.webp",
+      "/products/341-no-radha-krishna-2.webp",
+      "/products/341-no-radha-krishna-3.webp",
+      "/products/341-no-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "munshi-ganesh-light-ganesha",
+    "name": "Munshi Ganesh Light",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Munshi Ganesh Light",
+      "Artwork": "Ganesha",
+      "Size": "12.5 x 9.5 x 3 inches",
+      "Finish options": "Multicolour"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Munshi Ganesh Light devotional wall frame. Catalogue size: 12.5 x 9.5 x 3 inches; finish options: Multicolour. Display it in a mandir, living room, study, or entryway. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays. A thoughtful gift for celebrations.",
+    "image": "/products/munshi-ganesh-light-ganesha-main.webp",
+    "gallery": [
+      "/products/munshi-ganesh-light-ganesha-main.webp",
+      "/products/munshi-ganesh-light-ganesha-2.webp",
+      "/products/munshi-ganesh-light-ganesha-3.webp"
+    ]
+  },
+  {
+    "slug": "club-1-ganesha",
+    "name": "Club 1 - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Club 1",
+      "Artwork": "Ganesha",
+      "Size": "16 x 14.5 Inches",
+      "Finish options": "Antique, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Club 1 - Ganesha devotional wall frame. Catalogue size: 16 x 14.5 Inches; finish options: Antique, Golden, Wooden. Display it in a mandir, living room, study, or entryway. It brings a thoughtful devotional touch to daily prayer and festive displays. A devotional accent for your home.",
+    "image": "/products/club-1-ganesha-main.webp",
+    "gallery": [
+      "/products/club-1-ganesha-main.webp"
+    ]
+  },
+  {
+    "slug": "club-1-radha-krishna",
+    "name": "Club 1 - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Club 1",
+      "Artwork": "Radha Krishna",
+      "Size": "16 x 14.5 Inches",
+      "Finish options": "Antique, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Club 1 - Radha Krishna devotional wall frame. Catalogue size: 16 x 14.5 Inches; finish options: Antique, Golden, Wooden. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A thoughtful gift for celebrations.",
+    "image": "/products/club-1-radha-krishna-main.webp",
+    "gallery": [
+      "/products/club-1-radha-krishna-main.webp",
+      "/products/club-1-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "club-1-sai-baba",
+    "name": "Club 1 - Sai Baba",
+    "category": "god-frames",
+    "subject": "Sai Baba",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Club 1",
+      "Artwork": "Sai Baba",
+      "Size": "16 x 14.5 Inches",
+      "Finish options": "Antique, Golden, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Sai Baba through the Club 1 - Sai Baba devotional wall frame. Catalogue size: 16 x 14.5 Inches; finish options: Antique, Golden, Wooden. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A thoughtful gift for celebrations.",
+    "image": "/products/club-1-sai-baba-main.webp",
+    "gallery": [
+      "/products/club-1-sai-baba-main.webp"
+    ]
+  },
+  {
+    "slug": "club-2-krishna-radha-krishna",
+    "name": "Club 2 Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Club 2 Krishna",
+      "Artwork": "Radha Krishna",
+      "Size": "16 x 14.5 Inches",
+      "Finish options": "Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Club 2 Krishna devotional wall frame. Catalogue size: 16 x 14.5 Inches; finish options: Antique. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. Its expressive devotional artwork suits a mandir and other carefully styled home interiors.",
+    "image": "/products/club-2-krishna-radha-krishna-main.webp",
+    "gallery": [
+      "/products/club-2-krishna-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "club-2-rk-radha-krishna",
+    "name": "Club 2 Rk",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Club 2 Rk",
+      "Artwork": "Radha Krishna",
+      "Size": "16 x 14.5 Inches",
+      "Finish options": "Wooden, Antique"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Club 2 Rk devotional wall frame. Catalogue size: 16 x 14.5 Inches; finish options: Wooden, Antique. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/club-2-rk-radha-krishna-main.webp",
+    "gallery": [
+      "/products/club-2-rk-radha-krishna-main.webp",
+      "/products/club-2-rk-radha-krishna-2.webp"
+    ]
+  },
+  {
+    "slug": "swastik-radha-krishna",
+    "name": "Swastik - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Swastik",
+      "Artwork": "Radha Krishna",
+      "Size": "5 x 5 Inches",
+      "Finish options": "Copper, Silver, Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Swastik - Radha Krishna devotional wall frame. Catalogue size: 5 x 5 Inches; finish options: Copper, Silver, Golden. Display it in a mandir, living room, study, or entryway. A graceful detail for prayer. It brings colour and character to prayer corners and festive family displays.",
+    "image": "/products/swastik-radha-krishna-main.webp",
+    "gallery": [
+      "/products/swastik-radha-krishna-main.webp",
+      "/products/swastik-radha-krishna-2.webp",
+      "/products/swastik-radha-krishna-3.webp",
+      "/products/swastik-radha-krishna-4.webp"
+    ]
+  },
+  {
+    "slug": "swastik-delux-radha-krishna",
+    "name": "Swastik Delux - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Swastik Delux",
+      "Artwork": "Radha Krishna",
+      "Size": "5 x 5 Inches",
+      "Finish options": "Copper, Silver, Golden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Swastik Delux - Radha Krishna devotional wall frame. Catalogue size: 5 x 5 Inches; finish options: Copper, Silver, Golden. Display it in a mandir, living room, study, or entryway. A graceful accent for devotional home decor. It adds devotional character to your thoughtfully styled home.",
+    "image": "/products/swastik-delux-radha-krishna-main.webp",
+    "gallery": [
+      "/products/swastik-delux-radha-krishna-main.webp"
+    ]
+  },
+  {
+    "slug": "swastik-ganesha",
+    "name": "Swastik - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Swastik",
+      "Artwork": "Ganesha",
+      "Size": "5 x 5 Inches",
+      "Finish options": "Copper, Silver, Golden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Swastik - Ganesha devotional wall frame. Catalogue size: 5 x 5 Inches; finish options: Copper, Silver, Golden. Display it in a mandir, living room, study, or entryway. A meaningful choice for prayer corners, festive decor, and family occasions. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/swastik-ganesha-main.webp",
+    "gallery": [
+      "/products/swastik-ganesha-main.webp",
+      "/products/swastik-ganesha-2.webp",
+      "/products/swastik-ganesha-3.webp",
+      "/products/swastik-ganesha-4.webp"
+    ]
+  },
+  {
+    "slug": "swastik-delux-ganesha",
+    "name": "Swastik Delux - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Swastik Delux",
+      "Artwork": "Ganesha",
+      "Size": "5 x 5 Inches",
+      "Finish options": "Copper, Silver, Golden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Swastik Delux - Ganesha devotional wall frame. Catalogue size: 5 x 5 Inches; finish options: Copper, Silver, Golden. Display it in a mandir, living room, study, or entryway. Its expressive devotional artwork suits a mandir and other carefully styled home interiors. A graceful detail for prayer.",
+    "image": "/products/swastik-delux-ganesha-main.webp",
+    "gallery": [
+      "/products/swastik-delux-ganesha-main.webp"
+    ]
+  },
+  {
+    "slug": "celebration-ganesha",
+    "name": "Celebration - Ganesha",
+    "category": "god-frames",
+    "subject": "Ganesha",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Celebration",
+      "Artwork": "Ganesha",
+      "Size": "6 x 4 Inches",
+      "Finish options": "Golden, Silver, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Ganesha through the Celebration - Ganesha devotional wall frame. Catalogue size: 6 x 4 Inches; finish options: Golden, Silver, Wooden. Display it in a mandir, living room, study, or entryway. A thoughtful gift for celebrations. A warm devotional touch for prayer corners, family gatherings, celebrations, and festive home displays.",
+    "image": "/products/celebration-ganesha-main.webp",
+    "gallery": [
+      "/products/celebration-ganesha-main.webp",
+      "/products/celebration-ganesha-2.webp",
+      "/products/celebration-ganesha-3.webp",
+      "/products/celebration-ganesha-4.webp",
+      "/products/celebration-ganesha-5.webp"
+    ]
+  },
+  {
+    "slug": "celebration-radha-krishna",
+    "name": "Celebration - Radha Krishna",
+    "category": "god-frames",
+    "subject": "Radha Krishna",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Celebration",
+      "Artwork": "Radha Krishna",
+      "Size": "6 x 4 Inches",
+      "Finish options": "Golden, Silver, Wooden"
+    },
+    "options": {},
+    "desc": "Explore Radha Krishna through the Celebration - Radha Krishna devotional wall frame. Catalogue size: 6 x 4 Inches; finish options: Golden, Silver, Wooden. Display it in a mandir, living room, study, or entryway. It adds devotional character to your thoughtfully styled home. A meaningful detail for prayer spaces and interiors.",
+    "image": "/products/celebration-radha-krishna-main.webp",
+    "gallery": [
+      "/products/celebration-radha-krishna-main.webp",
+      "/products/celebration-radha-krishna-2.webp",
+      "/products/celebration-radha-krishna-3.webp",
+      "/products/celebration-radha-krishna-4.webp",
+      "/products/celebration-radha-krishna-5.webp",
+      "/products/celebration-radha-krishna-6.webp",
+      "/products/celebration-radha-krishna-7.webp",
+      "/products/celebration-radha-krishna-8.webp"
+    ]
+  },
+  {
+    "slug": "heart-family-photo-frame",
+    "name": "Heart Family Photo Frame",
+    "category": "family-frames",
+    "subject": "Family",
+    "price": null,
+    "mrp": null,
+    "available": false,
+    "status": "coming-soon",
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Price coming soon",
+    "stock": null,
+    "details": {
+      "Model": "Heart Family Photo Frame",
+      "Artwork": "Family photographs",
+      "Size": "20 x 9 inches",
+      "Finish options": "Wooden, Black"
+    },
+    "options": {},
+    "desc": "Discover the Heart Family Photo Frame, a keepsake for family photographs. Catalogue size: 20 x 9 inches; finish options: Wooden, Black. Place it on a console, shelf, or wall where family gathers. The frame makes family moments part of everyday home decor. A lovely detail for shared rooms and memories.",
+    "image": "/products/heart-family-photo-frame-main.webp",
+    "gallery": [
+      "/products/heart-family-photo-frame-main.webp",
+      "/products/heart-family-photo-frame-2.webp",
+      "/products/heart-family-photo-frame-3.webp",
+      "/products/heart-family-photo-frame-4.webp",
+      "/products/heart-family-photo-frame-5.webp"
+    ]
+  }
 ]
