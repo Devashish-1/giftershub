@@ -6,6 +6,15 @@ import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
 
 const NAV = [['Hampers', 'gift-hampers'], ['Idols', 'idols'], ['Car Murtis', 'car-murtis'], ['Malas', 'malas'], ['Pooja', 'pooja']];
+const SOCIAL = [
+  ['Instagram', 'https://www.instagram.com/thegiftershub/'],
+  ['Facebook', 'https://www.facebook.com/p/thegiftershub-61563390688639'],
+  ['Magicpin', 'https://magicpin.in/New-Delhi/Jai-Vihar/Other/The-Gifters-Hub/store/26062b4'],
+  ['YouTube', 'https://www.youtube.com/@Thegiftershub-TGH'],
+];
+const ADDRESS = 'B - 21, Street No. 3, Dichaon Enclave, Kalan, Dichaon Kalan, Delhi, 110043, Jai Vihar, New Delhi';
+const MAP_URL = 'https://www.google.com/maps?q=28.6297333,76.996915';
+const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=15&output=embed';
 
 export default function Shell({ children }) {
   const { count, setOpen } = useCart(), router = useRouter(), [copied, setCopied] = useState(false);
@@ -21,10 +30,30 @@ export default function Shell({ children }) {
       </div>
     </div></header>
     <main>{children}</main>
-    <footer><div className="wrap">
-      <span>© 2026 The Gifter’s Hub · Gifts &amp; Decor</span>
-      <nav>{NAV.slice(0, 4).map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
-    </div></footer>
+    <footer className="site-footer">
+      <div className="wrap footer-grid">
+        <div className="footer-brand">
+          <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
+          <p>Thoughtful gifts, divine idols and keepsakes for the moments worth remembering.</p>
+          <div className="footer-social">{SOCIAL.map(([name, url]) => <a key={name} href={url} target="_blank" rel="noreferrer">{name}<span aria-hidden="true">↗</span></a>)}</div>
+        </div>
+        <div className="footer-links">
+          <h3>Explore</h3>
+          <nav>{NAV.map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
+        </div>
+        <div className="footer-contact">
+          <h3>Visit or get in touch</h3>
+          <a className="footer-address" href={MAP_URL} target="_blank" rel="noreferrer">{ADDRESS}<span>Get directions ↗</span></a>
+          <a className="footer-phone" href="tel:+919555532044">+91 95555 32044</a>
+          <a className="footer-magicpin" href={SOCIAL[2][1]} target="_blank" rel="noreferrer">Find us on Magicpin ↗</a>
+        </div>
+        <div className="footer-map">
+          <iframe title="Map showing The Gifter’s Hub in Jai Vihar, New Delhi" src={MAP_EMBED_URL} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+          <a href={MAP_URL} target="_blank" rel="noreferrer">Jai Vihar, New Delhi <b>Open map ↗</b></a>
+        </div>
+      </div>
+      <div className="wrap footer-bottom"><span>© 2026 The Gifter’s Hub · Gifts &amp; Decor</span><span>Free shipping over ₹999 · Gift wrap available</span></div>
+    </footer>
     <nav className="bottom">
       <Link href="/"><span>⌂</span>Home</Link><Link href="/shop"><span>▦</span>Shop</Link>
       <Link href="/shop?category=gift-hampers"><span>♡</span>Gifts</Link>
