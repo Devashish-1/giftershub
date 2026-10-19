@@ -3,6 +3,8 @@ Next.js 14 (frontend) + Express (backend).
 
 ## Run locally
 
+Copy `backend/.env.example` to `backend/.env` and set the MongoDB Atlas connection URI before starting the API. Keep the URI private; `.env` files are ignored by Git.
+
     cd backend
     npm install
     npm run dev
@@ -23,7 +25,14 @@ The frontend runs at `http://localhost:3000`; the API runs at `http://localhost:
 2. Set **Root Directory** to `backend`.
 3. Set **Build Command** to `npm install`.
 4. Set **Start Command** to `HOST=0.0.0.0 npm start`.
-5. After deployment, copy the service URL (for example, `https://gifter-hub-api.onrender.com`). Check that `<service-url>/health` returns `{"ok":true}`.
+5. Add `MONGODB_URI` and `MONGODB_DB_NAME=gifters_hub` to the Render service's Environment settings. Set `NODE_ENV=production` so account cookies are secure.
+6. After deployment, copy the service URL (for example, `https://gifter-hub-api.onrender.com`). Check that `<service-url>/health` returns `{"ok":true,"database":"connected"}`.
+
+### MongoDB Atlas
+
+Create a free M0 cluster, then create a database user with read/write access only to the `gifters_hub` database. Add the Render service's outbound IPs to Atlas Network Access when available; if the free Render instance does not provide stable outbound IPs, Atlas may require `0.0.0.0/0`. In that case, use a unique, strong database-user password and the least-privilege database role. Copy the driver's SRV connection string into Render's `MONGODB_URI` secret; never commit it or put it in frontend variables.
+
+At startup, the API creates the required indexes and synchronizes the product catalog seed from `backend/data/products.json` into MongoDB. Users, scrypt-hashed passwords, sessions, and orders are stored in MongoDB. Session cookies are HTTP-only, same-site, and expire after seven days. Authentication and order endpoints return an explicit unavailable response until Atlas is connected.
 
 ### Website on Vercel
 
@@ -34,7 +43,7 @@ The frontend runs at `http://localhost:3000`; the API runs at `http://localhost:
 
 - Product images: drop `<slug>.jpg` into `frontend/public/products/` (slugs are in `backend/data/products.json`). A monogram shows until then.
 - Prices in products.json are seed values based on typical Indian listings; edit freely.
-- Coupons: GIFTHUB10, UPI5, DIWALI100. Orders are kept in memory; swap for a database.
+- Coupons: GIFTHUB10, UPI5, DIWALI100.
 
 ### Product image credits
 

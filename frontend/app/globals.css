@@ -17,6 +17,28 @@ nav.main a::after{content:'';position:absolute;left:0;bottom:0;height:1.5px;widt
 .search{position:relative}.search input{width:170px;padding:9px 16px;border:1px solid var(--line);border-radius:999px;font:inherit;font-size:13px;background:var(--alt);transition:width .3s var(--ease),background .2s}.search input:focus{width:240px;background:#fff;outline:0;border-color:var(--primary)}
 .cartbtn{position:relative;padding:9px 18px;background:var(--primary);color:#fff;border-radius:999px;font-size:13px;font-weight:600;transition:background .2s}.cartbtn:hover{background:var(--dark)}
 .cartbtn i{position:absolute;top:-6px;right:-4px;background:#fff;color:var(--primary);font-style:normal;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;box-shadow:0 1px 4px #0003}
+.login-btn{border:1px solid var(--line);border-radius:999px;padding:8px 13px;color:var(--dark);font-size:12px;font-weight:600;white-space:nowrap}
+.login-btn:hover,.account-link:hover{border-color:var(--primary);color:var(--primary)}
+.account-control{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.account-greeting{max-width:110px;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--muted)}
+.account-link{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:11px}
+.auth-global-error{position:relative;z-index:29;background:#fff3ed;color:var(--dark);padding:8px 16px;text-align:center;font-size:12px}
+.auth-overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:#211512a8;backdrop-filter:blur(5px);overflow:auto}
+.auth-dialog{position:relative;width:min(100%,440px);padding:36px;background:#fff;border:1px solid #f1e3df;border-radius:22px;box-shadow:0 24px 90px #1d0e0d45;animation:rise .25s var(--ease) both}
+.auth-close{position:absolute;top:13px;right:15px;width:36px;height:36px;border-radius:50%;font-size:25px;line-height:1}
+.auth-close:hover{background:var(--alt);color:var(--primary)}
+.auth-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:var(--primary);font-weight:600}
+.auth-dialog h2{margin-top:8px;font-size:32px;color:var(--dark)}
+.auth-intro{margin-top:6px;color:var(--muted);font-size:13px}
+.auth-form{display:grid;gap:16px;margin-top:22px}
+.auth-form label{display:grid;gap:6px;font-size:12px;font-weight:600;color:var(--text)}
+.auth-form input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:14px}
+.auth-form input:focus{outline:2px solid #9b2f2a30;border-color:var(--primary)}
+.auth-form small{font-size:11px;font-weight:400;color:var(--muted)}
+.auth-submit{width:100%;margin-top:2px}
+.auth-error{font-size:12px;color:var(--primary);background:#fff3f0;padding:10px 12px;border-radius:9px}
+.auth-switch{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center}
+.auth-switch button{color:var(--primary);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 .scrolled header.top{border-color:var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(12px)}.scrolled .bar{height:62px}.bar{transition:height .3s}
 /* buttons */
 .btn{position:relative;overflow:hidden;display:inline-block;background:var(--primary);color:#fff;padding:14px 28px;border-radius:999px;font-weight:600;font-size:14px;transition:background .25s,transform .25s var(--ease)}
@@ -111,6 +133,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .ripple{position:fixed;width:12px;height:12px;margin:-6px;border-radius:50%;border:1.5px solid var(--primary);pointer-events:none;z-index:99;animation:rip .6s ease-out forwards}@keyframes rip{to{transform:scale(7);opacity:0}}
 @media(max-width:900px){
  .wrap{padding:0 18px}.bar{grid-template-columns:auto 1fr;height:64px}nav.main,.search{display:none}.logo span{font-size:13px}
+ .tools{gap:7px}.login-btn{padding:7px 10px}.account-greeting{max-width:70px}
  .hero{grid-template-columns:1fr;padding:40px 26px;gap:10px;border-radius:22px}.hero .art{max-width:260px;margin:0 auto;order:-1}
  .cats{grid-template-columns:repeat(2,1fr);margin-top:56px}.cat{aspect-ratio:1}.grid{grid-template-columns:repeat(2,1fr);gap:22px 12px}
  .sec{margin:64px 0 20px}.banner{flex-direction:column;align-items:flex-start;padding:36px 26px;border-radius:22px;margin-top:64px}.strip{gap:14px 28px}
@@ -351,6 +374,8 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .contact-option{width:46px;height:46px;flex-basis:46px}
  .contact-option svg{width:21px;height:21px}
  .product-details dl{grid-template-columns:1fr}
+ .auth-dialog{padding:30px 22px}
+ .account-greeting{display:none}
 }
 @media(prefers-reduced-motion:reduce){
  .offer-card::before,.guide-faq details p{animation:none!important;transition:none!important}

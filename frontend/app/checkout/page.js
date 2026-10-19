@@ -1,18 +1,29 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../components/CartProvider';
+import { useAuth } from '../../components/AuthProvider';
 export default function Checkout() {
-  const { items, clear } = useCart(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false);
+  const { items, clear } = useCart(), { user, loading, openLogin } = useAuth(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false);
+  useEffect(() => { if (!loading && !user && items.length) openLogin(); }, [loading, user, items.length, openLogin]);
   const submit = async e => {
     e.preventDefault(); setBusy(true); setErr('');
-    const o = JSON.parse(sessionStorage.getItem('gh-opts') || '{}');
-    const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items.map(i => ({ slug: i.slug, qty: i.qty })), coupon: o.coupon, gift: o.gift, giftMessage: msg, customer: f }) });
-    const d = await r.json(); setBusy(false);
-    if (!r.ok) return setErr(d.error || 'Something went wrong'); clear(); setDone(d);
+    try {
+      const o = JSON.parse(sessionStorage.getItem('gh-opts') || '{}');
+      const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: items.map(i => ({ slug: i.slug, qty: i.qty })), coupon: o.coupon, gift: o.gift, giftMessage: msg, customer: f }) });
+      const d = await r.json();
+      if (!r.ok) return setErr(d.error || 'Something went wrong');
+      clear(); setDone(d);
+    } catch {
+      setErr('Could not connect to checkout. Please try again.');
+    } finally {
+      setBusy(false);
+    }
   };
   const set = k => e => setF({ ...f, [k]: e.target.value });
   if (done) return <div className="wrap form"><h1>Thank you!</h1><p>Order <b>{done.id}</b> is confirmed. Total: ₹{done.total}. We will WhatsApp you tracking details.</p><Link className="btn" href="/shop">Continue shopping</Link></div>;
+  if (loading) return <div className="wrap form"><p>Checking your account…</p></div>;
+  if (!user) return <div className="wrap form"><h1>Sign in to checkout</h1><p>Your cart is saved while you sign in or create an account.</p><button className="btn alt" type="button" onClick={openLogin}>Sign in or create account</button></div>;
   if (!items.length) return <div className="wrap form"><p>Your cart is empty.</p><Link className="btn" href="/shop">Shop now</Link></div>;
   return (<form className="wrap form" onSubmit={submit}>
     <h1>Delivery details</h1>

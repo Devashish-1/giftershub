@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
 import ContactWidget from './ContactWidget';
+import { useAuth } from './AuthProvider';
 
 const NAV = [['Hampers', 'gift-hampers'], ['Idols', 'idols'], ['Car Murtis', 'car-murtis'], ['Photo Frames', 'photo-frames']];
 const SOCIAL = [
@@ -18,7 +19,7 @@ const MAP_URL = 'https://www.google.com/maps?q=28.6297333,76.996915';
 const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=15&output=embed';
 
 export default function Shell({ children }) {
-  const { count, setOpen } = useCart(), router = useRouter(), pathname = usePathname(), [copied, setCopied] = useState(false);
+  const { count, setOpen } = useCart(), { user, openLogin, logout, authError } = useAuth(), router = useRouter(), pathname = usePathname(), [copied, setCopied] = useState(false);
   const copy = () => { navigator.clipboard?.writeText('GIFTHUB10'); setCopied(true); setTimeout(() => setCopied(false), 1500); };
   return (<>
     <div className="ann">Free shipping over ₹999 · Code <button onClick={copy}>{copied ? 'Copied!' : 'GIFTHUB10'}</button> for 10% off</div>
@@ -27,9 +28,13 @@ export default function Shell({ children }) {
       <nav className="main">{NAV.map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
       <div className="tools">
         <form className="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><input name="q" placeholder="Search" /></form>
+        {user
+          ? <div className="account-control"><span className="account-greeting">Hi, {user.name.split(' ')[0]}</span><button className="account-link" onClick={logout}>Sign out</button></div>
+          : <button className="login-btn" onClick={openLogin}>Sign in</button>}
         <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
       </div>
     </div></header>
+    {authError && <div className="auth-global-error" role="status">{authError}</div>}
     <main>{children}</main>
     <footer className="site-footer">
       <div className="wrap footer-grid">
@@ -66,13 +71,17 @@ export default function Shell({ children }) {
 }
 
 function Drawer() {
-  const { items, setQty, open, setOpen } = useCart(), [gift, setGift] = useState(false), [code, setCode] = useState(''), [applied, setApplied] = useState(''), [q, setQ] = useState(null), router = useRouter();
+  const { items, setQty, open, setOpen } = useCart(), { requireAuth } = useAuth(), [gift, setGift] = useState(false), [code, setCode] = useState(''), [applied, setApplied] = useState(''), [q, setQ] = useState(null), router = useRouter();
   useEffect(() => {
     if (!open) return;
     fetch('/api/cart/price', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, coupon: applied, gift }) }).then(r => r.json()).then(setQ).catch(() => {});
   }, [items, applied, gift, open]);
   const pct = q ? Math.min(100, ((q.sub - q.off) / 999) * 100) : 0;
-  const go = () => { setOpen(false); sessionStorage.setItem('gh-opts', JSON.stringify({ gift, coupon: applied })); router.push('/checkout'); };
+  const go = () => {
+    sessionStorage.setItem('gh-opts', JSON.stringify({ gift, coupon: applied }));
+    setOpen(false);
+    requireAuth(() => router.push('/checkout'));
+  };
   return (<>
     <div className={`scrim ${open ? 'on' : ''}`} onClick={() => setOpen(false)} />
     <aside className={`drawer ${open ? 'on' : ''}`}>
