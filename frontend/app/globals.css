@@ -196,6 +196,19 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .section-heading>a,.text-link{font-size:14px;color:var(--primary);font-weight:600;white-space:nowrap}
 .section-heading>a span,.text-link span{display:inline-block;transition:transform .25s var(--ease)}
 .section-heading>a:hover span,.text-link:hover span{transform:translateX(4px)}
+.crystal-bubble-section{margin-top:82px;padding:34px 0 30px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
+.crystal-bubble-rows{display:grid;gap:16px}
+.crystal-bubble-window{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.crystal-bubble-track{display:flex;width:max-content;animation:crystal-bubble-scroll 44s linear infinite}
+.crystal-bubble-track[data-direction='reverse']{animation-direction:reverse}
+.crystal-bubble-window:hover .crystal-bubble-track,.crystal-bubble-window:focus-within .crystal-bubble-track{animation-play-state:paused}
+.crystal-bubble-group{display:flex;flex:none}
+.crystal-bubble-slide{display:grid;gap:8px;width:clamp(160px,21vw,248px);flex:none;margin-right:16px;color:var(--text);font-size:12px;font-weight:600}
+.crystal-bubble-image{position:relative;display:block;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--alt)}
+.crystal-bubble-image img{object-fit:cover;transition:transform .45s var(--ease)}
+.crystal-bubble-slide:hover .crystal-bubble-image img,.crystal-bubble-slide:focus-visible .crystal-bubble-image img{transform:scale(1.05)}
+.crystal-bubble-slide:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
+@keyframes crystal-bubble-scroll{to{transform:translateX(-50%)}}
 .category-showcase{display:block;margin-top:0}
 .category-picker{max-width:1000px;margin:0 auto}
 .category-tiles{display:flex;justify-content:center;align-items:flex-start;gap:clamp(30px,10vw,150px);padding:8px 12px 24px}

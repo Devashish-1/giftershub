@@ -4,6 +4,7 @@ import { get } from '../lib/api';
 import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
 import CategoryCards from '../components/CategoryCards';
+import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
 
 const CATS = [
   { name: 'God Frames', slug: 'god-frames', image: '/products/radha-ka-mohan-radha-krishna-main.webp', note: 'Bring devotion home', action: 'Explore now' },
@@ -14,6 +15,7 @@ export default async function Home() {
   const all = (await get('/api/products')) || [];
   const featured = all.filter(p => p.category === 'god-frames').slice(0, 3)
     .concat(all.filter(p => p.category === 'family-frames').slice(0, 1));
+  const crystalBubbleProducts = all.filter(product => product.category === 'crystal-bubble');
   const categories = CATS.map(category => {
     const products = all.filter(product => product.category === category.slug);
     const images = [...new Set(products
@@ -31,13 +33,13 @@ export default async function Home() {
   return (<div className="wrap home-page">
     <section className="hero">
       <div className="hero-copy">
-        <div className="eyebrow">Devotional art &amp; meaningful keepsakes</div>
+        <div className="eyebrow">Crystal bubble art &amp; meaningful keepsakes</div>
         <h1>Give a little <em>meaning.</em></h1>
-        <p>Explore devotional wall frames and family photo frames from The Gifter’s Hub catalogue.</p>
+        <p>Discover crystal bubble frames, devotional art, and family keepsakes from The Gifter’s Hub catalogue.</p>
         <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <div className="art">
-        <Image className="hero-main" src="/products/radha-ka-mohan-radha-krishna-main.webp" alt="Radha Ka Mohan devotional wall frame" width={1035} height={923} priority sizes="(max-width: 900px) 285px, (max-width: 1180px) 38vw, 430px" />
+        <Image className="hero-main" src="/products/crystal-bubble-19.png" alt="Crystal Bubble Frame 19" width={1035} height={923} priority sizes="(max-width: 900px) 285px, (max-width: 1180px) 38vw, 430px" />
         <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
         <div className="hero-seal" aria-hidden="true">With<br />love</div>
       </div>
@@ -49,6 +51,7 @@ export default async function Home() {
         <Link href="/shop">Explore everything <span aria-hidden="true">→</span></Link>
       </div>
       <Reveal className="category-showcase"><CategoryCards categories={categories} /></Reveal>
+      <CrystalBubbleShowcase products={crystalBubbleProducts} />
     </section>
 
     <section className="collection-section" aria-labelledby="popular-heading">
@@ -61,8 +64,8 @@ export default async function Home() {
 
     <Reveal className="story">
       <div className="story-art">
-        <Image className="story-main" src="/products/30-no-ganesha-main.webp" alt="Ganesha devotional wall frame" width={1024} height={1009} sizes="(max-width: 900px) 90vw, 42vw" />
-        <Image className="story-detail" src="/products/heart-family-photo-frame-main.webp" alt="" width={1024} height={420} sizes="(max-width: 900px) 32vw, 15vw" />
+        <Image className="story-main" src="/products/crystal-bubble-14.png" alt="Crystal Bubble Frame 14" width={1024} height={1009} sizes="(max-width: 900px) 90vw, 42vw" />
+        <Image className="story-detail" src="/products/crystal-bubble-15.png" alt="" width={1024} height={420} sizes="(max-width: 900px) 32vw, 15vw" />
         <span className="story-caption">Little details. A lot of heart.</span>
       </div>
       <div className="story-copy">

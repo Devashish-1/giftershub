@@ -20,7 +20,10 @@ const DATABASE_NAME = process.env.MONGODB_DB_NAME || 'gifters_hub';
 const SESSION_COOKIE = 'gh_session';
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const FREE_SHIP = 999, GIFT_WRAP = 99;
-const products = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/products.json'), 'utf8'));
+const products = [
+  ...JSON.parse(fs.readFileSync(path.join(__dirname, 'data/products.json'), 'utf8')),
+  ...JSON.parse(fs.readFileSync(path.join(__dirname, 'data/crystal-bubble-products.json'), 'utf8')),
+];
 const coupons = {
   GIFTHUB10: { type: 'pct', value: 10 },
   UPI5: { type: 'pct', value: 5 },

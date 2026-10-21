@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { get } from '../../lib/api';
 import Reveal from '../../components/Reveal';
 import ProductCard from '../../components/ProductCard';
-const CATS = [['All', ''], ['God Frames', 'god-frames'], ['Family Photo Frames', 'family-frames']];
+const CATS = [['All', ''], ['God Frames', 'god-frames'], ['Family Photo Frames', 'family-frames'], ['Crystal Bubble Frames', 'crystal-bubble']];
 const SUBJECTS = ['Radha Krishna', 'Ganesha', 'Ram Darbar', 'Ram and Sita', 'Ram Mandir', 'Shiva', 'Sai Baba'];
 const PRICE_RANGES = [
   ['Any price', null, null],
@@ -32,7 +32,7 @@ export default async function Shop({ searchParams: sp }) {
         <h2>Category</h2>
         <div className="filters">{CATS.map(([n, s]) => <Link key={n} href={link({ category: s, subject: '' })} className={(sp.category || '') === s && !sp.subject ? 'on' : ''} aria-current={(sp.category || '') === s && !sp.subject ? 'page' : undefined}>{n}</Link>)}</div>
       </div>
-      {sp.category !== 'family-frames' && <div className="filter-group">
+      {(!sp.category || sp.category === 'god-frames') && <div className="filter-group">
         <h2>Artwork</h2>
         <div className="filters">{SUBJECTS.map(subject => <Link key={subject} href={link({ category: 'god-frames', subject })} className={sp.subject === subject ? 'on' : ''} aria-current={sp.subject === subject ? 'page' : undefined}>{subject}</Link>)}</div>
       </div>}
