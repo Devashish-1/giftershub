@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { signInWithGoogle } from '../lib/firebase';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -14,7 +15,7 @@ export default function AuthProvider({ children }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const pendingAction = useRef(null);
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function AuthProvider({ children }) {
       if (!response.ok) throw new Error(result.error || 'Could not sign in. Please try again.');
       setUser(result.user);
       setOpen(false);
-      setForm({ email: '', password: '' });
+      setForm({ name: '', email: '', password: '' });
       const action = pendingAction.current;
       pendingAction.current = null;
       if (action) action();
@@ -130,6 +131,36 @@ export default function AuthProvider({ children }) {
     setError('');
   };
 
+  const googleSignIn = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const idToken = await signInWithGoogle();
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not sign in with Google.');
+      setUser(result.user);
+      setOpen(false);
+      const action = pendingAction.current;
+      pendingAction.current = null;
+      if (action) action();
+    } catch (requestError) {
+      const message = requestError.code === 'auth/unauthorized-domain'
+        ? 'Add this website domain to Firebase Authentication’s authorized domains.'
+        : requestError.code === 'auth/popup-closed-by-user'
+          ? 'The Google sign-in window was closed before completing sign-in.'
+          : requestError.message || 'Could not sign in with Google. Please try again.';
+      setError(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ user, loading, openLogin, requireAuth, logout, authError: error }}>
       {children}
@@ -143,9 +174,9 @@ export default function AuthProvider({ children }) {
             <h2 id="auth-title">Sign in or create account</h2>
             <p className="auth-intro">Choose how you’d like to continue.</p>
             <div className="auth-methods">
-              <button className="auth-method auth-google" type="button" disabled>
+              <button className="auth-method auth-google" type="button" onClick={googleSignIn} disabled={busy}>
                 <span className="auth-google-mark" aria-hidden="true">G</span>
-                Continue with Google <small>Coming soon</small>
+                Continue with Google
               </button>
               <button className="auth-method" type="button" onClick={chooseEmail}>
                 <span aria-hidden="true">✉</span> Continue with email
@@ -160,6 +191,9 @@ export default function AuthProvider({ children }) {
             <h2 id="auth-title">{mode === 'register' ? 'Create your account' : 'Sign in with email'}</h2>
             <p className="auth-intro">{mode === 'register' ? 'Create an account to continue with your cart and checkout.' : 'Sign in to continue with your cart and checkout.'}</p>
             <form onSubmit={submit} className="auth-form">
+              {mode === 'register' && <label>Your name
+                <input required type="text" autoComplete="name" minLength={2} maxLength={100} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} />
+              </label>}
               <label>Email address
                 <input required type="email" autoComplete="email" maxLength={254} value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
               </label>
