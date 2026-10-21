@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { get } from '../lib/api';
 import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
+import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
 
 const CATS = [
   { name: 'God Frames', slug: 'god-frames', image: 'radha-ka-mohan-radha-krishna', note: 'Bring devotion home' },
@@ -12,16 +13,17 @@ export default async function Home() {
   const all = (await get('/api/products')) || [];
   const featured = all.filter(p => p.category === 'god-frames').slice(0, 3)
     .concat(all.filter(p => p.category === 'family-frames').slice(0, 1));
-  return (<div className="wrap">
+  const crystalBubbleProducts = all.filter(product => product.category === 'crystal-bubble');
+  return (<div className="wrap home-page">
     <section className="hero">
       <div className="hero-copy">
-        <div className="eyebrow">Devotional art &amp; meaningful keepsakes</div>
+        <div className="eyebrow">Crystal bubble art &amp; meaningful keepsakes</div>
         <h1>Give a little <em>meaning.</em></h1>
-        <p>Explore devotional wall frames and family photo frames from The Gifter’s Hub catalogue.</p>
+        <p>Discover crystal bubble frames, devotional art, and family keepsakes from The Gifter’s Hub catalogue.</p>
         <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <div className="art">
-        <img className="hero-main" src="/products/radha-ka-mohan-radha-krishna-main.webp" alt="Radha Ka Mohan devotional wall frame" />
+  <img className="hero-main" src="/products/crystal-bubble-19.webp" alt="Crystal Bubble Frame 19" />
         <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
         <div className="hero-seal" aria-hidden="true">With<br />love</div>
       </div>
@@ -39,6 +41,8 @@ export default async function Home() {
       </Link>)}</Reveal>
     </section>
 
+        <CrystalBubbleShowcase products={crystalBubbleProducts} />
+
     <section className="collection-section" aria-labelledby="popular-heading">
       <div className="section-heading">
         <div><div className="eyebrow">From our product catalogue</div><h2 id="popular-heading">Explore the collection</h2></div>
@@ -49,8 +53,8 @@ export default async function Home() {
 
     <Reveal className="story">
       <div className="story-art">
-        <img className="story-main" src="/products/30-no-ganesha-main.webp" alt="Ganesha devotional wall frame" loading="lazy" />
-        <img className="story-detail" src="/products/heart-family-photo-frame-main.webp" alt="" loading="lazy" />
+  <img className="story-main" src="/products/crystal-bubble-14.webp" alt="Crystal Bubble Frame 14" loading="lazy" />
+  <img className="story-detail" src="/products/crystal-bubble-15.webp" alt="Crystal Bubble Frame 15" loading="lazy" />
         <span className="story-caption">Little details. A lot of heart.</span>
       </div>
       <div className="story-copy">
