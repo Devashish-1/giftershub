@@ -27,7 +27,7 @@ The frontend runs at `http://localhost:3000`; the API runs at `http://localhost:
 4. Set **Start Command** to `HOST=0.0.0.0 npm start`.
 5. Add `MONGODB_URI` and `MONGODB_DB_NAME=gifters_hub` to the Render service's Environment settings. Set `NODE_ENV=production` so account cookies are secure.
 6. After deployment, copy the service URL (for example, `https://gifter-hub-api.onrender.com`). Check that `<service-url>/health` returns `{"ok":true,"database":"connected"}`.
-7. For Google sign-in, add `FIREBASE_PROJECT_ID` and the Firebase Admin service-account JSON as `FIREBASE_SERVICE_ACCOUNT_JSON` in Render's Environment settings. Keep the service-account value private.
+7. For Google sign-in, enable Google in Firebase Authentication and add `FIREBASE_PROJECT_ID` and the Firebase Admin service-account JSON as `FIREBASE_SERVICE_ACCOUNT_JSON` in Render's Environment settings. Never paste the service-account key into chat or commit it. If exposed, revoke the key in Google Cloud IAM and create a replacement before configuring Render.
 8. To create the first administrator, set `ADMIN_EMAIL` and a unique `ADMIN_PASSWORD` of at least 16 characters. The API creates the account on startup; after it exists, the password variable can be removed. Never use a shared or default password.
 
 ### MongoDB Atlas
