@@ -1,12 +1,14 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { get } from '../lib/api';
 import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
+import CategoryCards from '../components/CategoryCards';
 import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
 
 const CATS = [
-  { name: 'God Frames', slug: 'god-frames', image: 'radha-ka-mohan-radha-krishna', note: 'Bring devotion home' },
-  { name: 'Family Photo Frames', slug: 'family-frames', image: 'heart-family-photo-frame', note: 'Keep a memory close' },
+  { name: 'God Frames', slug: 'god-frames', image: '/products/radha-ka-mohan-radha-krishna-main.webp', note: 'Bring devotion home', action: 'Explore now' },
+  { name: 'Family Photo Frames', slug: 'family-frames', image: '/products/heart-family-photo-frame-main.webp', note: 'Keep a memory close', action: 'Discover for more' },
 ];
 
 export default async function Home() {
@@ -14,6 +16,20 @@ export default async function Home() {
   const featured = all.filter(p => p.category === 'god-frames').slice(0, 3)
     .concat(all.filter(p => p.category === 'family-frames').slice(0, 1));
   const crystalBubbleProducts = all.filter(product => product.category === 'crystal-bubble');
+  const categories = CATS.map(category => {
+    const products = all.filter(product => product.category === category.slug);
+    const images = [...new Set(products
+      .flatMap(product => product.gallery?.length ? product.gallery : [product.image])
+      .filter(Boolean))];
+    if (!images.includes(category.image)) images.unshift(category.image);
+    const subcategories = [...new Set(products.map(product => product.subject).filter(Boolean))]
+      .sort((first, second) => first.localeCompare(second));
+    const previewProducts = subcategories
+      .map(subject => products.find(product => product.subject === subject))
+      .filter(Boolean)
+      .slice(0, 4);
+    return { ...category, images, subcategories, products: previewProducts };
+  });
   return (<div className="wrap home-page">
     <section className="hero">
       <div className="hero-copy">
@@ -23,7 +39,7 @@ export default async function Home() {
         <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <div className="art">
-  <img className="hero-main" src="/products/crystal-bubble-19.webp" alt="Crystal Bubble Frame 19" />
+        <Image className="hero-main" src="/products/crystal-bubble-19.webp" alt="Crystal Bubble Frame 19" width={1035} height={923} priority sizes="(max-width: 900px) 285px, (max-width: 1180px) 38vw, 430px" />
         <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
         <div className="hero-seal" aria-hidden="true">With<br />love</div>
       </div>
@@ -31,17 +47,12 @@ export default async function Home() {
 
     <section className="category-section" aria-labelledby="category-heading">
       <div className="section-heading">
-        <div><div className="eyebrow">Find your something special</div><h2 id="category-heading">Shop by collection</h2></div>
+        <div><div className="eyebrow">Find your something special</div><h2 id="category-heading">Explore our categories</h2></div>
         <Link href="/shop">Explore everything <span aria-hidden="true">→</span></Link>
       </div>
-      <Reveal className="cats">{CATS.map(({ name, slug, image, note }) => <Link className="cat" key={slug} href={`/shop?category=${slug}`}>
-        <img src={`/products/${image}-main.webp`} alt="" loading="lazy" />
-        <span className="cat-shade" />
-        <span className="cat-copy"><small>{note}</small><b>{name}</b><span className="cat-link">Discover <span aria-hidden="true">↗</span></span></span>
-      </Link>)}</Reveal>
+      <Reveal className="category-showcase"><CategoryCards categories={categories} /></Reveal>
+      <CrystalBubbleShowcase products={crystalBubbleProducts} />
     </section>
-
-        <CrystalBubbleShowcase products={crystalBubbleProducts} />
 
     <section className="collection-section" aria-labelledby="popular-heading">
       <div className="section-heading">
@@ -53,8 +64,8 @@ export default async function Home() {
 
     <Reveal className="story">
       <div className="story-art">
-  <img className="story-main" src="/products/crystal-bubble-14.webp" alt="Crystal Bubble Frame 14" loading="lazy" />
-  <img className="story-detail" src="/products/crystal-bubble-15.webp" alt="Crystal Bubble Frame 15" loading="lazy" />
+        <Image className="story-main" src="/products/crystal-bubble-14.webp" alt="Crystal Bubble Frame 14" width={1024} height={1009} sizes="(max-width: 900px) 90vw, 42vw" />
+        <Image className="story-detail" src="/products/crystal-bubble-15.webp" alt="Crystal Bubble Frame 15" width={1024} height={420} sizes="(max-width: 900px) 32vw, 15vw" />
         <span className="story-caption">Little details. A lot of heart.</span>
       </div>
       <div className="story-copy">

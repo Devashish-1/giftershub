@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { inr } from '../lib/api';
 import { useCart } from './CartProvider';
 import AddButton from './AddButton';
-export default function ProductCard({ p }) {
+export default function ProductCard({ p, priority = false }) {
   const { wish, toggleWish } = useCart();
   const priceAvailable = p.available !== false && Number.isFinite(p.price) && p.price > 0;
   const off = priceAvailable && Number.isFinite(p.mrp) && p.mrp > p.price
@@ -14,7 +15,7 @@ export default function ProductCard({ p }) {
       <Link href={`/product/${p.slug}`} className="img">
         {!priceAvailable && <span className="badge">Catalogue item</span>}
         <span className="ph">{p.name[0]}</span>
-        <img src={p.image || `/products/${p.slug}.webp`} alt={p.name} loading="lazy" style={{ objectFit: 'contain' }} onError={e => e.currentTarget.remove()} />
+        <Image src={p.image || `/products/${p.slug}.webp`} alt={p.name} fill sizes="(max-width: 520px) calc(100vw - 32px), (max-width: 900px) calc(50vw - 24px), (max-width: 1180px) 22vw, 270px" priority={priority} fetchPriority={priority ? 'high' : 'low'} style={{ objectFit: 'contain' }} onError={e => e.currentTarget.remove()} />
         <button className="heart" aria-label="Wishlist" onClick={e => { e.preventDefault(); toggleWish(p.slug); }}>{wish.includes(p.slug) ? '♥' : '♡'}</button>
         {priceAvailable && <div className="quick"><AddButton product={p} label="Quick add" /></div>}
       </Link>
