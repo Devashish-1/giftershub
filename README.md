@@ -45,6 +45,16 @@ At startup, the API creates the required indexes and synchronizes the product ca
 5. Enable **Google** in Firebase Authentication's sign-in providers and add the site's production and admin domains to Firebase's authorized domains.
 6. Deploy or redeploy after setting the environment variables.
 
+### Website on Render
+
+1. Create a **Web Service** from this GitHub repository and select the branch to deploy.
+2. Set **Root Directory** to `frontend`.
+3. Set **Build Command** to `npm install && npm run build` and **Start Command** to `npm start`.
+4. Add `API_URL` with the backend Render service URL, without a trailing slash.
+5. Add `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, and `NEXT_PUBLIC_FIREBASE_APP_ID` from the Firebase Web app settings.
+6. Enable **Google** in Firebase Authentication's sign-in providers and add the site's production and admin domains to Firebase's authorized domains.
+7. Deploy or redeploy after setting the environment variables.
+
 - Email/password sign-in is available. Google sign-in uses Firebase for identity verification and the API's HTTP-only MongoDB session for the app. It remains unavailable until Firebase Web config and the API service-account secret are set.
 - The administrator dashboard is available at `/admin`. To use `admin.example.com`, attach that hostname to the Vercel project and configure its DNS. Requests to the admin hostname are routed to the dashboard. Set `COOKIE_DOMAIN=.example.com` on the API only if sessions should be shared across subdomains.
 - Admins can review paginated customer and order records and update order/payment statuses. Online payment collection is not implemented; payment status is an operational record only.

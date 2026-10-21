@@ -46,6 +46,6 @@ export default async function Shop({ searchParams: sp }) {
     </section>
     <div className="toolbar"><span>{list.length} items</span>
       <div>{[['Popular', ''], ['Price: low', 'low'], ['Price: high', 'high'], ['Top rated', 'rating']].map(([n, s]) => <Link key={n} href={link({ sort: s })} className={(sp.sort || '') === s ? 'on' : ''}>{n}</Link>)}</div></div>
-    {list.length ? <Reveal className="grid">{list.map(p => <ProductCard key={p.slug} p={p} />)}</Reveal> : <p>No matches. Try another search.</p>}
+    {list.length ? <Reveal className="grid">{list.map((p, index) => <ProductCard key={p.slug} p={p} priority={index < 4} />)}</Reveal> : <p>No matches. Try another search.</p>}
   </div>);
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { get } from '../lib/api';
 import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
@@ -36,7 +37,7 @@ export default async function Home() {
         <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <div className="art">
-        <img className="hero-main" src="/products/radha-ka-mohan-radha-krishna-main.webp" alt="Radha Ka Mohan devotional wall frame" />
+        <Image className="hero-main" src="/products/radha-ka-mohan-radha-krishna-main.webp" alt="Radha Ka Mohan devotional wall frame" width={1035} height={923} priority sizes="(max-width: 900px) 285px, (max-width: 1180px) 38vw, 430px" />
         <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
         <div className="hero-seal" aria-hidden="true">With<br />love</div>
       </div>
