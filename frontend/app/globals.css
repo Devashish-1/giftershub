@@ -832,6 +832,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 
 /* Storefront and dashboard polish */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.mobile-categories{display:none}
 .hero .art img.hero-main{top:0;left:5%;width:90%;height:84%;object-fit:contain}
 .hero .art::before{inset:3%;background:radial-gradient(circle at 38% 32%,#fff 0,#f8ebe4 58%,#f0d5ca 100%)}
 .hero-photo-note{left:2%;bottom:1%;max-width:84%}
