@@ -31,7 +31,7 @@ export default function Shell({ children }) {
   const { count, setOpen } = useCart(), { user, openLogin, logout, authError } = useAuth(), router = useRouter(), pathname = usePathname();
   return (<>
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
-    <header className="top"><div className="wrap bar">
+    <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}`}><div className="wrap bar">
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
       <nav className="main" aria-label="Main navigation">{NAV.map(([name, href, subcategories]) => <div className="nav-item" key={name}>
         <Link className="nav-link" href={href}>{name}<span aria-hidden="true">⌄</span></Link>
@@ -40,12 +40,18 @@ export default function Shell({ children }) {
         </div>
       </div>)}</nav>
       <div className="tools">
-        <form className="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><input name="q" placeholder="Search" /></form>
+        <form className="search" role="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><label className="sr-only" htmlFor="header-search">Search products</label><input id="header-search" name="q" placeholder="Search designs" /><button type="submit" aria-label="Search catalogue">Search</button></form>
         {user
           ? <div className="account-control"><span className="account-greeting">Hi, {user.name.split(' ')[0]}</span><button className="account-link" onClick={logout}>Sign out</button></div>
           : <button className="login-btn" onClick={openLogin}>Sign in</button>}
         <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
       </div>
+      <nav className="mobile-categories" aria-label="Browse categories">
+        <Link href="/shop?category=god-frames">God Frames</Link>
+        <Link href="/shop?category=family-frames">Family Frames</Link>
+        <Link href="/shop?category=god-frames">Murtis &amp; Idols</Link>
+        {DEITY_LINKS.map(([subject, href]) => <Link key={`mobile-${subject}`} href={href}>{subject}</Link>)}
+      </nav>
     </div></header>
     {authError && <div className="auth-global-error" role="status">{authError}</div>}
     <main>{children}</main>

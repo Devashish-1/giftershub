@@ -24,9 +24,19 @@ export default async function Shop({ searchParams: sp }) {
   };
   const title = sp.subject
     ? `${sp.subject} Frames`
-    : CATS.find(c => c[1] === (sp.category || ''))?.[0];
+    : CATS.find(c => c[1] === (sp.category || ''))?.[0] || 'Shop all';
   return (<div className="wrap shop">
-    <h1>{sp.q ? `Results for “${sp.q}”` : title === 'All' ? 'Shop all' : title}</h1>
+    <div className="shop-heading">
+      <div><span className="eyebrow">THE GIFTERS HUB CATALOGUE</span><h1>{sp.q ? `Results for “${sp.q}”` : title}</h1></div>
+      <span className="shop-count">{list.length} {list.length === 1 ? 'design' : 'designs'}</span>
+    </div>
+    <form className="shop-search" action="/shop" role="search">
+      <label className="sr-only" htmlFor="shop-search">Search products</label>
+      <input id="shop-search" type="search" name="q" defaultValue={sp.q || ''} placeholder="Search by design or deity" />
+      {sp.category && <input type="hidden" name="category" value={sp.category} />}
+      {sp.subject && <input type="hidden" name="subject" value={sp.subject} />}
+      <button type="submit" className="btn">Search</button>
+    </form>
     <section className="shop-filters" aria-label="Filter products">
       <div className="filter-group">
         <h2>Category</h2>
@@ -44,8 +54,18 @@ export default async function Shop({ searchParams: sp }) {
         })}</div>
       </div>}
     </section>
-    <div className="toolbar"><span>{list.length} items</span>
-      <div>{[['Popular', ''], ['Price: low', 'low'], ['Price: high', 'high'], ['Top rated', 'rating']].map(([n, s]) => <Link key={n} href={link({ sort: s })} className={(sp.sort || '') === s ? 'on' : ''}>{n}</Link>)}</div></div>
-    {list.length ? <Reveal className="grid">{list.map((p, index) => <ProductCard key={p.slug} p={p} priority={index < 4} />)}</Reveal> : <p>No matches. Try another search.</p>}
+    <div className="toolbar">
+      <span>{sp.subject ? `Artwork: ${sp.subject}` : 'Browse the catalogue'}</span>
+      {(sp.category || sp.subject || sp.min || sp.max || sp.q) && <Link className="clear-filters" href="/shop">Clear search &amp; filters</Link>}
+      {list.some(product => Number.isFinite(product.price)) && (
+        <div aria-label="Sort products">{[['Featured', ''], ['Price: low to high', 'low'], ['Price: high to low', 'high']].map(([n, s]) => <Link key={n} href={link({ sort: s })} className={(sp.sort || '') === s ? 'on' : ''}>{n}</Link>)}</div>
+      )}
+    </div>
+    {list.length ? <>
+      {!list.some(product => product.available !== false && Number.isFinite(product.price) && product.price > 0) && (
+        <p className="catalogue-notice">Retail prices and ordering are coming soon. Product pages include available dimensions and finish details.</p>
+      )}
+      <Reveal className="grid">{list.map((p, index) => <ProductCard key={p.slug} p={p} priority={index < 4} />)}</Reveal>
+    </> : <div className="shop-empty"><h2>No designs found</h2><p>Try a different deity or search term, or browse the full catalogue.</p><Link className="btn" href="/shop">Browse all designs</Link></div>}
   </div>);
 }

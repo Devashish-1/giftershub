@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-function CategoryCard({ category, onActivate }) {
+function CategoryCard({ category, onActivate, onToggle, isOpen }) {
   const { name, slug, image, images, note, action } = category;
   const [currentImage, setCurrentImage] = useState(image);
 
@@ -38,13 +38,22 @@ function CategoryCard({ category, onActivate }) {
       </span>
       <b>{name}</b>
       <span className="category-tile-note">{note}</span>
+      <button
+        className="category-browse-toggle"
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={`category-preview-${slug}`}
+        onClick={() => onToggle(slug)}
+      >
+        {isOpen ? 'Hide artwork' : 'Browse by artwork'} <span aria-hidden="true">{isOpen ? '−' : '+'}</span>
+      </button>
     </article>
   );
 }
 
 function CategoryPreview({ category }) {
   return (
-    <div className="category-preview">
+    <div className="category-preview" id={`category-preview-${category.slug}`}>
       <div className="category-subcategories">
         <div className="eyebrow">Browse by style</div>
         <h3>{category.name}</h3>
@@ -81,7 +90,13 @@ export default function CategoryCards({ categories }) {
     <div className="category-picker" onMouseLeave={() => setActiveSlug(null)}>
       <div className="category-tiles">
         {categories.map(category => (
-          <CategoryCard key={category.slug} category={category} onActivate={setActiveSlug} />
+          <CategoryCard
+            key={category.slug}
+            category={category}
+            onActivate={setActiveSlug}
+            onToggle={slug => setActiveSlug(current => current === slug ? null : slug)}
+            isOpen={activeSlug === category.slug}
+          />
         ))}
       </div>
       {activeCategory && (

@@ -39,22 +39,27 @@ export default function VyapaarOverview() {
       {loading && !overview
         ? <p className="admin-loading">Loading business overview…</p>
         : overview && <>
-          <section className="vyapaar-metrics" aria-label="Current business overview">
+          <section className="vyapaar-metrics" aria-label="Key business indicators">
             <article><span>Catalogue items</span><b>{overview.summary.productCount ?? 0}</b><small>Active: {overview.summary.activeProductCount ?? 0}</small></article>
             <article><span>Stock on hand</span><b>{overview.summary.stockUnits ?? 0}</b><small>Total tracked units</small></article>
-            <article><span>Low-stock items</span><b>{overview.summary.lowStockCount ?? 0}</b><small>At or below configured threshold</small></article>
-            <article><span>Orders</span><b>{overview.summary.orderCount}</b><small>All-time order count</small></article>
-            <article><span>Recorded order value</span><b>{money(overview.summary.orderValue)}</b><small>All-time; not accounting revenue</small></article>
-            <article><span>Payments pending</span><b>{overview.summary.pendingPayments}</b><small>Order payment records</small></article>
-            <article><span>Registered customers</span><b>{overview.summary.userCount}</b><small>Customer accounts</small></article>
+            <Link href="/admin/vyapaar/stock" className={overview.summary.lowStockCount > 0 ? 'vyapaar-metric-alert' : ''}><span>Low-stock items</span><b>{overview.summary.lowStockCount ?? 0}</b><small>Review inventory levels →</small></Link>
             <article><span>Sales invoices</span><b>{overview.summary.invoiceCount}</b><small>Issued in Vyapaar</small></article>
-            <article><span>Recorded sales</span><b>{money(overview.summary.salesValue)}</b><small>Invoice totals, INR</small></article>
             <article><span>Customer receivables</span><b>{money(overview.summary.receivables)}</b><small>Unpaid invoice balances</small></article>
-            <article><span>Supplier purchases</span><b>{overview.summary.purchaseCount ?? 0}</b><small>{money(overview.summary.purchaseValue)} recorded</small></article>
             <article><span>Supplier payables</span><b>{money(overview.summary.payables)}</b><small>Unpaid purchase balances</small></article>
-            <article><span>Saved customers</span><b>{overview.summary.partyCustomerCount ?? 0}</b><small>Reusable contact records</small></article>
-            <article><span>Saved suppliers</span><b>{overview.summary.supplierCount ?? 0}</b><small>Reusable contact records</small></article>
           </section>
+          <details className="vyapaar-more-metrics">
+            <summary>More business metrics</summary>
+            <div className="vyapaar-secondary-metrics">
+              <article><span>Orders</span><b>{overview.summary.orderCount}</b><small>All-time order count</small></article>
+              <article><span>Recorded order value</span><b>{money(overview.summary.orderValue)}</b><small>All-time; not accounting revenue</small></article>
+              <article><span>Payments pending</span><b>{overview.summary.pendingPayments}</b><small>Order payment records</small></article>
+              <article><span>Registered customers</span><b>{overview.summary.userCount}</b><small>Customer accounts</small></article>
+              <article><span>Recorded sales</span><b>{money(overview.summary.salesValue)}</b><small>Invoice totals, INR</small></article>
+              <article><span>Supplier purchases</span><b>{overview.summary.purchaseCount ?? 0}</b><small>{money(overview.summary.purchaseValue)} recorded</small></article>
+              <article><span>Saved customers</span><b>{overview.summary.partyCustomerCount ?? 0}</b><small>Reusable contact records</small></article>
+              <article><span>Saved suppliers</span><b>{overview.summary.supplierCount ?? 0}</b><small>Reusable contact records</small></article>
+            </div>
+          </details>
           <section className="vyapaar-quick-actions" aria-labelledby="vyapaar-actions-title">
             <div className="vyapaar-section-heading"><span className="vyapaar-eyebrow">GET STARTED</span><h2 id="vyapaar-actions-title">Business actions</h2></div>
             <div className="vyapaar-action-grid">

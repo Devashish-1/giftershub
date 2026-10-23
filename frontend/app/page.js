@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard';
 import CategoryCards from '../components/CategoryCards';
 import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
 import HeroSlideshow from '../components/HeroSlideshow';
+import GoogleReviewsCarousel from '../components/GoogleReviewsCarousel';
 
 const CATS = [
   { name: 'God Frames', slug: 'god-frames', image: '/products/radha-ka-mohan-radha-krishna-main.webp', note: 'Bring devotion home', action: 'Explore now' },
@@ -48,6 +49,16 @@ export default async function Home() {
         <Link href="/shop">Explore everything <span aria-hidden="true">→</span></Link>
       </div>
       <Reveal className="category-showcase"><CategoryCards categories={categories} /></Reveal>
+      {categories.find(category => category.slug === 'god-frames')?.subcategories.length > 0 && (
+        <div className="deity-browse">
+          <span className="eyebrow">Devotional art</span>
+          <nav aria-label="Browse god frames by deity">
+            {categories.find(category => category.slug === 'god-frames').subcategories.map(subject => (
+              <Link key={subject} href={`/shop?category=god-frames&subject=${encodeURIComponent(subject)}`}>{subject}</Link>
+            ))}
+          </nav>
+        </div>
+      )}
       <CrystalBubbleShowcase products={crystalBubbleProducts} />
     </section>
 
@@ -58,6 +69,8 @@ export default async function Home() {
       </div>
       <Reveal className="grid">{featured.map(p => <ProductCard key={p.slug} p={p} />)}</Reveal>
     </section>
+
+    <GoogleReviewsCarousel />
 
     <Reveal className="story">
       <div className="story-art">
@@ -108,6 +121,10 @@ export default async function Home() {
       </div>
     </section>
 
-    <div className="strip"><span><b>66 catalogue designs</b></span><span><b>Retail prices</b> coming soon</span><span><b>Browse details</b> and catalogue images</span></div>
+    <div className="store-promise-strip" aria-label="Catalogue information">
+      <div><span aria-hidden="true">01</span><b>Real catalogue designs</b><small>Browse the available product photos</small></div>
+      <div><span aria-hidden="true">02</span><b>Clear product details</b><small>Check dimensions and finish options</small></div>
+      <div><span aria-hidden="true">03</span><b>Need a hand?</b><small><a href="tel:+919555532044">Call +91 95555 32044</a></small></div>
+    </div>
   </div>);
 }
