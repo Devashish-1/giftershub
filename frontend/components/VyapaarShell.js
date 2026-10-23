@@ -1,0 +1,80 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuth } from './AuthProvider';
+
+const NAVIGATION = [
+  { label: 'Overview', href: '/admin/vyapaar', icon: '◫' },
+  { label: 'Items & Inventory', href: '/admin/vyapaar/items', icon: '▤' },
+  { label: 'Categories & Units', href: '/admin/vyapaar/categories', icon: '▦' },
+  { label: 'Data Import', href: '/admin/vyapaar/import', icon: '⇧' },
+  { label: 'Stock Adjustments', href: '/admin/vyapaar/stock', icon: '↕' },
+  { label: 'Purchases', href: '/admin/vyapaar/purchases', icon: '↓' },
+  { label: 'Sales & Invoices', href: '/admin/vyapaar/sales', icon: '▧' },
+  { label: 'Customers & Suppliers', href: '/admin/vyapaar/parties', icon: '♧' },
+  { label: 'Business Settings', href: '/admin/vyapaar/settings', icon: '⚙' },
+];
+
+const PLANNED = [
+  'Sales Returns',
+  'Purchase Returns',
+  'Expenses',
+  'Cash & Bank',
+  'Reports',
+  'Barcode label generation',
+  'Activity Log',
+];
+
+export default function VyapaarShell({ children }) {
+  const pathname = usePathname();
+  const { user, loading, openLogin } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) openLogin();
+  }, [loading, user, openLogin]);
+
+  if (loading || !user) {
+    return <div className="wrap vyapaar-loading">Checking administrator access…</div>;
+  }
+
+  if (user.role !== 'admin') {
+    return <div className="wrap vyapaar-loading"><p className="admin-denied">Administrator access is required for Vyapaar.</p></div>;
+  }
+
+  return (
+    <div className="vyapaar-layout">
+      <aside className="vyapaar-sidebar" aria-label="Vyapaar business navigation">
+        <Link className="vyapaar-brand" href="/admin/vyapaar">
+          <span className="vyapaar-brand-mark" aria-hidden="true">V</span>
+          <span><b>Vyapaar</b><small>BY THE GIFTERS HUB</small></span>
+        </Link>
+        <Link className="vyapaar-back-link" href="/admin">← Admin dashboard</Link>
+        <span className="vyapaar-nav-label">BUSINESS</span>
+        <nav className="vyapaar-nav">
+          {NAVIGATION.map(item => {
+            const active = item.href === '/admin/vyapaar'
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link className={active ? 'active' : ''} href={item.href} key={item.href} aria-current={active ? 'page' : undefined}>
+                <span aria-hidden="true">{item.icon}</span>{item.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <span className="vyapaar-nav-label vyapaar-coming-label">PLANNED MODULES</span>
+        <ul className="vyapaar-planned">{PLANNED.map(item => <li key={item}><span aria-hidden="true">·</span>{item}<small>Coming later</small></li>)}</ul>
+        <div className="vyapaar-sidebar-footer"><span className="vyapaar-status-dot" />Inventory and invoicing tools</div>
+      </aside>
+      <main className="vyapaar-main">
+        <header className="vyapaar-topbar">
+          <span>Business management <span aria-hidden="true">/</span> <b>{NAVIGATION.find(item => item.href === pathname || pathname.startsWith(`${item.href}/`))?.label || 'Vyapaar'}</b></span>
+          <span className="vyapaar-user">{user.name || user.email}</span>
+        </header>
+        {children}
+      </main>
+    </div>
+  );
+}

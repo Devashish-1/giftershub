@@ -1,6 +1,54 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+const IMAGE_DIMENSIONS = {
+  'crystal-bubble-01.webp': [1000, 1209],
+  'crystal-bubble-02.webp': [1000, 1197],
+  'crystal-bubble-03.webp': [1000, 1036],
+  'crystal-bubble-04.webp': [817, 1280],
+  'crystal-bubble-05.webp': [833, 1280],
+  'crystal-bubble-06.webp': [814, 1280],
+  'crystal-bubble-07.webp': [793, 1280],
+  'crystal-bubble-08.webp': [810, 1280],
+  'crystal-bubble-09.webp': [802, 1280],
+  'crystal-bubble-10.webp': [824, 1280],
+  'crystal-bubble-11.webp': [802, 1280],
+  'crystal-bubble-12.webp': [792, 1280],
+  'crystal-bubble-13.webp': [1000, 750],
+  'crystal-bubble-14.webp': [1000, 750],
+  'crystal-bubble-15.webp': [1000, 750],
+  'crystal-bubble-16.webp': [1000, 750],
+  'crystal-bubble-17.webp': [1000, 750],
+  'crystal-bubble-18.webp': [1000, 750],
+  'crystal-bubble-19.webp': [1000, 750],
+};
+
+function CrystalBubbleSlide({ product, repeated }) {
+  const dimensions = IMAGE_DIMENSIONS[product.image?.split('/').pop()] || [1000, 750];
+  const slideWidth = Math.min(292, Math.max(140, Math.round(220 * dimensions[0] / dimensions[1])));
+
+  return (
+    <Link
+      className="crystal-bubble-slide"
+      href={`/product/${product.slug}`}
+      aria-label={`View ${product.name}`}
+      tabIndex={repeated ? -1 : undefined}
+      style={{ width: `${slideWidth}px` }}
+    >
+      <span className="crystal-bubble-image">
+        <Image
+          src={product.image}
+          alt={product.name}
+          width={dimensions[0]}
+          height={dimensions[1]}
+          sizes="(max-width: 520px) 220px, 292px"
+        />
+      </span>
+      <span>{product.name}</span>
+    </Link>
+  );
+}
+
 function CrystalBubbleRow({ products, direction }) {
   return (
     <div className="crystal-bubble-window">
@@ -8,18 +56,11 @@ function CrystalBubbleRow({ products, direction }) {
         {[false, true].map((repeated, groupIndex) => (
           <div className="crystal-bubble-group" key={groupIndex} aria-hidden={repeated || undefined}>
             {products.map(product => (
-              <Link
-                className="crystal-bubble-slide"
-                href={`/product/${product.slug}`}
+              <CrystalBubbleSlide
                 key={`${groupIndex}-${product.slug}`}
-                aria-label={`View ${product.name}`}
-                tabIndex={repeated ? -1 : undefined}
-              >
-                <span className="crystal-bubble-image">
-                  <Image src={product.image} alt={product.name} fill sizes="(max-width: 520px) 70vw, 248px" />
-                </span>
-                <span>{product.name}</span>
-              </Link>
+                product={product}
+                repeated={repeated}
+              />
             ))}
           </div>
         ))}

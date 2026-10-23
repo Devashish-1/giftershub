@@ -5,6 +5,7 @@ import Reveal from '../components/Reveal';
 import ProductCard from '../components/ProductCard';
 import CategoryCards from '../components/CategoryCards';
 import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
+import HeroSlideshow from '../components/HeroSlideshow';
 
 const CATS = [
   { name: 'God Frames', slug: 'god-frames', image: '/products/radha-ka-mohan-radha-krishna-main.webp', note: 'Bring devotion home', action: 'Explore now' },
@@ -38,11 +39,7 @@ export default async function Home() {
         <p>Discover crystal bubble frames, devotional art, and family keepsakes from The Gifter’s Hub catalogue.</p>
         <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
-      <div className="art">
-        <Image className="hero-main" src="/products/crystal-bubble-19.webp" alt="Crystal Bubble Frame 19" width={1035} height={923} priority sizes="(max-width: 900px) 285px, (max-width: 1180px) 38vw, 430px" />
-        <div className="hero-photo-note"><span>Made for meaningful moments</span><b>A little joy, beautifully shared</b></div>
-        <div className="hero-seal" aria-hidden="true">With<br />love</div>
-      </div>
+      <HeroSlideshow />
     </section>
 
     <section className="category-section" aria-labelledby="category-heading">

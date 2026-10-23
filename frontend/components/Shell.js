@@ -4,10 +4,19 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
+import { GOD_FRAME_SUBJECTS } from '../lib/catalog';
 import ContactWidget from './ContactWidget';
 import { useAuth } from './AuthProvider';
 
-const NAV = [['God Frames', 'god-frames'], ['Family Frames', 'family-frames']];
+const DEITY_LINKS = GOD_FRAME_SUBJECTS.map(subject => [
+  subject,
+  `/shop?category=god-frames&subject=${encodeURIComponent(subject)}`,
+]);
+const NAV = [
+  ['God Frames', '/shop?category=god-frames', [['All God Frames', '/shop?category=god-frames'], ...DEITY_LINKS]],
+  ['Family Frames', '/shop?category=family-frames', [['Family Photo Frames', '/shop?category=family-frames&subject=Family']]],
+  ['Murtis & Idols', '/shop?category=god-frames', DEITY_LINKS],
+];
 const SOCIAL = [
   ['Instagram', 'https://www.instagram.com/thegiftershub/'],
   ['Facebook', 'https://www.facebook.com/p/thegiftershub-61563390688639'],
@@ -24,7 +33,12 @@ export default function Shell({ children }) {
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
     <header className="top"><div className="wrap bar">
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
-      <nav className="main">{NAV.map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
+      <nav className="main" aria-label="Main navigation">{NAV.map(([name, href, subcategories]) => <div className="nav-item" key={name}>
+        <Link className="nav-link" href={href}>{name}<span aria-hidden="true">⌄</span></Link>
+        <div className="nav-dropdown" aria-label={`${name} subcategories`}>
+          {subcategories.map(([subcategory, subcategoryHref]) => <Link key={subcategory} href={subcategoryHref}>{subcategory}</Link>)}
+        </div>
+      </div>)}</nav>
       <div className="tools">
         <form className="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><input name="q" placeholder="Search" /></form>
         {user
@@ -44,7 +58,7 @@ export default function Shell({ children }) {
         </div>
         <div className="footer-links">
           <h3>Explore</h3>
-          <nav>{NAV.map(([n, s]) => <Link key={s} href={`/shop?category=${s}`}>{n}</Link>)}</nav>
+          <nav>{NAV.map(([name, href]) => <Link key={name} href={href}>{name}</Link>)}</nav>
           <h3 className="footer-legal-heading">Policies</h3>
           <nav><Link href="/terms">Terms &amp; Conditions</Link><Link href="/privacy">Privacy Policy</Link></nav>
         </div>
