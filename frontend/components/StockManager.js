@@ -155,7 +155,7 @@ export default function StockManager() {
               <span className={movement.quantity > 0 ? 'positive' : 'negative'}>{movement.quantity > 0 ? '+' : ''}{movement.quantity}</span>
               <span>{movement.previousStock} → {movement.newStock}</span>
             </article>
-          ))}
+          ))
           : <p className="admin-empty">No stock movements have been recorded yet.</p>}
       </section>
     </div>
