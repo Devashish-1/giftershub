@@ -84,7 +84,7 @@ export default function CrystalBubbleShowcase({ products }) {
           <div className="eyebrow">New collection</div>
           <h2 id="crystal-bubble-heading">Crystal Bubble Frames</h2>
         </div>
-        <Link href="/shop?category=crystal-bubble">Browse the collection <span aria-hidden="true">→</span></Link>
+        <Link href="/shop/crystal-bubble">Browse the collection <span aria-hidden="true">→</span></Link>
       </div>
       <div className="crystal-bubble-rows">
         <CrystalBubbleRow products={rows[0]} direction="forward" />

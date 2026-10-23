@@ -1,8 +1,15 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Terms & Conditions | The Gifter’s Hub',
+  title: 'Terms & Conditions',
   description: 'Terms for using The Gifter’s Hub website and placing an order.',
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    type: 'website',
+    title: 'Terms & Conditions | The Gifter’s Hub',
+    description: 'Terms for using The Gifter’s Hub website and placing an order.',
+    url: '/terms',
+  },
 };
 
 export default function TermsPage() {

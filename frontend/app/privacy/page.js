@@ -1,8 +1,15 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Privacy Policy | The Gifter’s Hub',
+  title: 'Privacy Policy',
   description: 'How The Gifter’s Hub handles account, order and delivery information.',
+  alternates: { canonical: '/privacy' },
+  openGraph: {
+    type: 'website',
+    title: 'Privacy Policy | The Gifter’s Hub',
+    description: 'How The Gifter’s Hub handles account, order and delivery information.',
+    url: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {

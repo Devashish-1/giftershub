@@ -5,17 +5,19 @@ import { useEffect, useState } from 'react';
 import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
 import { GOD_FRAME_SUBJECTS } from '../lib/catalog';
+import { shopCategoryHref, shopSubjectHref } from '../lib/shop-categories';
 import ContactWidget from './ContactWidget';
 import { useAuth } from './AuthProvider';
 
 const DEITY_LINKS = GOD_FRAME_SUBJECTS.map(subject => [
   subject,
-  `/shop?category=god-frames&subject=${encodeURIComponent(subject)}`,
+  shopSubjectHref('god-frames', subject),
 ]);
 const NAV = [
-  ['God Frames', '/shop?category=god-frames', [['All God Frames', '/shop?category=god-frames'], ...DEITY_LINKS]],
-  ['Family Frames', '/shop?category=family-frames', [['Family Photo Frames', '/shop?category=family-frames&subject=Family']]],
-  ['Murtis & Idols', '/shop?category=god-frames', DEITY_LINKS],
+  ['God Frames', shopCategoryHref('god-frames'), [['All God Frames', shopCategoryHref('god-frames')], ...DEITY_LINKS]],
+  ['Family Frames', shopCategoryHref('family-frames'), [['Family Photo Frames', shopCategoryHref('family-frames')]]],
+  ['Crystal Bubble', shopCategoryHref('crystal-bubble'), [['All Crystal Bubble Frames', shopCategoryHref('crystal-bubble')]]],
+  ['Murtis & Idols', shopCategoryHref('murtis-and-idols'), DEITY_LINKS],
 ];
 const SOCIAL = [
   ['Instagram', 'https://www.instagram.com/thegiftershub/'],
@@ -47,9 +49,11 @@ export default function Shell({ children }) {
         <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
       </div>
       <nav className="mobile-categories" aria-label="Browse categories">
-        <Link href="/shop?category=god-frames">God Frames</Link>
-        <Link href="/shop?category=family-frames">Family Frames</Link>
-        <Link href="/shop?category=god-frames">Murtis &amp; Idols</Link>
+        <Link href="/gifts">Gifts by occasion</Link>
+        <Link href={shopCategoryHref('god-frames')}>God Frames</Link>
+        <Link href={shopCategoryHref('family-frames')}>Family Frames</Link>
+        <Link href={shopCategoryHref('crystal-bubble')}>Crystal Bubble</Link>
+        <Link href={shopCategoryHref('murtis-and-idols')}>Murtis &amp; Idols</Link>
         {DEITY_LINKS.map(([subject, href]) => <Link key={`mobile-${subject}`} href={href}>{subject}</Link>)}
       </nav>
     </div></header>
@@ -64,7 +68,7 @@ export default function Shell({ children }) {
         </div>
         <div className="footer-links">
           <h3>Explore</h3>
-          <nav>{NAV.map(([name, href]) => <Link key={name} href={href}>{name}</Link>)}</nav>
+          <nav><Link href="/gifts">Gifts by occasion</Link>{NAV.map(([name, href]) => <Link key={name} href={href}>{name}</Link>)}</nav>
           <h3 className="footer-legal-heading">Policies</h3>
           <nav><Link href="/terms">Terms &amp; Conditions</Link><Link href="/privacy">Privacy Policy</Link></nav>
         </div>
@@ -83,7 +87,7 @@ export default function Shell({ children }) {
     </footer>
     <nav className="bottom">
       <Link href="/"><span>⌂</span>Home</Link><Link href="/shop"><span>▦</span>Shop</Link>
-      <Link href="/shop?category=gift-hampers"><span>♡</span>Gifts</Link>
+      <Link href="/gifts"><span>♡</span>Gifts</Link>
       <button onClick={() => setOpen(true)}><span>◌</span>Cart{count > 0 ? ` (${count})` : ''}</button>
     </nav>
     <Drawer />

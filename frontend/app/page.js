@@ -7,6 +7,17 @@ import CategoryCards from '../components/CategoryCards';
 import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
 import HeroSlideshow from '../components/HeroSlideshow';
 import GoogleReviewsCarousel from '../components/GoogleReviewsCarousel';
+import GiftingOccasions from '../components/GiftingOccasions';
+import RecentlyViewedProducts from '../components/RecentlyViewedProducts';
+import { shopCategoryHref, shopSubjectHref } from '../lib/shop-categories';
+import JsonLd from '../components/JsonLd';
+import { absoluteUrl, BUSINESS_NAME, DEFAULT_DESCRIPTION } from '../lib/seo';
+
+export const metadata = {
+  title: 'Gift Shop in New Delhi | God Frames & Thoughtful Gifts',
+  description: DEFAULT_DESCRIPTION,
+  alternates: { canonical: '/' },
+};
 
 const CATS = [
   { name: 'God Frames', slug: 'god-frames', image: '/products/radha-ka-mohan-radha-krishna-main.webp', note: 'Bring devotion home', action: 'Explore now' },
@@ -33,12 +44,57 @@ export default async function Home() {
     return { ...category, images, subcategories, products: previewProducts };
   });
   return (<div className="wrap home-page">
+    <JsonLd data={{
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Store',
+          '@id': `${absoluteUrl('/')}#store`,
+          name: BUSINESS_NAME,
+          url: absoluteUrl('/'),
+          image: absoluteUrl('/logo-full.png'),
+          telephone: '+91 95555 32044',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'B - 21, Street No. 3, Dichaon Enclave, Kalan, Dichaon Kalan',
+            addressLocality: 'New Delhi',
+            postalCode: '110043',
+            addressCountry: 'IN',
+          },
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: 28.6297333,
+            longitude: 76.996915,
+          },
+          sameAs: [
+            'https://www.instagram.com/thegiftershub/',
+            'https://www.facebook.com/p/thegiftershub-61563390688639',
+            'https://www.youtube.com/@Thegiftershub-TGH',
+            'https://www.google.com/maps/search/?api=1&query=The+Gifter%27s+Hub+Jai+Vihar+New+Delhi',
+          ],
+        },
+        {
+          '@type': 'WebSite',
+          '@id': `${absoluteUrl('/')}#website`,
+          url: absoluteUrl('/'),
+          name: BUSINESS_NAME,
+          description: DEFAULT_DESCRIPTION,
+          publisher: { '@id': `${absoluteUrl('/')}#store` },
+          inLanguage: 'en-IN',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${absoluteUrl('/shop')}?q={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+          },
+        },
+      ],
+    }} />
     <section className="hero">
       <div className="hero-copy">
         <div className="eyebrow">Crystal bubble art &amp; meaningful keepsakes</div>
         <h1>Give a little <em>meaning.</em></h1>
         <p>Discover crystal bubble frames, devotional art, and family keepsakes from The Gifter’s Hub catalogue.</p>
-        <div className="btns"><Link className="btn" href="/shop?category=god-frames">Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
+        <div className="btns"><Link className="btn" href={shopCategoryHref('god-frames')}>Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
       </div>
       <HeroSlideshow />
     </section>
@@ -54,7 +110,7 @@ export default async function Home() {
           <span className="eyebrow">Devotional art</span>
           <nav aria-label="Browse god frames by deity">
             {categories.find(category => category.slug === 'god-frames').subcategories.map(subject => (
-              <Link key={subject} href={`/shop?category=god-frames&subject=${encodeURIComponent(subject)}`}>{subject}</Link>
+              <Link key={subject} href={shopSubjectHref('god-frames', subject)}>{subject}</Link>
             ))}
           </nav>
         </div>
@@ -70,6 +126,8 @@ export default async function Home() {
       <Reveal className="grid">{featured.map(p => <ProductCard key={p.slug} p={p} />)}</Reveal>
     </section>
 
+    <GiftingOccasions products={all} />
+    <RecentlyViewedProducts />
     <GoogleReviewsCarousel />
 
     <Reveal className="story">
@@ -82,7 +140,7 @@ export default async function Home() {
         <div className="eyebrow">Inspired by our catalogue</div>
         <h2>Art for meaningful spaces.</h2>
         <p>Browse devotional scenes and family keepsakes, with catalogue dimensions and finish details shown on each product page.</p>
-        <Link className="text-link" href="/shop?category=god-frames">Explore god frames <span aria-hidden="true">→</span></Link>
+        <Link className="text-link" href={shopCategoryHref('god-frames')}>Explore god frames <span aria-hidden="true">→</span></Link>
         <div className="story-points"><span><b>01</b> Browse the designs</span><span><b>02</b> Check the dimensions</span><span><b>03</b> Choose your favourite</span></div>
       </div>
     </Reveal>
@@ -96,13 +154,13 @@ export default async function Home() {
           <span className="offer-number">01 / KEEP A MEMORY CLOSE</span>
           <h3>Devotional wall frames</h3>
           <p>Explore catalogue designs featuring beloved deities, with listed dimensions and finish options on each product page.</p>
-          <Link className="text-link" href="/shop?category=god-frames">Browse god frames <span aria-hidden="true">→</span></Link>
+          <Link className="text-link" href={shopCategoryHref('god-frames')}>Browse god frames <span aria-hidden="true">→</span></Link>
         </article>
         <article className="offer-card offer-family">
           <span className="offer-number">02 / MADE FOR GIVING</span>
           <h3>Family photo frames</h3>
           <p>Keep favourite family memories close with the catalogue’s decorative photo-frame design.</p>
-          <Link className="text-link" href="/shop?category=family-frames">Browse family frames <span aria-hidden="true">→</span></Link>
+          <Link className="text-link" href={shopCategoryHref('family-frames')}>Browse family frames <span aria-hidden="true">→</span></Link>
         </article>
       </Reveal>
     </section>

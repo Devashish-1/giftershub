@@ -11,21 +11,15 @@ const SLIDES = [
 
 export default function HeroSlideshow() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const activeSlide = SLIDES[activeIndex];
-  const showPlayControl = isPaused || isFocused;
 
   useEffect(() => {
-    if (isPaused || isHovered || isFocused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-
     const interval = window.setInterval(() => {
       setActiveIndex(current => (current + 1) % SLIDES.length);
     }, 2800);
 
     return () => window.clearInterval(interval);
-  }, [activeIndex, isPaused, isHovered, isFocused]);
+  }, []);
 
   return (
     <div
@@ -33,12 +27,6 @@ export default function HeroSlideshow() {
       role="region"
       aria-roledescription="carousel"
       aria-label="Featured devotional artwork"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={() => setIsFocused(true)}
-      onBlur={event => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsFocused(false);
-      }}
     >
       <Image
         key={activeSlide.src}
@@ -64,17 +52,6 @@ export default function HeroSlideshow() {
               onClick={() => setActiveIndex(index)}
             />
           ))}
-          <button
-            className="hero-slide-toggle"
-            type="button"
-            aria-label={showPlayControl ? 'Play slideshow' : 'Pause slideshow'}
-            onClick={() => {
-              setIsPaused(!showPlayControl);
-              if (showPlayControl) setIsFocused(false);
-            }}
-          >
-            {showPlayControl ? 'Play' : 'Pause'}
-          </button>
         </div>
       </div>
       <div className="hero-seal" aria-hidden="true">With<br />love</div>

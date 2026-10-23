@@ -1,0 +1,38 @@
+export const GIFT_OCCASIONS = [
+  {
+    slug: 'diwali',
+    title: 'Diwali',
+    heading: 'Diwali gifting',
+    description: 'Explore festive Ganesha artwork from the current devotional frame catalogue.',
+    category: 'god-frames',
+    subject: 'Ganesha',
+    image: '/products/30-no-ganesha-main.webp',
+  },
+  {
+    slug: 'rakhi',
+    title: 'Rakhi',
+    heading: 'Rakhi & family gifts',
+    description: 'A family photo-frame design for a favourite shared memory.',
+    category: 'family-frames',
+    subject: 'Family',
+    image: '/products/heart-family-photo-frame-main.webp',
+  },
+  {
+    slug: 'wedding',
+    title: 'Weddings',
+    heading: 'Wedding gifting',
+    description: 'Browse Radha Krishna devotional artwork as a thoughtful wedding gift idea.',
+    category: 'god-frames',
+    subject: 'Radha Krishna',
+    image: '/products/radha-ka-mohan-radha-krishna-main.webp',
+  },
+  {
+    slug: 'housewarming',
+    title: 'Housewarming',
+    heading: 'Housewarming gifts',
+    description: 'Explore Ganesha artwork for a devotional touch in a new home.',
+    category: 'god-frames',
+    subject: 'Ganesha',
+    image: '/products/30-no-ganesha-main.webp',
+  },
+];

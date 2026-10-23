@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { shopCategoryHref, shopSubjectHref } from '../lib/shop-categories';
 
 function CategoryCard({ category, onActivate, onToggle, isOpen }) {
   const { name, slug, image, images, note, action } = category;
@@ -29,7 +30,7 @@ function CategoryCard({ category, onActivate, onToggle, isOpen }) {
         </span>
         <Link
           className="category-tile-cta"
-          href={`/shop?category=${slug}`}
+          href={shopCategoryHref(slug)}
           aria-label={`${action}: ${name}`}
           onFocus={() => onActivate(slug)}
         >
@@ -61,7 +62,7 @@ function CategoryPreview({ category }) {
           {category.subcategories.map(subject => (
             <Link
               key={subject}
-              href={`/shop?category=${category.slug}&subject=${encodeURIComponent(subject)}`}
+              href={shopSubjectHref(category.slug, subject)}
             >
               {subject} <span aria-hidden="true">→</span>
             </Link>
