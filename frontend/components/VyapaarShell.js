@@ -64,10 +64,6 @@ export default function VyapaarShell({ children }) {
         <div className="vyapaar-sidebar-footer"><span className="vyapaar-status-dot" />Inventory and invoicing tools</div>
       </aside>
       <main className="vyapaar-main">
-        <header className="vyapaar-topbar">
-          <span>Business management <span aria-hidden="true">/</span> <b>{NAVIGATION.find(item => item.href === pathname || pathname.startsWith(`${item.href}/`))?.label || 'Vyapaar'}</b></span>
-          <span className="vyapaar-user">{user.name || user.email}</span>
-        </header>
         {children}
       </main>
     </div>

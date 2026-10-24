@@ -745,10 +745,6 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .vyapaar-sidebar-footer{display:flex;align-items:center;gap:8px;margin-top:auto;padding:13px 9px 1px;border-top:1px solid var(--line);color:var(--muted);font-size:9px}
 .vyapaar-status-dot{width:7px;height:7px;border-radius:50%;background:#448860}
 .vyapaar-main{min-width:0}
-.vyapaar-topbar{position:sticky;top:76px;z-index:25;display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:44px;padding:0 24px;border-bottom:1px solid var(--line);background:#fff;color:var(--muted);font-size:11px}
-.vyapaar-topbar>span:first-child>span{padding:0 7px;color:#b7aaa5}
-.vyapaar-topbar b{color:var(--dark)}
-.vyapaar-user{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vyapaar-content{width:min(100%,1320px);margin:0 auto;padding:24px 24px 40px}
 .vyapaar-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-bottom:16px}
 .vyapaar-module-grid>.admin-panel{min-width:0}
@@ -881,7 +877,6 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 @media(max-width:900px){
  .vyapaar-layout{--vyapaar-sidebar-width:210px}
  .vyapaar-content{padding:25px 20px 40px}
- .vyapaar-topbar{padding:0 20px}
  .vyapaar-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
  .vyapaar-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .vyapaar-module-grid{grid-template-columns:1fr}
@@ -896,7 +891,6 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .vyapaar-nav{display:flex;gap:5px;margin:0;overflow-x:auto}
  .vyapaar-nav a{flex:none;gap:6px;padding:9px;border:1px solid transparent;white-space:nowrap;font-size:10px}
  .vyapaar-nav a.active{border-color:#ead8ce}
- .vyapaar-topbar{position:sticky;top:112px;min-height:44px;padding:0 16px;font-size:10px}
  .vyapaar-content{padding:20px 16px 35px}
  .vyapaar-welcome{align-items:flex-start;flex-direction:column;padding:22px}
  .vyapaar-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1059,7 +1053,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .vyapaar-purchase-products{grid-template-columns:1fr}
 }
 @media print{
- .vyapaar-sidebar,.vyapaar-topbar,.vyapaar-no-print,.vyapaar-payments-panel,.vyapaar-page-heading,.vyapaar-main>.admin-secondary-button{display:none!important}
+ .vyapaar-sidebar,.vyapaar-no-print,.vyapaar-payments-panel,.vyapaar-page-heading,.vyapaar-main>.admin-secondary-button{display:none!important}
  .vyapaar-layout{display:block!important;min-height:0!important}
  .vyapaar-main{width:100%!important}
  .vyapaar-content{padding:0!important}
