@@ -35,9 +35,12 @@ export default function Shell({ children }) {
   const showFooter = pathname === '/account' || !pathname.startsWith('/account/');
   const [activeNav, setActiveNav] = useState(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountSearchQuery, setAccountSearchQuery] = useState('');
   const [accountSearch, setAccountSearch] = useState({ results: [], error: '', searched: false, busy: false });
   const accountControl = useRef(null);
+  const mobileMenuButton = useRef(null);
+  const mobileNavigation = useRef(null);
   useEffect(() => {
     if (!accountMenuOpen) return undefined;
     const closeOnEscape = event => {
@@ -57,6 +60,38 @@ export default function Shell({ children }) {
     setAccountSearchQuery('');
     setAccountSearch({ results: [], error: '', searched: false, busy: false });
   }, [pathname]);
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusable = mobileNavigation.current?.querySelectorAll('a, button');
+    focusable?.[0]?.focus();
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        mobileMenuButton.current?.focus();
+      }
+      if (event.key !== 'Tab' || !focusable?.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
   const searchAccount = async event => {
     event.preventDefault();
     const query = accountSearchQuery.trim();
@@ -77,6 +112,13 @@ export default function Shell({ children }) {
   return (<>
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
     <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}${isAccountPage ? ' account-top' : ''}`}><div className="wrap bar">
+      {user
+        ? <Link className="mobile-account-link" href="/account" aria-label="Open account page">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
+        </Link>
+        : <button className="mobile-account-link" type="button" aria-label="Sign in or create account" onClick={openLogin}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
+        </button>}
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
       {!isAccountPage && <nav
         className="main"
@@ -142,15 +184,54 @@ export default function Shell({ children }) {
           : <button className="login-btn" onClick={openLogin}>Sign in</button>}
         <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
       </div>
-      {!isAccountPage && <nav className="mobile-categories" aria-label="Browse categories">
-        <Link href="/gifts">Gifts by occasion</Link>
-        <Link href={shopCategoryHref('god-frames')}>God Frames</Link>
-        <Link href={shopCategoryHref('family-frames')}>Family Frames</Link>
-        <Link href={shopCategoryHref('crystal-bubble')}>Crystal Bubble</Link>
-        <Link href={shopCategoryHref('murtis-and-idols')}>Murtis &amp; Idols</Link>
-        {DEITY_LINKS.map(([subject, href]) => <Link key={`mobile-${subject}`} href={href}>{subject}</Link>)}
-      </nav>}
+      {!isAccountPage && <button
+        ref={mobileMenuButton}
+        className="mobile-menu-toggle"
+        type="button"
+        aria-label="Open collection menu"
+        aria-expanded={mobileMenuOpen}
+        aria-controls={mobileMenuOpen ? 'mobile-navigation' : undefined}
+        onClick={() => setMobileMenuOpen(true)}
+      >
+        <span /><span /><span />
+        <b>Browse collections</b>
+      </button>}
     </div></header>
+    {mobileMenuOpen && <div className="mobile-navigation">
+      <button className="mobile-navigation-backdrop" type="button" aria-label="Close collection menu" onClick={() => {
+        setMobileMenuOpen(false);
+        mobileMenuButton.current?.focus();
+      }} />
+      <aside
+        className="mobile-navigation-panel"
+        id="mobile-navigation"
+        ref={mobileNavigation}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-navigation-title"
+      >
+        <div className="mobile-navigation-header">
+          <h2 id="mobile-navigation-title">Browse collections</h2>
+          <button type="button" aria-label="Close collection menu" onClick={() => {
+            setMobileMenuOpen(false);
+            mobileMenuButton.current?.focus();
+          }}>×</button>
+        </div>
+        <nav className="mobile-navigation-links" aria-label="Collections">
+          <Link className="mobile-navigation-feature" href="/gifts" onClick={() => setMobileMenuOpen(false)}>Gifts by occasion <span aria-hidden="true">→</span></Link>
+          {NAV.map(([name, href, subcategories]) => (
+            <section key={name}>
+              <Link className="mobile-navigation-category" href={href} onClick={() => setMobileMenuOpen(false)}>{name}</Link>
+              <div className="mobile-navigation-subcategories">
+                {subcategories.filter(([, subcategoryHref]) => subcategoryHref !== href).map(([subcategory, subcategoryHref]) => (
+                  <Link key={`${name}-${subcategory}`} href={subcategoryHref} onClick={() => setMobileMenuOpen(false)}>{subcategory}</Link>
+                ))}
+              </div>
+            </section>
+          ))}
+        </nav>
+      </aside>
+    </div>}
     {authError && <div className="auth-global-error" role="status">{authError}</div>}
     <main>{children}</main>
     {showFooter && <footer className="site-footer">

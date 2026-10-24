@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard';
 import CategoryCards from '../components/CategoryCards';
 import CrystalBubbleShowcase from '../components/CrystalBubbleShowcase';
 import HeroSlideshow from '../components/HeroSlideshow';
+import HeroMessage from '../components/HeroMessage';
 import GoogleReviewsCarousel from '../components/GoogleReviewsCarousel';
 import GiftingOccasions from '../components/GiftingOccasions';
 import RecentlyViewedProducts from '../components/RecentlyViewedProducts';
@@ -95,8 +96,7 @@ export default async function Home() {
       <div className="hero-copy">
         <div className="hero-kicker"><span aria-hidden="true">✳</span> Thoughtful finds for meaningful moments</div>
         <div className="eyebrow">Gifts, devotional art &amp; keepsakes</div>
-        <h1>Make it a moment <em>to remember.</em></h1>
-        <p>Explore a considered collection of devotional frames, family keepsakes and Crystal Bubble designs from The Gifter’s Hub.</p>
+        <HeroMessage />
         <div className="btns">
           <Link className="btn" href="/gifts">Find a gift <span aria-hidden="true">→</span></Link>
           <Link className="btn ghost" href="/shop">Explore the collection</Link>

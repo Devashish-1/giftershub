@@ -72,6 +72,20 @@ const passwordResetVerifyLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many password reset attempts. Please try again in 15 minutes.' },
 });
+const registrationRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many verification code requests. Please try again in 15 minutes.' },
+});
+const registrationVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many email verification attempts. Please try again in 15 minutes.' },
+});
 
 function dbRequired(req, res, next) {
   if (!database) return res.status(503).json({ error: 'Account services are unavailable until MongoDB is configured.' });
@@ -122,6 +136,16 @@ function hashPasswordResetCode(email, code) {
   return crypto.createHmac('sha256', process.env.BREVO_API_KEY)
     .update(`${email}:${code}`)
     .digest('hex');
+}
+
+function hashRegistrationCode(email, code) {
+  return crypto.createHmac('sha256', process.env.BREVO_API_KEY)
+    .update(`register:${email}:${code}`)
+    .digest('hex');
+}
+
+function isValidNewPassword(password) {
+  return typeof password === 'string' && /^[A-Za-z0-9]{6,128}$/.test(password);
 }
 
 async function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
@@ -524,7 +548,7 @@ function parseAdminProduct(input, existing) {
   return { product };
 }
 
-app.post('/api/auth/register', authLimiter, dbRequired, async (req, res, next) => {
+app.post('/api/auth/register/request', registrationRequestLimiter, dbRequired, async (req, res, next) => {
   try {
     const suppliedName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
     const name = suppliedName || 'Customer';
@@ -534,27 +558,117 @@ app.post('/api/auth/register', authLimiter, dbRequired, async (req, res, next) =
       return res.status(400).json({ error: 'Name must be between 2 and 100 characters.' });
     }
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
-    if (typeof password !== 'string' || password.length < 10 || password.length > 128) {
-      return res.status(400).json({ error: 'Use a password between 10 and 128 characters.' });
+    if (!isValidNewPassword(password)) {
+      return res.status(400).json({ error: 'Use 6 to 128 letters and numbers only for your password.' });
+    }
+    const credentials = await hashPassword(password);
+    if (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) {
+      return res.status(503).json({ error: 'Email verification is not configured yet. Please contact support.' });
     }
 
-    const credentials = await hashPassword(password);
-    const user = {
+    const users = database.collection('users');
+    if (await users.findOne({ email }, { projection: { _id: 1 } })) {
+      return res.status(409).json({ error: 'An account with this email already exists. Sign in instead.' });
+    }
+
+    const registrations = database.collection('pending_registrations');
+    const now = new Date();
+    const existing = await registrations.findOne({ _id: email });
+    if (existing && existing.createdAt > new Date(now.getTime() - 60 * 1000)) {
+      return res.status(429).json({ error: 'A verification code was just sent. Please wait a minute before requesting another.' });
+    }
+
+    const code = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = hashRegistrationCode(email, code);
+    await registrations.replaceOne({ _id: email }, {
+      _id: email,
       name,
-      email,
-      role: 'customer',
       passwordSalt: credentials.salt,
       passwordHash: credentials.hash,
+      otpHash,
+      attempts: 0,
+      createdAt: now,
+      expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
+    }, { upsert: true });
+
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        signal: AbortSignal.timeout(10000),
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          sender: {
+            name: process.env.BREVO_SENDER_NAME || 'The Gifters Hub',
+            email: process.env.BREVO_SENDER_EMAIL,
+          },
+          to: [{ email }],
+          subject: 'Verify your email for The Gifters Hub',
+          textContent: `Your email verification code is ${code}. It expires in 10 minutes. If you did not try to create an account, you can ignore this email.`,
+          htmlContent: `<p>Your email verification code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">${code}</p><p>This code expires in 10 minutes. If you did not try to create an account, you can ignore this email.</p>`,
+        }),
+      });
+      if (!response.ok) throw new Error(`Brevo returned status ${response.status}.`);
+    } catch (deliveryError) {
+      await registrations.deleteOne({ _id: email, otpHash });
+      console.error('Registration verification email delivery failed:', deliveryError.message);
+      return res.status(502).json({ error: 'Could not send the verification code. Please try again later.' });
+    }
+
+    res.json({ message: 'A verification code has been sent to your email address.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/auth/register/verify', registrationVerifyLimiter, dbRequired, async (req, res, next) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const code = req.body.code;
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        typeof code !== 'string' || !/^\d{6}$/.test(code)) {
+      return res.status(400).json({ error: 'Enter your email address and 6-digit verification code.' });
+    }
+
+    const registrations = database.collection('pending_registrations');
+    const pending = await registrations.findOne({ _id: email, expiresAt: { $gt: new Date() }, attempts: { $lt: 5 } });
+    if (!pending) return res.status(400).json({ error: 'That verification code is invalid or expired. Request a new code.' });
+
+    const submittedHash = hashRegistrationCode(email, code);
+    const expected = Buffer.from(pending.otpHash, 'hex');
+    const submitted = Buffer.from(submittedHash, 'hex');
+    if (expected.length !== submitted.length || !crypto.timingSafeEqual(expected, submitted)) {
+      await registrations.updateOne(
+        { _id: email, otpHash: pending.otpHash, attempts: { $lt: 5 } },
+        { $inc: { attempts: 1 } },
+      );
+      return res.status(400).json({ error: 'That verification code is invalid or expired. Request a new code.' });
+    }
+
+    const user = {
+      name: pending.name,
+      email,
+      role: 'customer',
+      passwordSalt: pending.passwordSalt,
+      passwordHash: pending.passwordHash,
+      emailVerified: true,
       createdAt: new Date(),
     };
     try {
       const result = await database.collection('users').insertOne(user);
       user._id = result.insertedId;
     } catch (error) {
-      if (error.code === 11000) return res.status(409).json({ error: 'An account with this email already exists. Sign in instead.' });
+      if (error.code === 11000) {
+        await registrations.deleteOne({ _id: email, otpHash: pending.otpHash });
+        return res.status(409).json({ error: 'An account with this email already exists. Sign in instead.' });
+      }
       throw error;
     }
 
+    await registrations.deleteOne({ _id: email, otpHash: pending.otpHash });
     await issueSession(user, res);
     res.status(201).json({ user: publicUser(user) });
   } catch (error) {
@@ -657,8 +771,8 @@ app.post('/api/auth/password-reset/confirm', passwordResetVerifyLimiter, dbRequi
         typeof code !== 'string' || !/^\d{6}$/.test(code)) {
       return res.status(400).json({ error: 'Enter the email address and 6-digit reset code.' });
     }
-    if (typeof password !== 'string' || password.length < 10 || password.length > 128) {
-      return res.status(400).json({ error: 'Use a password between 10 and 128 characters.' });
+    if (!isValidNewPassword(password)) {
+      return res.status(400).json({ error: 'Use 6 to 128 letters and numbers only for your new password.' });
     }
 
     if (!process.env.BREVO_API_KEY) {
@@ -3056,6 +3170,7 @@ async function start() {
       database.collection('sessions').createIndex({ tokenHash: 1 }, { unique: true }),
       database.collection('sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       database.collection('password_reset_codes').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      database.collection('pending_registrations').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       database.collection('gift_reminders').createIndex({ userId: 1, date: 1 }),
       database.collection('orders').createIndex({ orderId: 1 }, { unique: true }),
       database.collection('orders').createIndex({ userId: 1, createdAt: -1 }),
