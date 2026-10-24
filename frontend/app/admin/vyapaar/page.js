@@ -67,7 +67,13 @@ export default function VyapaarOverview() {
               <Link href="/admin/vyapaar/stock"><span aria-hidden="true">↕</span><b>Adjust stock</b><small>Record a stock correction with a reason and history.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/sales/new"><span aria-hidden="true">▧</span><b>Create a sale</b><small>Issue an invoice, deduct stock, and record payment.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/purchases"><span aria-hidden="true">↓</span><b>Receive a purchase</b><small>Record a supplier bill and increase item stock.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/returns"><span aria-hidden="true">↩</span><b>Record a return</b><small>Restock or dispatch verified returned items.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/expenses"><span aria-hidden="true">−</span><b>Record an expense</b><small>Post a paid expense to a cash or bank account.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/cashbook"><span aria-hidden="true">₹</span><b>Cash &amp; bank</b><small>Track account movements and transfers.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/reports"><span aria-hidden="true">▥</span><b>Reports</b><small>Review operational totals and export CSV.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/parties"><span aria-hidden="true">♧</span><b>Manage parties</b><small>Maintain customer and supplier contact records.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/barcodes"><span aria-hidden="true">▤</span><b>Barcode labels</b><small>Print item labels from the catalogue.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/activity"><span aria-hidden="true">◷</span><b>Activity log</b><small>Review successful administrator changes.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin"><span aria-hidden="true">▧</span><b>Orders &amp; payments</b><small>Review orders and update their fulfilment status.</small><i aria-hidden="true">→</i></Link>
             </div>
           </section>
@@ -79,7 +85,7 @@ export default function VyapaarOverview() {
               ))}</div>
               : <p className="admin-empty">No order records yet. Order activity will appear here when available.</p>}
           </section>
-          <p className="vyapaar-disclaimer">Order and transaction totals are operational summaries, not formal accounting or tax reports. Expenses, returns, and cash/bank accounting are not yet part of Vyapaar.</p>
+          <p className="vyapaar-disclaimer">Order and transaction totals are operational summaries, not formal accounting or tax reports. Returns, expenses, cashbook entries and reports are operational tools, not statutory GST/accounting filings.</p>
         </>}
     </div>
   );

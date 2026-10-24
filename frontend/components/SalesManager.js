@@ -110,6 +110,8 @@ export function SaleComposer() {
   const [invoiceDiscount, setInvoiceDiscount] = useState('0');
   const [initialPayment, setInitialPayment] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentAccountId, setPaymentAccountId] = useState('cash-default');
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -135,6 +137,20 @@ export function SaleComposer() {
   }, []);
 
   useEffect(() => { loadProducts(''); }, [loadProducts]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/vyapaar/accounts', { credentials: 'same-origin' })
+      .then(async response => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not load payment accounts.');
+        if (!cancelled) setPaymentAccounts(result.items);
+      })
+      .catch(requestError => {
+        if (!cancelled) setError(requestError.message || 'Could not load payment accounts.');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,6 +222,7 @@ export function SaleComposer() {
           invoiceDiscount: Number(invoiceDiscount || 0),
           initialPayment: Number(initialPayment || 0),
           paymentMethod,
+          accountId: paymentAccountId,
         }),
       });
       const result = await response.json();
@@ -292,6 +309,9 @@ export function SaleComposer() {
           <label>Payment method<select value={paymentMethod} onChange={event => setPaymentMethod(event.target.value)}>
             <option value="cash">Cash</option><option value="upi">UPI</option><option value="bank-transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option>
           </select></label>
+          <label>Deposit to<select value={paymentAccountId} onChange={event => setPaymentAccountId(event.target.value)} required>
+            {paymentAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
+          </select></label>
           <span>Outstanding after payment: <b>{money(Math.max(0, invoiceTotal - (Number(initialPayment) || 0)))}</b></span>
         </div>
         {error && <p className="admin-error" role="alert">{error}</p>}
@@ -311,6 +331,8 @@ export function SaleDetail({ invoiceNumber }) {
   const [savingPayment, setSavingPayment] = useState(false);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('cash');
+  const [paymentAccountId, setPaymentAccountId] = useState('cash-default');
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [reference, setReference] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -333,6 +355,20 @@ export function SaleDetail({ invoiceNumber }) {
 
   useEffect(() => { loadSale(); }, [loadSale]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/vyapaar/accounts', { credentials: 'same-origin' })
+      .then(async response => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not load payment accounts.');
+        if (!cancelled) setPaymentAccounts(result.items);
+      })
+      .catch(requestError => {
+        if (!cancelled) setError(requestError.message || 'Could not load payment accounts.');
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   const recordPayment = async event => {
     event.preventDefault();
     setSavingPayment(true);
@@ -345,7 +381,7 @@ export function SaleDetail({ invoiceNumber }) {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId: stableRequestId, amount: Number(amount), method, reference }),
+        body: JSON.stringify({ requestId: stableRequestId, amount: Number(amount), method, accountId: paymentAccountId, reference }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Could not record payment.');
@@ -407,6 +443,7 @@ export function SaleDetail({ invoiceNumber }) {
           <h3>Record another payment</h3>
           <label>Amount (₹)<input type="number" min="0.01" max={sale.balanceDue} step="0.01" value={amount} onChange={event => setAmount(event.target.value)} required /></label>
           <label>Method<select value={method} onChange={event => setMethod(event.target.value)}><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank-transfer">Bank transfer</option><option value="card">Card</option><option value="other">Other</option></select></label>
+          <label>Deposit to<select value={paymentAccountId} onChange={event => setPaymentAccountId(event.target.value)} required>{paymentAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}</select></label>
           <label>Reference (optional)<input value={reference} onChange={event => setReference(event.target.value)} maxLength={120} /></label>
           <button className="admin-primary-button" type="submit" disabled={savingPayment}>{savingPayment ? 'Saving payment…' : 'Record payment'}</button>
         </form>}

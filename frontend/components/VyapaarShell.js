@@ -13,18 +13,14 @@ const NAVIGATION = [
   { label: 'Stock Adjustments', href: '/admin/vyapaar/stock', icon: '↕' },
   { label: 'Purchases', href: '/admin/vyapaar/purchases', icon: '↓' },
   { label: 'Sales & Invoices', href: '/admin/vyapaar/sales', icon: '▧' },
+  { label: 'Returns', href: '/admin/vyapaar/returns', icon: '↩' },
+  { label: 'Expenses', href: '/admin/vyapaar/expenses', icon: '−' },
+  { label: 'Cash & Bank', href: '/admin/vyapaar/cashbook', icon: '₹' },
+  { label: 'Reports', href: '/admin/vyapaar/reports', icon: '▥' },
+  { label: 'Barcode Labels', href: '/admin/vyapaar/barcodes', icon: '▤' },
+  { label: 'Activity Log', href: '/admin/vyapaar/activity', icon: '◷' },
   { label: 'Customers & Suppliers', href: '/admin/vyapaar/parties', icon: '♧' },
   { label: 'Business Settings', href: '/admin/vyapaar/settings', icon: '⚙' },
-];
-
-const PLANNED = [
-  'Sales Returns',
-  'Purchase Returns',
-  'Expenses',
-  'Cash & Bank',
-  'Reports',
-  'Barcode label generation',
-  'Activity Log',
 ];
 
 export default function VyapaarShell({ children }) {
@@ -64,8 +60,6 @@ export default function VyapaarShell({ children }) {
             );
           })}
         </nav>
-        <span className="vyapaar-nav-label vyapaar-coming-label">PLANNED MODULES</span>
-        <ul className="vyapaar-planned">{PLANNED.map(item => <li key={item}><span aria-hidden="true">·</span>{item}<small>Coming later</small></li>)}</ul>
         <div className="vyapaar-sidebar-footer"><span className="vyapaar-status-dot" />Inventory and invoicing tools</div>
       </aside>
       <main className="vyapaar-main">

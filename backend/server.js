@@ -50,6 +50,22 @@ app.use('/api/auth', (req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();
 });
+app.use('/api/admin', (req, res, next) => {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  res.once('finish', () => {
+    if (!req.user || !database || res.statusCode < 200 || res.statusCode >= 400) return;
+    const route = req.route?.path;
+    database.collection('vyapaar_activity').insertOne({
+      action: req.method,
+      resource: typeof route === 'string' ? `${req.baseUrl}${route}` : '/api/admin',
+      statusCode: res.statusCode,
+      actorId: req.user._id.toString(),
+      actorEmail: req.user.email,
+      createdAt: new Date(),
+    }).catch(error => console.error('Unable to record admin activity:', error.message));
+  });
+  next();
+});
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -2358,6 +2374,55 @@ function amountToPaise(value) {
   return Number.isSafeInteger(paise) && Math.abs(scaled - paise) < 0.000001 ? paise : null;
 }
 
+function defaultCashAccountId(method) {
+  return method === 'cash' ? 'cash-default' : 'bank-default';
+}
+
+async function insertCashbookEntry({ requestId, accountId, amountPaise, direction, type, description, reference, actor, session }) {
+  if (!Number.isSafeInteger(amountPaise) || amountPaise <= 0) return;
+  const accounts = database.collection('vyapaar_accounts');
+  const account = await accounts.findOne({ id: accountId, archived: { $ne: true } }, { session });
+  if (!account) {
+    const invalidAccount = new Error('Choose an active cash or bank account.');
+    invalidAccount.statusCode = 400;
+    throw invalidAccount;
+  }
+  await database.collection('vyapaar_cashbook').insertOne({
+    requestId,
+    leg: 'main',
+    accountId: account.id,
+    accountName: account.name,
+    amountPaise: direction === 'in' ? amountPaise : -amountPaise,
+    type,
+    description,
+    reference: reference || '',
+    createdBy: actor?._id?.toString() || '',
+    createdByEmail: actor?.email || '',
+    createdAt: new Date(),
+  }, { session });
+}
+
+function parseDateRange(query) {
+  const from = typeof query.from === 'string' ? query.from : '';
+  const to = typeof query.to === 'string' ? query.to : '';
+  const isDateOnly = value => {
+    if (!value) return true;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  };
+  if (!isDateOnly(from) || !isDateOnly(to)) return null;
+  const range = {};
+  if (from) range.$gte = new Date(`${from}T00:00:00.000Z`);
+  if (to) {
+    const nextDay = new Date(`${to}T00:00:00.000Z`);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+    range.$lt = nextDay;
+  }
+  if (range.$gte && range.$lt && range.$gte >= range.$lt) return null;
+  return Object.keys(range).length ? range : {};
+}
+
 function serializeSale(sale) {
   const { _id, subtotalPaise, discountPaise, taxPaise, totalPaise, amountPaidPaise, balanceDuePaise, lines, ...details } = sale;
   return {
@@ -2392,7 +2457,7 @@ function serializePayment(payment) {
 }
 
 function serializePurchase(purchase) {
-  const { _id, subtotalPaise, taxPaise, totalPaise, amountPaidPaise, balanceDuePaise, lines, ...details } = purchase;
+  const { _id, subtotalPaise, taxPaise, totalPaise, amountPaidPaise, balanceDuePaise, supplierRefundDuePaise, lines, ...details } = purchase;
   return {
     ...details,
     id: _id?.toString() || details.purchaseNumber,
@@ -2401,6 +2466,7 @@ function serializePurchase(purchase) {
     total: totalPaise / 100,
     amountPaid: amountPaidPaise / 100,
     balanceDue: balanceDuePaise / 100,
+    supplierRefundDue: (supplierRefundDuePaise || 0) / 100,
     lines: lines.map(line => ({ ...line, unitCost: line.unitCostPaise / 100, total: line.totalPaise / 100, unitCostPaise: undefined, totalPaise: undefined })),
   };
 }
@@ -2532,6 +2598,17 @@ app.post('/api/admin/purchases', requireAdmin, async (req, res, next) => {
         createdAt: now,
       };
       await purchases.insertOne(savedPurchase, { session });
+      await insertCashbookEntry({
+        requestId: `purchase-payment:${requestId}:initial`,
+        accountId: typeof body.accountId === 'string' ? body.accountId : 'cash-default',
+        amountPaise: initialPaymentPaise,
+        direction: 'out',
+        type: 'purchase-payment',
+        description: `Initial payment for ${purchaseNumber}`,
+        reference: billNumber,
+        actor: req.user,
+        session,
+      });
       for (const line of purchaseLines) {
         const product = await productCollection.findOne(
           { slug: line.slug, archived: { $ne: true } },
@@ -2885,6 +2962,16 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
           createdByEmail: req.user.email,
           createdAt: now,
         }, { session });
+        await insertCashbookEntry({
+          requestId: `sale-payment:${requestId}:initial`,
+          accountId: typeof body.accountId === 'string' ? body.accountId : defaultCashAccountId(paymentMethod),
+          amountPaise: initialPaymentPaise,
+          direction: 'in',
+          type: 'sale-payment',
+          description: `Initial payment for ${invoiceNumber}`,
+          actor: req.user,
+          session,
+        });
       }
       savedSale = sale;
     });
@@ -2957,6 +3044,17 @@ app.post('/api/admin/sales/:invoiceNumber/payments', requireAdmin, async (req, r
         createdByEmail: req.user.email,
         createdAt: now,
       }, { session });
+      await insertCashbookEntry({
+        requestId: `sale-payment:${requestId}`,
+        accountId: typeof body.accountId === 'string' ? body.accountId : defaultCashAccountId(method),
+        amountPaise,
+        direction: 'in',
+        type: 'sale-payment',
+        description: `Payment for ${sale.invoiceNumber}`,
+        reference,
+        actor: req.user,
+        session,
+      });
       const update = await sales.updateOne(
         { _id: sale._id, balanceDuePaise: sale.balanceDuePaise },
         {
@@ -2990,6 +3088,500 @@ app.post('/api/admin/sales/:invoiceNumber/payments', requireAdmin, async (req, r
     next(error);
   } finally {
     await session.endSession();
+  }
+});
+
+app.get('/api/admin/vyapaar/accounts', requireAdmin, async (req, res, next) => {
+  try {
+    const [accounts, balances] = await Promise.all([
+      database.collection('vyapaar_accounts').find({ archived: { $ne: true } }).sort({ type: 1, name: 1 }).toArray(),
+      database.collection('vyapaar_cashbook').aggregate([
+        { $group: { _id: '$accountId', balancePaise: { $sum: '$amountPaise' } } },
+      ]).toArray(),
+    ]);
+    const balanceByAccount = new Map(balances.map(item => [item._id, item.balancePaise]));
+    res.json({ items: accounts.map(({ _id, ...account }) => ({
+      ...account,
+      balancePaise: (account.openingBalancePaise || 0) + (balanceByAccount.get(account.id) || 0),
+    })) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/admin/vyapaar/accounts', requireAdmin, async (req, res, next) => {
+  const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+  const type = req.body?.type;
+  const openingBalancePaise = amountToPaise(req.body?.openingBalance ?? 0);
+  if (name.length < 2 || name.length > 80 || !['cash', 'bank'].includes(type) || openingBalancePaise === null) {
+    return res.status(400).json({ error: 'Enter a valid account name, account type, and opening balance.' });
+  }
+  try {
+    const account = {
+      id: crypto.randomUUID(),
+      name,
+      type,
+      openingBalancePaise,
+      createdBy: req.user._id.toString(),
+      createdByEmail: req.user.email,
+      createdAt: new Date(),
+    };
+    await database.collection('vyapaar_accounts').insertOne(account);
+    res.status(201).json({ ...account, balancePaise: openingBalancePaise });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ error: 'An account with that name already exists.' });
+    next(error);
+  }
+});
+
+app.get('/api/admin/vyapaar/cashbook', requireAdmin, async (req, res, next) => {
+  try {
+    const page = Number(req.query.page || 1);
+    if (!Number.isSafeInteger(page) || page < 1) return res.status(400).json({ error: 'Page number must be a positive integer.' });
+    const dateRange = parseDateRange(req.query);
+    if (dateRange === null) return res.status(400).json({ error: 'Choose a valid date range.' });
+    const filter = Object.keys(dateRange).length ? { createdAt: dateRange } : {};
+    const pageSize = 50;
+    const collection = database.collection('vyapaar_cashbook');
+    const [total, items] = await Promise.all([
+      collection.countDocuments(filter),
+      collection.find(filter).sort({ createdAt: -1 }).skip((page - 1) * pageSize).limit(pageSize).toArray(),
+    ]);
+    res.json({ page, pageSize, total, items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/admin/vyapaar/cashbook', requireAdmin, async (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const requestId = typeof body.requestId === 'string' ? body.requestId : '';
+  const amountPaise = amountToPaise(body.amount);
+  const description = typeof body.description === 'string' ? body.description.trim() : '';
+  const reference = typeof body.reference === 'string' ? body.reference.trim() : '';
+  if (!/^[a-f0-9-]{36}$/i.test(requestId) || amountPaise === null || amountPaise <= 0 ||
+      description.length < 3 || description.length > 200 || reference.length > 120) {
+    return res.status(400).json({ error: 'Enter a valid amount, description, optional reference, and request ID.' });
+  }
+  if (!['in', 'out', 'transfer'].includes(body.direction)) return res.status(400).json({ error: 'Choose money in, money out, or transfer.' });
+  if (body.direction === 'transfer' && (!body.fromAccountId || !body.toAccountId || body.fromAccountId === body.toAccountId)) {
+    return res.status(400).json({ error: 'Choose two different accounts for a transfer.' });
+  }
+
+  const session = mongoClient.startSession();
+  try {
+    let saved;
+    await session.withTransaction(async () => {
+      const ledger = database.collection('vyapaar_cashbook');
+      const previous = await ledger.findOne({ requestId }, { session });
+      if (previous) {
+        saved = previous;
+        return;
+      }
+      const now = new Date();
+      if (body.direction === 'transfer') {
+        const accounts = database.collection('vyapaar_accounts');
+        const [from, to] = await Promise.all([
+          accounts.findOne({ id: body.fromAccountId, archived: { $ne: true } }, { session }),
+          accounts.findOne({ id: body.toAccountId, archived: { $ne: true } }, { session }),
+        ]);
+        if (!from || !to) {
+          const invalidAccount = new Error('Choose two active cash or bank accounts.');
+          invalidAccount.statusCode = 400;
+          throw invalidAccount;
+        }
+        const pair = [
+          { requestId, leg: 'out', accountId: from.id, accountName: from.name, amountPaise: -amountPaise },
+          { requestId, leg: 'in', accountId: to.id, accountName: to.name, amountPaise },
+        ].map(entry => ({
+          ...entry,
+          type: 'transfer',
+          description,
+          reference,
+          createdBy: req.user._id.toString(),
+          createdByEmail: req.user.email,
+          createdAt: now,
+        }));
+        await ledger.insertMany(pair, { session });
+        saved = pair[0];
+      } else {
+        await insertCashbookEntry({
+          requestId,
+          accountId: body.accountId,
+          amountPaise,
+          direction: body.direction,
+          type: 'manual',
+          description,
+          reference,
+          actor: req.user,
+          session,
+        });
+        saved = await ledger.findOne({ requestId }, { session });
+      }
+    });
+    res.status(201).json(saved);
+  } catch (error) {
+    if (error.code === 11000) {
+      const previous = await database.collection('vyapaar_cashbook').findOne({ requestId });
+      if (previous) return res.json(previous);
+      return res.status(409).json({ error: 'This cashbook request has already been recorded.' });
+    }
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+    next(error);
+  } finally {
+    await session.endSession();
+  }
+});
+
+app.get('/api/admin/vyapaar/expenses', requireAdmin, async (req, res, next) => {
+  try {
+    const dateRange = parseDateRange(req.query);
+    if (dateRange === null) return res.status(400).json({ error: 'Choose a valid date range.' });
+    const filter = Object.keys(dateRange).length ? { createdAt: dateRange } : {};
+    const items = await database.collection('vyapaar_expenses').find(filter).sort({ createdAt: -1 }).limit(100).toArray();
+    res.json({ items: items.map(({ _id, amountPaise, ...expense }) => ({ ...expense, amount: amountPaise / 100 })) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/admin/vyapaar/expenses', requireAdmin, async (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const requestId = typeof body.requestId === 'string' ? body.requestId : '';
+  const category = typeof body.category === 'string' ? body.category.trim() : '';
+  const description = typeof body.description === 'string' ? body.description.trim() : '';
+  const amountPaise = amountToPaise(body.amount);
+  const reference = typeof body.reference === 'string' ? body.reference.trim() : '';
+  if (!/^[a-f0-9-]{36}$/i.test(requestId) || category.length < 2 || category.length > 60 ||
+      description.length < 3 || description.length > 300 || amountPaise === null || amountPaise <= 0 ||
+      reference.length > 120 || typeof body.accountId !== 'string') {
+    return res.status(400).json({ error: 'Enter a valid category, description, positive amount, and active payment account.' });
+  }
+  const session = mongoClient.startSession();
+  try {
+    let expense;
+    await session.withTransaction(async () => {
+      const expenses = database.collection('vyapaar_expenses');
+      const existing = await expenses.findOne({ requestId }, { session });
+      if (existing) { expense = existing; return; }
+      expense = {
+        requestId,
+        category,
+        description,
+        amountPaise,
+        accountId: body.accountId,
+        reference,
+        createdBy: req.user._id.toString(),
+        createdByEmail: req.user.email,
+        createdAt: new Date(),
+      };
+      await expenses.insertOne(expense, { session });
+      await insertCashbookEntry({
+        requestId: `expense:${requestId}`,
+        accountId: body.accountId,
+        amountPaise,
+        direction: 'out',
+        type: 'expense',
+        description: `${category}: ${description}`,
+        reference,
+        actor: req.user,
+        session,
+      });
+    });
+    res.status(201).json({ ...expense, amount: expense.amountPaise / 100 });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ error: 'This expense request has already been recorded.' });
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+    next(error);
+  } finally {
+    await session.endSession();
+  }
+});
+
+app.get('/api/admin/vyapaar/returns', requireAdmin, async (req, res, next) => {
+  try {
+    if (req.query.kind !== undefined || req.query.sourceNumber !== undefined) {
+      const kind = req.query.kind;
+      const sourceNumber = typeof req.query.sourceNumber === 'string' ? req.query.sourceNumber.trim() : '';
+      if (!['sale', 'purchase'].includes(kind) || !sourceNumber || sourceNumber.length > 100) {
+        return res.status(400).json({ error: 'Choose a valid return type and source transaction.' });
+      }
+      const numberField = kind === 'sale' ? 'invoiceNumber' : 'purchaseNumber';
+      const quantities = await database.collection(kind === 'sale' ? 'vyapaar_sales_returns' : 'vyapaar_purchase_returns')
+        .aggregate([
+          { $match: { [numberField]: sourceNumber } },
+          { $unwind: '$lines' },
+          { $group: { _id: '$lines.slug', quantity: { $sum: '$lines.quantity' } } },
+        ]).toArray();
+      return res.json({ quantities: Object.fromEntries(quantities.map(item => [item._id, item.quantity])) });
+    }
+    const [sales, purchases] = await Promise.all([
+      database.collection('vyapaar_sales_returns').find({}).sort({ createdAt: -1 }).limit(100).toArray(),
+      database.collection('vyapaar_purchase_returns').find({}).sort({ createdAt: -1 }).limit(100).toArray(),
+    ]);
+    res.json({
+      sales: sales.map(({ _id, creditPaise, refundPaise, ...item }) => ({ ...item, credit: creditPaise / 100, refund: refundPaise / 100 })),
+      purchases: purchases.map(({ _id, creditPaise, ...item }) => ({ ...item, credit: creditPaise / 100 })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+async function recordVyapaarReturn({ kind, req, res, next }) {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const requestId = typeof body.requestId === 'string' ? body.requestId : '';
+  const reference = typeof body.reference === 'string' ? body.reference.trim() : '';
+  const isSaleReturn = kind === 'sale';
+  const numberField = isSaleReturn ? 'invoiceNumber' : 'purchaseNumber';
+  const sourceNumber = typeof body[numberField] === 'string' ? body[numberField].trim() : '';
+  const collectionName = isSaleReturn ? 'vyapaar_sales_returns' : 'vyapaar_purchase_returns';
+  if (!/^[a-f0-9-]{36}$/i.test(requestId) || !sourceNumber || sourceNumber.length > 100 ||
+      reference.length > 300 || !Array.isArray(body.lines) || body.lines.length < 1 || body.lines.length > 100 ||
+      body.lines.some(line => !line || typeof line.slug !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(line.slug) ||
+        !Number.isSafeInteger(line.quantity) || line.quantity < 1 || line.quantity > 10000) ||
+      new Set(body.lines.map(line => line.slug)).size !== body.lines.length) {
+    return res.status(400).json({ error: 'Choose a valid invoice or purchase and unique item quantities to return.' });
+  }
+  const refundPaise = isSaleReturn ? amountToPaise(body.refundAmount ?? 0) : 0;
+  if (refundPaise === null) return res.status(400).json({ error: 'Enter a valid refund amount with up to two decimal places.' });
+  const session = mongoClient.startSession();
+  try {
+    let saved;
+    await session.withTransaction(async () => {
+      const returns = database.collection(collectionName);
+      const previousRequest = await returns.findOne({ requestId }, { session });
+      if (previousRequest) {
+        if (previousRequest[numberField] !== sourceNumber) {
+          const conflict = new Error('This return request has already been used for another transaction.');
+          conflict.statusCode = 409;
+          throw conflict;
+        }
+        saved = previousRequest;
+        return;
+      }
+      const sourceCollection = database.collection(isSaleReturn ? 'vyapaar_sales' : 'vyapaar_purchases');
+      const source = await sourceCollection.findOne({ [numberField]: sourceNumber }, { session });
+      if (!source) {
+        const missing = new Error(isSaleReturn ? 'Invoice not found.' : 'Purchase not found.');
+        missing.statusCode = 404;
+        throw missing;
+      }
+      const sourceLock = await sourceCollection.updateOne({ _id: source._id }, { $inc: { returnCount: 1 } }, { session });
+      if (!sourceLock.matchedCount) {
+        const conflict = new Error('The source transaction changed. Refresh and try again.');
+        conflict.statusCode = 409;
+        throw conflict;
+      }
+      if (isSaleReturn && source.balanceDuePaise > 0) {
+        const unpaid = new Error('Settle the invoice balance before recording a refund or return credit.');
+        unpaid.statusCode = 409;
+        throw unpaid;
+      }
+      const recordedReturns = await returns.find({ [numberField]: sourceNumber }, { session }).toArray();
+      const previouslyReturned = new Map();
+      const previouslyCreditedByLine = new Map();
+      let previousCredits = 0;
+      let previousRefunds = 0;
+      for (const item of recordedReturns) {
+        previousCredits += item.creditPaise;
+        previousRefunds += item.refundPaise || 0;
+        for (const line of item.lines) {
+          previouslyReturned.set(line.slug, (previouslyReturned.get(line.slug) || 0) + line.quantity);
+          previouslyCreditedByLine.set(line.slug, (previouslyCreditedByLine.get(line.slug) || 0) + line.creditPaise);
+        }
+      }
+      const returnedLines = [];
+      let creditPaise = 0;
+      for (const requested of body.lines) {
+        const original = source.lines.find(line => line.slug === requested.slug);
+        const alreadyReturned = previouslyReturned.get(requested.slug) || 0;
+        if (!original || alreadyReturned + requested.quantity > original.quantity) {
+          const invalidQuantity = new Error(`Return quantity for ${requested.slug} exceeds the unreturned quantity.`);
+          invalidQuantity.statusCode = 400;
+          throw invalidQuantity;
+        }
+        const cumulativeQuantity = alreadyReturned + requested.quantity;
+        const cumulativeCredit = cumulativeQuantity === original.quantity
+          ? original.totalPaise
+          : Math.floor(original.totalPaise * cumulativeQuantity / original.quantity);
+        const lineCredit = cumulativeCredit - (previouslyCreditedByLine.get(requested.slug) || 0);
+        if (!Number.isSafeInteger(lineCredit)) {
+          const invalidCredit = new Error('Return credit exceeds the supported amount.');
+          invalidCredit.statusCode = 400;
+          throw invalidCredit;
+        }
+        creditPaise += lineCredit;
+        returnedLines.push({ slug: original.slug, name: original.name, quantity: requested.quantity, unit: original.unit || 'piece', creditPaise: lineCredit });
+      }
+      if (!Number.isSafeInteger(creditPaise) || creditPaise <= 0 || previousCredits + creditPaise > source.totalPaise) {
+        const creditConflict = new Error('Return credit exceeds the remaining source transaction amount.');
+        creditConflict.statusCode = 400;
+        throw creditConflict;
+      }
+      if (isSaleReturn && refundPaise > Math.min(creditPaise, source.amountPaidPaise - previousRefunds)) {
+        const overRefund = new Error('Refund cannot exceed this return credit or the amount paid on the invoice.');
+        overRefund.statusCode = 400;
+        throw overRefund;
+      }
+      const now = new Date();
+      const savedReturn = {
+        requestId,
+        [numberField]: sourceNumber,
+        sourceId: source._id,
+        partyName: isSaleReturn ? source.customer.name : source.supplierName,
+        reference,
+        lines: returnedLines,
+        creditPaise,
+        refundPaise,
+        createdBy: req.user._id.toString(),
+        createdByEmail: req.user.email,
+        createdAt: now,
+      };
+      const productsCollection = database.collection('products');
+      for (const line of returnedLines) {
+        const product = await productsCollection.findOne({ slug: line.slug }, { session, projection: { stock: 1 } });
+        if (!product || (!isSaleReturn && (!Number.isSafeInteger(product.stock) || product.stock < line.quantity))) {
+          const stockConflict = new Error(isSaleReturn ? `Item ${line.name} is no longer available.` : `Not enough stock is available to dispatch ${line.name}.`);
+          stockConflict.statusCode = 409;
+          throw stockConflict;
+        }
+        const previousStock = Number.isSafeInteger(product.stock) && product.stock >= 0 ? product.stock : 0;
+        const nextStock = previousStock + (isSaleReturn ? line.quantity : -line.quantity);
+        const stockFilter = product.stock === undefined ? { stock: { $exists: false } } : { stock: product.stock };
+        const update = await productsCollection.updateOne({ slug: line.slug, ...stockFilter }, { $set: { stock: nextStock, updatedAt: now } }, { session });
+        if (!update.matchedCount) {
+          const stockConflict = new Error(`Stock for ${line.name} changed while recording the return. Refresh and try again.`);
+          stockConflict.statusCode = 409;
+          throw stockConflict;
+        }
+        await database.collection('stock_movements').insertOne({
+          requestId: `${requestId}:${line.slug}`,
+          slug: line.slug,
+          itemName: line.name,
+          type: isSaleReturn ? 'sale-return' : 'purchase-return',
+          quantity: nextStock - previousStock,
+          previousStock,
+          newStock: nextStock,
+          reason: `${isSaleReturn ? 'Sales return' : 'Purchase return'} ${sourceNumber}${reference ? ` · ${reference}` : ''}`,
+          referenceId: sourceNumber,
+          createdBy: req.user._id.toString(),
+          createdByEmail: req.user.email,
+          createdAt: now,
+        }, { session });
+      }
+      await returns.insertOne(savedReturn, { session });
+      if (!isSaleReturn) {
+        const supplierCreditPaise = previousCredits + creditPaise;
+        const originalBalancePaise = Math.max(0, source.totalPaise - source.amountPaidPaise);
+        const balanceDuePaise = Math.max(0, originalBalancePaise - supplierCreditPaise);
+        await sourceCollection.updateOne({ _id: source._id }, {
+          $set: {
+            supplierCreditPaise,
+            supplierRefundDuePaise: Math.max(0, supplierCreditPaise - originalBalancePaise),
+            balanceDuePaise,
+            status: balanceDuePaise === 0 ? 'paid' : source.status,
+            updatedAt: now,
+          },
+        }, { session });
+      }
+      if (isSaleReturn && refundPaise > 0) {
+        await insertCashbookEntry({
+          requestId: `sales-return:${requestId}`,
+          accountId: typeof body.accountId === 'string' ? body.accountId : 'cash-default',
+          amountPaise: refundPaise,
+          direction: 'out',
+          type: 'sales-return-refund',
+          description: `Refund for ${sourceNumber}`,
+          reference,
+          actor: req.user,
+          session,
+        });
+      }
+      saved = savedReturn;
+    });
+    res.status(201).json({ ...saved, credit: saved.creditPaise / 100, refund: (saved.refundPaise || 0) / 100 });
+  } catch (error) {
+    if (error.code === 11000) {
+      const existing = await database.collection(collectionName).findOne({ requestId });
+      if (existing) return res.json({ ...existing, credit: existing.creditPaise / 100, refund: (existing.refundPaise || 0) / 100 });
+      return res.status(409).json({ error: 'This return request has already been recorded.' });
+    }
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+    next(error);
+  } finally {
+    await session.endSession();
+  }
+}
+
+app.post('/api/admin/vyapaar/returns/sales', requireAdmin, (req, res, next) => recordVyapaarReturn({ kind: 'sale', req, res, next }));
+app.post('/api/admin/vyapaar/returns/purchases', requireAdmin, (req, res, next) => recordVyapaarReturn({ kind: 'purchase', req, res, next }));
+
+app.get('/api/admin/vyapaar/reports', requireAdmin, async (req, res, next) => {
+  try {
+    const range = parseDateRange(req.query);
+    if (range === null) return res.status(400).json({ error: 'Choose a valid date range.' });
+    const match = Object.keys(range).length ? { createdAt: range } : {};
+    const summarize = async (collectionName, amountField) => {
+      const result = await database.collection(collectionName).aggregate([
+        { $match: match },
+        { $group: { _id: null, count: { $sum: 1 }, amountPaise: { $sum: { $ifNull: [`$${amountField}`, 0] } } } },
+      ]).toArray();
+      return { count: result[0]?.count || 0, amount: (result[0]?.amountPaise || 0) / 100 };
+    };
+    const [sales, purchases, salesReturns, purchaseReturns, expenses, accounts, stock] = await Promise.all([
+      summarize('vyapaar_sales', 'totalPaise'),
+      summarize('vyapaar_purchases', 'totalPaise'),
+      summarize('vyapaar_sales_returns', 'creditPaise'),
+      summarize('vyapaar_purchase_returns', 'creditPaise'),
+      summarize('vyapaar_expenses', 'amountPaise'),
+      database.collection('vyapaar_accounts').find({ archived: { $ne: true } }).toArray(),
+      database.collection('products').aggregate([
+        { $match: { archived: { $ne: true } } },
+        { $group: { _id: null, units: { $sum: { $ifNull: ['$stock', 0] } }, items: { $sum: 1 } } },
+      ]).toArray(),
+    ]);
+    const ledger = await database.collection('vyapaar_cashbook').aggregate([
+      ...(Object.keys(range).length ? [{ $match: { createdAt: range } }] : []),
+      { $group: { _id: null, inflowPaise: { $sum: { $cond: [{ $gt: ['$amountPaise', 0] }, '$amountPaise', 0] } }, outflowPaise: { $sum: { $cond: [{ $lt: ['$amountPaise', 0] }, { $abs: '$amountPaise' }, 0] } } } },
+    ]).toArray();
+    const accountBalances = await database.collection('vyapaar_cashbook').aggregate([
+      { $group: { _id: '$accountId', amountPaise: { $sum: '$amountPaise' } } },
+    ]).toArray();
+    const balanceByAccount = new Map(accountBalances.map(account => [account._id, account.amountPaise]));
+    res.json({
+      range: { from: req.query.from || '', to: req.query.to || '' },
+      sales, purchases, salesReturns, purchaseReturns, expenses,
+      cashbook: {
+        inflow: (ledger[0]?.inflowPaise || 0) / 100,
+        outflow: (ledger[0]?.outflowPaise || 0) / 100,
+        net: ((ledger[0]?.inflowPaise || 0) - (ledger[0]?.outflowPaise || 0)) / 100,
+      },
+      inventory: { items: stock[0]?.items || 0, units: stock[0]?.units || 0 },
+      accounts: accounts.map(({ _id, ...account }) => ({
+        ...account,
+        balancePaise: (account.openingBalancePaise || 0) + (balanceByAccount.get(account.id) || 0),
+      })),
+      disclaimer: 'Operational summary only; not accounting, tax, GST, or statutory reporting. Cashbook covers entries recorded since this module was introduced.',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/admin/vyapaar/activity', requireAdmin, async (req, res, next) => {
+  try {
+    const page = Number(req.query.page || 1);
+    if (!Number.isSafeInteger(page) || page < 1) return res.status(400).json({ error: 'Page number must be a positive integer.' });
+    const pageSize = 50;
+    const collection = database.collection('vyapaar_activity');
+    const [total, items] = await Promise.all([
+      collection.countDocuments(),
+      collection.find({}, { projection: { _id: 0 } }).sort({ createdAt: -1 }).skip((page - 1) * pageSize).limit(pageSize).toArray(),
+    ]);
+    res.json({ page, pageSize, total, items });
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -3189,6 +3781,17 @@ async function start() {
       database.collection('vyapaar_sales').createIndex({ createdAt: -1 }),
       database.collection('vyapaar_payments').createIndex({ requestId: 1 }, { unique: true }),
       database.collection('vyapaar_payments').createIndex({ invoiceNumber: 1, createdAt: 1 }),
+      database.collection('vyapaar_accounts').createIndex({ id: 1 }, { unique: true }),
+      database.collection('vyapaar_accounts').createIndex({ name: 1 }, { unique: true }),
+      database.collection('vyapaar_cashbook').createIndex({ requestId: 1, leg: 1 }, { unique: true }),
+      database.collection('vyapaar_cashbook').createIndex({ accountId: 1, createdAt: -1 }),
+      database.collection('vyapaar_expenses').createIndex({ requestId: 1 }, { unique: true }),
+      database.collection('vyapaar_expenses').createIndex({ createdAt: -1 }),
+      database.collection('vyapaar_sales_returns').createIndex({ requestId: 1 }, { unique: true }),
+      database.collection('vyapaar_sales_returns').createIndex({ invoiceNumber: 1, createdAt: -1 }),
+      database.collection('vyapaar_purchase_returns').createIndex({ requestId: 1 }, { unique: true }),
+      database.collection('vyapaar_purchase_returns').createIndex({ purchaseNumber: 1, createdAt: -1 }),
+      database.collection('vyapaar_activity').createIndex({ createdAt: -1 }),
     ]);
     await database.collection('products').bulkWrite(products.map(product => ({
       updateOne: { filter: { slug: product.slug }, update: { $setOnInsert: product }, upsert: true },
@@ -3202,6 +3805,16 @@ async function start() {
     })));
     await database.collection('vyapaar_units').bulkWrite(['piece', 'pcs', 'unit', 'set', 'pair', 'box'].map(name => ({
       updateOne: { filter: { name }, update: { $setOnInsert: { name, archived: false, createdAt: new Date(), updatedAt: new Date() } }, upsert: true },
+    })));
+    await database.collection('vyapaar_accounts').bulkWrite([
+      { id: 'cash-default', name: 'Cash', type: 'cash' },
+      { id: 'bank-default', name: 'Bank / UPI', type: 'bank' },
+    ].map(account => ({
+      updateOne: {
+        filter: { id: account.id },
+        update: { $setOnInsert: { ...account, openingBalancePaise: 0, createdAt: new Date() } },
+        upsert: true,
+      },
     })));
     await seedAdminUser();
     console.log(`Connected to MongoDB database "${DATABASE_NAME}" and synchronized ${products.length} products.`);

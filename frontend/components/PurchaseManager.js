@@ -17,6 +17,8 @@ export default function PurchaseManager() {
   const [supplierId, setSupplierId] = useState('');
   const [billNumber, setBillNumber] = useState('');
   const [initialPayment, setInitialPayment] = useState('');
+  const [paymentAccountId, setPaymentAccountId] = useState('cash-default');
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [note, setNote] = useState('');
   const [lines, setLines] = useState([]);
   const [productQuery, setProductQuery] = useState('');
@@ -41,6 +43,20 @@ export default function PurchaseManager() {
   }, []);
 
   useEffect(() => { loadPurchases(); }, [loadPurchases]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/vyapaar/accounts', { credentials: 'same-origin' })
+      .then(async response => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not load payment accounts.');
+        if (!cancelled) setPaymentAccounts(result.items);
+      })
+      .catch(requestError => {
+        if (!cancelled) setError(requestError.message || 'Could not load payment accounts.');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +122,7 @@ export default function PurchaseManager() {
           supplierId,
           billNumber,
           initialPayment: Number(initialPayment || 0),
+          accountId: paymentAccountId,
           note,
           lines: lines.map(line => ({ slug: line.slug, quantity: Number(line.quantity), unitCost: Number(line.unitCost) })),
         }),
@@ -163,20 +180,21 @@ export default function PurchaseManager() {
           {lines.length > 0 && <p className="vyapaar-settings-note"><b>Estimated purchase total: {formatMoney(lines.reduce((sum, line) => sum + lineTotal(line), 0))}</b><span>Final total is calculated and validated on the server.</span></p>}
           <div className="admin-form-row">
             <label>Amount paid now (₹)<input type="number" min="0" step="0.01" value={initialPayment} onChange={event => setInitialPayment(event.target.value)} /></label>
+            <label>Paid from<select value={paymentAccountId} onChange={event => setPaymentAccountId(event.target.value)} required>{paymentAccounts.map(account => <option key={account.id} value={account.id}>{account.name} · {account.type}</option>)}</select></label>
             <label>Internal note (optional)<input value={note} onChange={event => setNote(event.target.value)} maxLength={500} /></label>
           </div>
-          <p className="vyapaar-settings-note"><b>Purchase cost, payments and tax</b><span>Purchase cost updates to the entered last cost. The purchase records the amount paid and balance due, but not payment methods or a cash/bank ledger. Item tax is operational only and is not statutory GST treatment.</span></p>
+          <p className="vyapaar-settings-note"><b>Purchase cost, payments and tax</b><span>Purchase cost updates to the entered last cost. Initial payments are posted to the selected cash/bank account; unpaid supplier balances remain payable. Item tax is operational only and is not statutory GST treatment.</span></p>
           <div className="admin-editor-actions"><button className="admin-primary-button" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Record purchase & receive stock'}</button></div>
         </div>
       </form>
       <section className="admin-panel vyapaar-sales-panel">
         <div className="admin-panel-heading"><div><span>Supplier bills</span><h2>Purchase history</h2></div></div>
         {loading ? <p className="admin-loading">Loading purchases…</p> : purchases.length ? <div className="vyapaar-sales-table-wrap"><table className="vyapaar-sales-table">
-          <thead><tr><th>Purchase</th><th>Supplier</th><th>Supplier bill</th><th>Items</th><th>Total</th><th>Paid</th><th>Due</th></tr></thead>
+          <thead><tr><th>Purchase</th><th>Supplier</th><th>Supplier bill</th><th>Items</th><th>Total</th><th>Paid</th><th>Due</th><th>Refund due</th></tr></thead>
           <tbody>{purchases.map(purchase => <tr key={purchase.purchaseNumber}>
             <td>{purchase.purchaseNumber}<small>{new Date(purchase.createdAt).toLocaleDateString()}</small></td><td>{purchase.supplierName}</td>
             <td>{purchase.billNumber}</td><td>{purchase.lines.reduce((sum, line) => sum + line.quantity, 0)}</td>
-            <td>{formatMoney(purchase.total)}</td><td>{formatMoney(purchase.amountPaid)}</td><td>{formatMoney(purchase.balanceDue)}</td>
+            <td>{formatMoney(purchase.total)}</td><td>{formatMoney(purchase.amountPaid)}</td><td>{formatMoney(purchase.balanceDue)}</td><td>{formatMoney(purchase.supplierRefundDue)}</td>
           </tr>)}</tbody>
         </table></div> : <p className="admin-empty">No purchases recorded yet.</p>}
       </section>
