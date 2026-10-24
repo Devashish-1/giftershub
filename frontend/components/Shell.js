@@ -154,7 +154,7 @@ export default function Shell({ children }) {
           </div>
           : <form className="search" role="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><label className="sr-only" htmlFor="header-search">Search products</label><input id="header-search" name="q" placeholder="Search designs" /><button type="submit" aria-label="Search catalogue">Search</button></form>}
         {user
-          ? <Link className="mobile-account-link" href="/account" aria-label="Open account page">
+          ? <Link className="mobile-account-link" href={user.role === 'admin' ? '/admin' : '/account'} aria-label={user.role === 'admin' ? 'Open admin dashboard' : 'Open account page'}>
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
           </Link>
           : <button className="mobile-account-link" type="button" aria-label="Sign in or create account" onClick={openLogin}>
@@ -167,22 +167,25 @@ export default function Shell({ children }) {
             </button>
             {accountMenuOpen && <div className="account-menu" role="menu" aria-label="Account">
               <div className="account-menu-user"><strong>{user.name}</strong><span>{user.email}</span></div>
-              {user.role === 'admin' && <Link role="menuitem" href="/admin" onClick={() => setAccountMenuOpen(false)}>Admin dashboard</Link>}
-              <Link role="menuitem" href="/account" onClick={() => setAccountMenuOpen(false)}>Account overview</Link>
-              <Link role="menuitem" href="/account/profile" onClick={() => setAccountMenuOpen(false)}>Personal details</Link>
-              <Link role="menuitem" href="/account/addresses" onClick={() => setAccountMenuOpen(false)}>Addresses</Link>
-              <Link role="menuitem" href="/account/orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
-              <Link role="menuitem" href="/account/wishlist" onClick={() => setAccountMenuOpen(false)}>Wishlist &amp; reminders</Link>
-              <Link role="menuitem" href="/account/coupons" onClick={() => setAccountMenuOpen(false)}>Coupons &amp; rewards</Link>
-              <Link role="menuitem" href="/account/payments" onClick={() => setAccountMenuOpen(false)}>Payment methods</Link>
-              <Link role="menuitem" href="/account/notifications" onClick={() => setAccountMenuOpen(false)}>Email notifications</Link>
-              <Link role="menuitem" href="/account/privacy" onClick={() => setAccountMenuOpen(false)}>Privacy controls</Link>
-              <Link role="menuitem" href="/account/security" onClick={() => setAccountMenuOpen(false)}>Security</Link>
+              {user.role === 'admin'
+                ? <Link role="menuitem" href="/admin" onClick={() => setAccountMenuOpen(false)}>Admin dashboard</Link>
+                : <>
+                  <Link role="menuitem" href="/account" onClick={() => setAccountMenuOpen(false)}>Account overview</Link>
+                  <Link role="menuitem" href="/account/profile" onClick={() => setAccountMenuOpen(false)}>Personal details</Link>
+                  <Link role="menuitem" href="/account/addresses" onClick={() => setAccountMenuOpen(false)}>Addresses</Link>
+                  <Link role="menuitem" href="/account/orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
+                  <Link role="menuitem" href="/account/wishlist" onClick={() => setAccountMenuOpen(false)}>Wishlist &amp; reminders</Link>
+                  <Link role="menuitem" href="/account/coupons" onClick={() => setAccountMenuOpen(false)}>Coupons &amp; rewards</Link>
+                  <Link role="menuitem" href="/account/payments" onClick={() => setAccountMenuOpen(false)}>Payment methods</Link>
+                  <Link role="menuitem" href="/account/notifications" onClick={() => setAccountMenuOpen(false)}>Email notifications</Link>
+                  <Link role="menuitem" href="/account/privacy" onClick={() => setAccountMenuOpen(false)}>Privacy controls</Link>
+                  <Link role="menuitem" href="/account/security" onClick={() => setAccountMenuOpen(false)}>Security</Link>
+                </>}
               <button role="menuitem" type="button" onClick={() => { setAccountMenuOpen(false); logout(); }}>Sign out</button>
             </div>}
           </div>
           : <button className="login-btn" onClick={openLogin}>Sign in</button>}
-        <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
+        {user?.role !== 'admin' && <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>}
       </div>
       {!isAccountPage && <button
         ref={mobileMenuButton}
@@ -259,10 +262,10 @@ export default function Shell({ children }) {
       </div>
       <div className="wrap footer-bottom"><span>© 2026 The Gifter’s Hub · Gifts &amp; Decor</span><span>Retail catalogue · Prices coming soon</span></div>
     </footer>}
-    <nav className="bottom">
+    <nav className={`bottom${user?.role === 'admin' ? ' admin-bottom' : ''}`}>
       <Link href="/"><span>⌂</span>Home</Link><Link href="/shop"><span>▦</span>Shop</Link>
       <Link href="/gifts"><span>♡</span>Gifts</Link>
-      <button onClick={() => setOpen(true)}><span>◌</span>Cart{count > 0 ? ` (${count})` : ''}</button>
+      {user?.role !== 'admin' && <button onClick={() => setOpen(true)}><span>◌</span>Cart{count > 0 ? ` (${count})` : ''}</button>}
     </nav>
     <Drawer />
     <ContactWidget productPage={pathname.startsWith('/product/')} />
@@ -313,10 +316,11 @@ function Drawer() {
         <div className="df">
           <label><input type="checkbox" checked={gift} onChange={e => setGift(e.target.checked)} /> Gift wrap + greeting card (+₹99)</label>
           <div className="row"><input type="text" placeholder="Coupon code" value={code} onChange={e => setCode(e.target.value)} /><button className="btn ghost" style={{ padding: '8px 14px' }} onClick={() => setApplied(code)}>Apply</button></div>
-          {applied && q && <div className={q.couponOk ? 'ok' : 'bad'}>{q.couponOk ? `${applied.toUpperCase()} applied` : 'Invalid code or minimum not met'}</div>}
+          {applied && q && <div className={q.couponOk ? 'ok' : 'bad'}>{q.couponOk ? `${applied.toUpperCase()} applied${q.couponCapped ? ' with an adjusted discount' : ''}` : q.couponCapped ? 'Coupon unavailable for this basket' : 'Invalid code or minimum not met'}</div>}
           {quoteError && <div className="bad" role="alert">{quoteError}</div>}
-          {q && <><div className="row"><span>Subtotal</span><span>{inr(q.sub)}</span></div>
+          {q && <><div className="row"><span>Subtotal (incl. GST)</span><span>{inr(q.sub)}</span></div>
             {q.off > 0 && <div className="row ok"><span>Discount</span><span>−{inr(q.off)}</span></div>}
+            <div className="row"><span>GST included</span><span>{inr(q.taxIncluded)}</span></div>
             <div className="row"><span>Shipping</span><span>{q.ship ? inr(q.ship) : 'Free'}</span></div>
             <div className="row"><b>Total</b><b>{inr(q.total)}</b></div></>}
           <button className="btn alt" onClick={go} disabled={!q || Boolean(quoteError)}>Checkout</button>

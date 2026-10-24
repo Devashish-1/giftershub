@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCart } from './CartProvider';
@@ -37,6 +38,7 @@ async function request(path, options = {}) {
 
 export default function AccountSection({ section }) {
   const { user, loading: authLoading, openLogin, logout, finishAccountDeletion } = useAuth();
+  const router = useRouter();
   const { wish } = useCart();
   const [profile, setProfile] = useState(null);
   const [addresses, setAddresses] = useState([]);
@@ -66,6 +68,10 @@ export default function AccountSection({ section }) {
     if (authLoading) return;
     if (!user) {
       openLogin();
+      return;
+    }
+    if (user.role === 'admin') {
+      router.replace('/admin');
       return;
     }
     let active = true;
@@ -104,7 +110,7 @@ export default function AccountSection({ section }) {
       if (active) setError(loadError.message || 'Could not load your account details.');
     });
     return () => { active = false; };
-  }, [authLoading, user, openLogin, section]);
+  }, [authLoading, user, openLogin, router, section]);
 
   useEffect(() => {
     if (section !== 'addresses' || !/^[1-9]\d{5}$/.test(form.pincode)) {
@@ -360,7 +366,7 @@ export default function AccountSection({ section }) {
     }
   };
 
-  if (authLoading || !user || !profile) {
+  if (authLoading || !user || !profile || user.role === 'admin') {
     return <section className="wrap account-page"><p>{!user && !authLoading ? 'Sign in to view your account.' : 'Loading your account…'}</p></section>;
   }
 

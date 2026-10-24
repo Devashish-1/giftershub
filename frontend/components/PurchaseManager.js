@@ -183,7 +183,7 @@ export default function PurchaseManager() {
             <label>Paid from<select value={paymentAccountId} onChange={event => setPaymentAccountId(event.target.value)} required>{paymentAccounts.map(account => <option key={account.id} value={account.id}>{account.name} · {account.type}</option>)}</select></label>
             <label>Internal note (optional)<input value={note} onChange={event => setNote(event.target.value)} maxLength={500} /></label>
           </div>
-          <p className="vyapaar-settings-note"><b>Purchase cost, payments and tax</b><span>Purchase cost updates to the entered last cost. Initial payments are posted to the selected cash/bank account; unpaid supplier balances remain payable. Item tax is operational only and is not statutory GST treatment.</span></p>
+          <p className="vyapaar-settings-note"><b>Purchase cost, payments and tax</b><span>Enter each supplier unit cost before GST; the item GST rate is added to calculate the bill total. Initial payments are posted to the selected cash/bank account; unpaid supplier balances remain payable. This is not statutory GST accounting.</span></p>
           <div className="admin-editor-actions"><button className="admin-primary-button" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Record purchase & receive stock'}</button></div>
         </div>
       </form>

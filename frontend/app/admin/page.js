@@ -4,12 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../components/AuthProvider';
 import AdminProductManager from '../../components/AdminProductManager';
+import AdminCouponManager from '../../components/AdminCouponManager';
 
 const ORDER_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 const TABS = [
   ['overview', 'Overview'],
   ['products', 'Products'],
+  ['coupons', 'Coupons'],
   ['orders', 'Orders'],
   ['customers', 'Customers'],
 ];
@@ -235,6 +237,7 @@ export default function AdminPage() {
               </section>}
 
               {tab === 'products' && <AdminProductManager />}
+              {tab === 'coupons' && <AdminCouponManager />}
               {tab === 'customers' && <Customers
                 customers={data.users.items}
                 page={data.users.page}

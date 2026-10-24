@@ -105,7 +105,7 @@ export default async function PDP({ params }) {
       <div>
         <div className="lbl">{p.category.replace('-', ' ')}</div>
         <h1 style={{ marginTop: 8 }}>{p.name}</h1>
-        {p.available !== false && Number.isFinite(p.price) && <div className="pr"><b>{inr(p.price)}</b>{Number.isFinite(p.mrp) && <s>{inr(p.mrp)}</s>}{off > 0 && <em>{off}% off</em>}</div>}
+        {p.available !== false && Number.isFinite(p.price) && <><div className="pr"><b>{inr(p.price)}</b>{Number.isFinite(p.mrp) && <s>{inr(p.mrp)}</s>}{off > 0 && <em>{off}% off</em>}</div><small className="gst-included-note">Inclusive of GST</small></>}
         <p className="lead">{p.desc}</p>
         {p.sourceUrl && <p className="marketplace-note">{p.availabilityNote || 'Demo listing; price and availability may change.'} <a href={p.sourceUrl} target="_blank" rel="noreferrer">Check the current {p.sourceName || 'marketplace'} listing ↗</a></p>}
         {p.details && <section className="product-details" aria-label="Product details">

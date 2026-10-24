@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '../../components/CartProvider';
 import { useAuth } from '../../components/AuthProvider';
 import { inr } from '../../lib/api';
 export default function Checkout() {
+  const router = useRouter();
   const { items, clear, syncing } = useCart(), { user, loading, openLogin } = useAuth(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false), [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [gift, setGift] = useState(false), [code, setCode] = useState(''), [coupon, setCoupon] = useState(''), [quote, setQuote] = useState(null), [quoteError, setQuoteError] = useState(''), [delivery, setDelivery] = useState(null);
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -22,6 +24,7 @@ export default function Checkout() {
     }
   }, []);
   useEffect(() => { if (!loading && !user && items.length) openLogin(); }, [loading, user, items.length, openLogin]);
+  useEffect(() => { if (!loading && user?.role === 'admin') router.replace('/admin'); }, [loading, user, router]);
   useEffect(() => {
     setQuote(null);
     setQuoteError('');
@@ -71,7 +74,7 @@ export default function Checkout() {
     };
   }, [f.pincode]);
   useEffect(() => {
-    if (!user) return undefined;
+    if (!user || user.role === 'admin') return undefined;
     let active = true;
     Promise.all([
       fetch('/api/account/profile', { credentials: 'same-origin' }).then(async response => {
@@ -118,6 +121,7 @@ export default function Checkout() {
   const set = k => e => setF({ ...f, [k]: e.target.value });
   if (done) return <div className="wrap form"><h1>Thank you!</h1><p>Order <b>{done.id}</b> is confirmed. Total: ₹{done.total}. You can receive order updates by email from your account notification settings.</p><Link className="btn" href="/shop">Continue shopping</Link></div>;
   if (loading) return <div className="wrap form"><p>Checking your account…</p></div>;
+  if (user?.role === 'admin') return <div className="wrap form"><p>Customer checkout is unavailable to administrators.</p><Link className="btn" href="/admin">Open admin dashboard</Link></div>;
   if (!user) return <div className="wrap form"><h1>Sign in to checkout</h1><p>Your cart is saved while you sign in or create an account.</p><button className="btn alt" type="button" onClick={openLogin}>Sign in or create account</button></div>;
   if (syncing) return <div className="wrap form"><p>Restoring your saved cart…</p></div>;
   if (!items.length) return <div className="wrap form"><p>Your cart is empty.</p><Link className="btn" href="/shop">Shop now</Link></div>;
@@ -140,7 +144,11 @@ export default function Checkout() {
     <textarea rows={2} placeholder="Gift message (optional)" value={msg} onChange={e => setMsg(e.target.value)} />
     <section className="checkout-summary" aria-labelledby="checkout-summary-title">
       <h2 id="checkout-summary-title">Order summary</h2>
-      {items.map(item => <div className="row" key={item.key}><span>{item.name}{item.variant ? ` · ${item.variant}` : ''} × {item.qty}</span><span>{inr(item.price * item.qty)}</span></div>)}
+      {items.map(item => {
+        const pricedLine = quote?.lines.find(line => line.slug === item.slug && line.variant === (item.variant || ''));
+        return <div className="row" key={item.key}><span>{item.name}{item.variant ? ` · ${item.variant}` : ''} × {item.qty}</span><span>{inr(pricedLine?.total ?? item.price * item.qty)}</span></div>;
+      })}
+      <p className="gst-included-note">Product prices include GST.</p>
       <label className="checkout-gift-option"><input type="checkbox" checked={gift} onChange={event => {
         const enabled = event.target.checked;
         setGift(enabled);
@@ -151,11 +159,12 @@ export default function Checkout() {
         setCoupon(nextCoupon);
         sessionStorage.setItem('gh-opts', JSON.stringify({ gift, coupon: nextCoupon }));
       }}>Apply</button></div>
-      {coupon && quote && <p className={quote.couponOk ? 'ok' : 'bad'} role="status">{quote.couponOk ? `${coupon.toUpperCase()} applied` : 'Coupon is invalid or its minimum spend is not met.'}</p>}
+      {coupon && quote && <p className={quote.couponOk ? 'ok' : 'bad'} role="status">{quote.couponOk ? `${coupon.toUpperCase()} applied${quote.couponCapped ? ' with an adjusted discount' : ''}` : quote.couponCapped ? 'This coupon cannot be applied to the current basket.' : 'Coupon is invalid or its minimum spend is not met.'}</p>}
       {quoteError && <p className="bad" role="alert">{quoteError}</p>}
       {quote && <>
-        <div className="row"><span>Subtotal</span><span>{inr(quote.sub)}</span></div>
+        <div className="row"><span>Subtotal (incl. GST)</span><span>{inr(quote.sub)}</span></div>
         {quote.off > 0 && <div className="row"><span>Discount</span><span>−{inr(quote.off)}</span></div>}
+        <div className="row"><span>GST included in products</span><span>{inr(quote.taxIncluded)}</span></div>
         <div className="row"><span>Shipping</span><span>{quote.ship ? inr(quote.ship) : 'Free'}</span></div>
         {quote.giftFee > 0 && <div className="row"><span>Gift wrap</span><span>{inr(quote.giftFee)}</span></div>}
         <div className="row checkout-total"><strong>Total</strong><strong>{inr(quote.total)}</strong></div>

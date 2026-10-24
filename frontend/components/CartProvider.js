@@ -26,6 +26,7 @@ function toServerItems(items) {
 
 export default function CartProvider({ children }) {
   const { user, loading } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const userEmail = user?.email || '';
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -50,6 +51,19 @@ export default function CartProvider({ children }) {
 
   useEffect(() => {
     if (loading || !hydrated) return;
+    if (isAdmin) {
+      requestVersion.current += 1;
+      setItems([]);
+      setWish([]);
+      setSyncedUser('');
+      setSyncing(false);
+      mergeStartedFor.current = '';
+      previousUser.current = '';
+      localStorage.removeItem('gh-cart');
+      localStorage.removeItem('gh-wish');
+      localStorage.removeItem('gh-cart-merge-id');
+      return;
+    }
     if (!userEmail) {
       if (previousUser.current) {
         requestVersion.current += 1;
@@ -100,10 +114,11 @@ export default function CartProvider({ children }) {
       setSyncing(false);
       say(error.message || 'Could not sync your saved cart. Please refresh to retry.');
     });
-  }, [hydrated, loading, syncedUser, userEmail]);
+  }, [hydrated, isAdmin, loading, syncedUser, userEmail]);
 
   useEffect(() => {
     if (!hydrated || loading) return undefined;
+    if (isAdmin) return undefined;
     if (!userEmail) {
       localStorage.setItem('gh-cart', JSON.stringify(items));
       localStorage.setItem('gh-wish', JSON.stringify(wish));
@@ -133,7 +148,7 @@ export default function CartProvider({ children }) {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [hydrated, items, loading, syncedUser, userEmail, wish]);
+  }, [hydrated, isAdmin, items, loading, syncedUser, userEmail, wish]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('cart-open', open);
@@ -146,6 +161,7 @@ export default function CartProvider({ children }) {
   }, []);
 
   const add = (product, variant = '', qty = 1) => {
+    if (isAdmin) return;
     const key = product.slug + variant;
     const existing = itemsRef.current.find(item => item.key === key);
     if (!existing && itemsRef.current.length >= 30) {
@@ -164,6 +180,7 @@ export default function CartProvider({ children }) {
     .map(item => item.key === key ? { ...item, qty: Math.min(99, item.qty + delta) } : item)
     .filter(item => item.qty > 0));
   const toggleWish = slug => {
+    if (isAdmin) return;
     const removing = wishRef.current.includes(slug);
     say(removing ? 'Removed from wishlist' : 'Saved to wishlist');
     setWish(current => removing ? current.filter(value => value !== slug) : [...current, slug]);

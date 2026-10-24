@@ -22,11 +22,13 @@ function emptyProduct() {
     subject: '',
     sku: '',
     barcode: '',
+    hsnCode: '',
     unit: 'piece',
     image: '',
     gallery: '',
     price: '',
     purchasePrice: '',
+    extraCost: '0',
     mrp: '',
     taxRate: 0,
     lowStockThreshold: '0',
@@ -44,11 +46,13 @@ function productForm(product) {
     subject: product.subject || '',
     sku: product.sku || '',
     barcode: product.barcode || '',
+    hsnCode: product.hsnCode || '',
     unit: product.unit || 'piece',
     image: product.image || '',
     gallery: (product.gallery || []).join(', '),
     price: product.price ?? '',
     purchasePrice: product.purchasePrice ?? '',
+    extraCost: product.extraCost ?? 0,
     mrp: product.mrp ?? '',
     taxRate: product.taxRate ?? 0,
     lowStockThreshold: product.lowStockThreshold ?? 0,
@@ -87,6 +91,7 @@ function ProductEditor({ product, categories, units, saving, onClose, onSave }) 
       gallery: form.gallery.split(',').map(image => image.trim()).filter(Boolean),
       price: form.price === '' ? null : Number(form.price),
       purchasePrice: form.purchasePrice === '' ? null : Number(form.purchasePrice),
+      extraCost: Number(form.extraCost || 0),
       mrp: form.mrp === '' ? null : Number(form.mrp),
       taxRate: Number(form.taxRate),
       lowStockThreshold: Number(form.lowStockThreshold || 0),
@@ -113,6 +118,7 @@ function ProductEditor({ product, categories, units, saving, onClose, onSave }) 
             <label>SKU / item code<input name="sku" value={form.sku} onChange={update} maxLength={80} /></label>
             <label>Barcode<input name="barcode" value={form.barcode} onChange={update} maxLength={80} /></label>
           </div>
+          <label>HSN code (optional)<input name="hsnCode" value={form.hsnCode} onChange={update} inputMode="numeric" pattern="[0-9]{4,8}" maxLength={8} /></label>
           <div className="admin-form-row">
             <label>Unit<select name="unit" value={form.unit} onChange={update}>{units.map(unit => <option key={unit} value={unit}>{unit}</option>)}</select></label>
             <label>Low-stock threshold<input name="lowStockThreshold" type="number" min="0" step="1" value={form.lowStockThreshold} onChange={update} /></label>
@@ -120,11 +126,15 @@ function ProductEditor({ product, categories, units, saving, onClose, onSave }) 
           <label>Main image path<input name="image" value={form.image} onChange={update} placeholder="/products/image-name.webp" pattern="/products/[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpe?g)" required /></label>
           <label>Gallery image paths<small>Comma-separated paths from /products</small><input name="gallery" value={form.gallery} onChange={update} placeholder="/products/image-1.webp, /products/image-2.webp" /></label>
           <div className="admin-form-row">
-            <label>Selling price (₹)<input name="price" type="number" min="0" step="0.01" value={form.price} onChange={update} /></label>
-            <label>MRP (₹)<input name="mrp" type="number" min="0" step="0.01" value={form.mrp} onChange={update} /></label>
+            <label>Selling price (₹, GST included)<input name="price" type="number" min="0" step="0.01" value={form.price} onChange={update} /></label>
+            <label>MRP (₹, GST included)<input name="mrp" type="number" min="0" step="0.01" value={form.mrp} onChange={update} /></label>
           </div>
-          <label>Purchase price (₹)<input name="purchasePrice" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={update} /></label>
-          <label>Tax rate (added to selling price)<select name="taxRate" value={form.taxRate} onChange={update}>{[0, 5, 12, 18, 28].map(rate => <option key={rate} value={rate}>{rate}%</option>)}</select></label>
+          <div className="admin-form-row">
+            <label>Purchase price (₹, before GST)<input name="purchasePrice" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={update} /></label>
+            <label>Other unit costs (₹)<small>Landed costs, including non-recoverable taxes and fees</small><input name="extraCost" type="number" min="0" step="0.01" value={form.extraCost} onChange={update} /></label>
+          </div>
+          <label>GST rate (included in selling price)<select name="taxRate" value={form.taxRate} onChange={update}>{[0, 5, 12, 18, 28].map(rate => <option key={rate} value={rate}>{rate}%</option>)}</select></label>
+          <p className="vyapaar-settings-note"><b>Discount protection</b><span>Enter the purchase price before GST and other landed costs accurately. The margin check conservatively counts purchase GST and checks for at least 10% gross margin on selling revenue excluding GST.</span></p>
           <label>Status<select name="status" value={form.status} onChange={update}>{STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>Description<textarea name="desc" value={form.desc} onChange={update} maxLength={3000} rows={4} /></label>
           <div className="admin-editor-actions">
@@ -288,7 +298,7 @@ export default function AdminProductManager() {
               </div>
               <div className="admin-product-meta">
                 <b>{money(product.price)}</b>
-                <span>{product.archived ? 'Hidden' : product.status || 'Coming soon'} · Stock {product.stock ?? 0} · Tax {product.taxRate ?? 0}%</span>
+                <span>{product.archived ? 'Hidden' : product.status || 'Coming soon'} · Stock {product.stock ?? 0} · GST included {product.taxRate ?? 0}%</span>
               </div>
               <div className="admin-product-actions">
                 <button className="admin-secondary-button" type="button" onClick={() => setEditing(product)}>Edit</button>

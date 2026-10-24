@@ -7,6 +7,69 @@ function money(value) {
   return `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function minimumGrossForMargin(costPaise, taxRate) {
+  if (!Number.isSafeInteger(costPaise) || costPaise < 0) return null;
+  const minimumTaxablePaise = Number((BigInt(costPaise) * 100n + 89n) / 90n);
+  let low = minimumTaxablePaise;
+  let high = Number((BigInt(minimumTaxablePaise) * BigInt(100 + taxRate) + 99n) / 100n) + 2;
+  if (!Number.isSafeInteger(high)) return null;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    const denominator = 100 + taxRate;
+    const includedTaxPaise = Number((BigInt(middle) * BigInt(taxRate) + BigInt(Math.floor(denominator / 2))) / BigInt(denominator));
+    if (middle - includedTaxPaise >= minimumTaxablePaise) high = middle;
+    else low = middle + 1;
+  }
+  return low;
+}
+
+function addedTaxPaise(amountPaise, taxRate) {
+  return Number((BigInt(amountPaise) * BigInt(taxRate) + 50n) / 100n);
+}
+
+function maximumLineDiscountPaise(line) {
+  const purchasePricePaise = Number.isFinite(line.purchasePrice) ? Math.round(line.purchasePrice * 100) : null;
+  const extraCostPaise = Number.isFinite(line.extraCost) ? Math.round(line.extraCost * 100) : 0;
+  if (purchasePricePaise === null) return 0;
+  const quantity = Number(line.quantity);
+  const purchaseBasePaise = purchasePricePaise * quantity;
+  const taxRate = Number(line.taxRate || 0);
+  const costPaise = purchaseBasePaise + addedTaxPaise(purchaseBasePaise, taxRate) + extraCostPaise * quantity;
+  const pricePaise = Math.round(Number(line.price) * 100) * Number(line.quantity);
+  const minimumPaise = minimumGrossForMargin(costPaise, taxRate);
+  return minimumPaise === null ? 0 : Math.max(0, pricePaise - minimumPaise);
+}
+
+function maximumInvoiceDiscountPaise(lines) {
+  const rows = lines.map(line => ({
+    grossPaise: Math.round(Number(line.price) * 100) * Number(line.quantity),
+    discountPaise: Math.round(Number(line.discount || 0) * 100),
+    minimumGrossPaise: Math.round(Number(line.price) * 100) * Number(line.quantity) - maximumLineDiscountPaise(line),
+  }));
+  const availablePaise = rows.reduce((sum, row) => sum + row.grossPaise - row.discountPaise, 0);
+  const discountsAreSafe = discountPaise => {
+    let remainingPaise = discountPaise;
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      const basePaise = row.grossPaise - row.discountPaise;
+      const sharePaise = index === rows.length - 1
+        ? remainingPaise
+        : availablePaise > 0 ? Number((BigInt(discountPaise) * BigInt(basePaise)) / BigInt(availablePaise)) : 0;
+      remainingPaise -= sharePaise;
+      if (basePaise - sharePaise < row.minimumGrossPaise) return false;
+    }
+    return remainingPaise === 0;
+  };
+  let low = 0;
+  let high = availablePaise;
+  while (low < high) {
+    const candidate = Math.ceil((low + high) / 2);
+    if (discountsAreSafe(candidate)) low = candidate;
+    else high = candidate - 1;
+  }
+  return low;
+}
+
 function formatDate(value) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(date);
@@ -190,7 +253,8 @@ export function SaleComposer() {
   const lineDiscounts = lines.reduce((sum, line) => sum + Number(line.discount || 0), 0);
   const invoiceDiscountValue = Number(invoiceDiscount) || 0;
   const baseTotal = Math.max(0, subtotal - lineDiscounts);
-  const remainingDiscount = Math.min(invoiceDiscountValue, baseTotal);
+  const invoiceDiscountLimitPaise = maximumInvoiceDiscountPaise(lines);
+  const remainingDiscount = Math.min(invoiceDiscountValue, baseTotal, invoiceDiscountLimitPaise / 100);
   const totalBase = lines.reduce((sum, line) => sum + Math.max(0, Number(line.price) * Number(line.quantity) - Number(line.discount || 0)), 0);
   let discountLeft = Math.round(remainingDiscount * 100);
   let taxTotalPaise = 0;
@@ -198,11 +262,13 @@ export function SaleComposer() {
     const basePaise = Math.round(Math.max(0, Number(line.price) * Number(line.quantity) - Number(line.discount || 0)) * 100);
     const allocatedDiscount = index === lines.length - 1
       ? discountLeft
-      : totalBase > 0 ? Math.floor(Math.round(remainingDiscount * 100) * basePaise / Math.round(totalBase * 100)) : 0;
+      : totalBase > 0 ? Number((BigInt(Math.round(remainingDiscount * 100)) * BigInt(basePaise)) / BigInt(Math.round(totalBase * 100))) : 0;
     discountLeft -= allocatedDiscount;
-    taxTotalPaise += Math.round((basePaise - allocatedDiscount) * Number(line.taxRate || 0) / 100);
+    const taxRate = Number(line.taxRate || 0);
+    const denominator = 100 + taxRate;
+    taxTotalPaise += Number((BigInt(basePaise - allocatedDiscount) * BigInt(taxRate) + BigInt(Math.floor(denominator / 2))) / BigInt(denominator));
   });
-  const invoiceTotal = Math.max(0, baseTotal - remainingDiscount) + taxTotalPaise / 100;
+  const invoiceTotal = Math.max(0, baseTotal - remainingDiscount);
 
   const submitSale = async event => {
     event.preventDefault();
@@ -251,7 +317,7 @@ export function SaleComposer() {
                 const selected = lines.find(line => line.slug === product.slug);
                 const atStockLimit = (selected?.quantity || 0) >= product.stock;
                 return <article key={product.slug}>
-                  <div><b>{product.name}</b><span>{product.sku || product.barcode || product.slug} · {product.stock} {product.unit || 'piece'} in stock</span><small>{money(product.price)} · tax {product.taxRate || 0}%</small></div>
+                  <div><b>{product.name}</b><span>{product.sku || product.barcode || product.slug} · {product.stock} {product.unit || 'piece'} in stock</span><small>{money(product.price)} · GST included ({product.taxRate || 0}%)</small></div>
                   <button type="button" className="admin-secondary-button" onClick={() => addProduct(product)} disabled={atStockLimit}>{atStockLimit ? 'Stock limit' : 'Add'}</button>
                 </article>;
               })}</div>
@@ -281,7 +347,7 @@ export function SaleComposer() {
         <div className="admin-panel-heading"><div><span>Server-priced invoice</span><h2>Sale items</h2></div></div>
         {lines.length
           ? <div className="vyapaar-sales-table-wrap"><table className="vyapaar-sales-table">
-            <thead><tr><th>Item</th><th>Unit price</th><th>Qty</th><th>Line discount</th><th>Tax</th><th>Amount</th><th /></tr></thead>
+            <thead><tr><th>Item</th><th>Unit price (incl. GST)</th><th>Qty</th><th>Line discount</th><th>GST rate</th><th>Amount</th><th /></tr></thead>
             <tbody>{lines.map(line => {
               const gross = Number(line.price) * Number(line.quantity);
               const discount = Number(line.discount || 0);
@@ -289,7 +355,7 @@ export function SaleComposer() {
               return <tr key={line.slug}>
                 <td>{line.name}</td><td>{money(line.price)}</td>
                 <td><input className="vyapaar-quantity-input" type="number" min="1" max={line.stock} step="1" value={line.quantity} onChange={event => updateLine(line.slug, 'quantity', event.target.value)} required /></td>
-                <td><input className="vyapaar-money-input" type="number" min="0" max={gross} step="0.01" value={line.discount} onChange={event => updateLine(line.slug, 'discount', event.target.value)} /></td>
+                <td><input className="vyapaar-money-input" type="number" min="0" max={maximumLineDiscountPaise(line) / 100} step="0.01" value={line.discount} onChange={event => updateLine(line.slug, 'discount', event.target.value)} /><small>Max {money(maximumLineDiscountPaise(line) / 100)}</small></td>
                 <td>{line.taxRate || 0}%</td><td>{money(amount)}</td>
                 <td><button type="button" className="admin-danger-button" onClick={() => setLines(current => current.filter(item => item.slug !== line.slug))}>Remove</button></td>
               </tr>;
@@ -297,8 +363,8 @@ export function SaleComposer() {
           </table></div>
           : <p className="admin-empty">Add an item from the product list to start this invoice.</p>}
         <div className="vyapaar-sale-summary">
-          <label>Invoice discount (₹)<input type="number" min="0" max={baseTotal} step="0.01" value={invoiceDiscount} onChange={event => setInvoiceDiscount(event.target.value)} /></label>
-          <div><span>Subtotal</span><b>{money(subtotal)}</b><span>Discount</span><b>−{money(lineDiscounts + remainingDiscount)}</b><span>Tax</span><b>{money(taxTotalPaise / 100)}</b><strong>Total</strong><strong>{money(invoiceTotal)}</strong></div>
+          <label>Invoice discount (₹)<input type="number" min="0" max={invoiceDiscountLimitPaise / 100} step="0.01" value={invoiceDiscount} onChange={event => setInvoiceDiscount(event.target.value)} /><small>Maximum that keeps at least a 10% gross margin: {money(invoiceDiscountLimitPaise / 100)}</small></label>
+          <div><span>Subtotal (incl. GST)</span><b>{money(subtotal)}</b><span>Discount</span><b>−{money(lineDiscounts + remainingDiscount)}</b><span>GST included</span><b>{money(taxTotalPaise / 100)}</b><strong>Total</strong><strong>{money(invoiceTotal)}</strong></div>
         </div>
       </section>
 
@@ -315,7 +381,7 @@ export function SaleComposer() {
           <span>Outstanding after payment: <b>{money(Math.max(0, invoiceTotal - (Number(initialPayment) || 0)))}</b></span>
         </div>
         {error && <p className="admin-error" role="alert">{error}</p>}
-        <p className="vyapaar-disclaimer">Prices are treated as tax-exclusive. Tax is calculated from each item’s saved rate and is not a statutory GST filing calculation. Issued invoices cannot currently be cancelled or edited.</p>
+        <p className="vyapaar-disclaimer">Selling prices include the saved GST rate; discounts reduce the GST-inclusive price before the tax portion is calculated. Discount limits conservatively include GST on purchase cost plus recorded other costs. This is an operational invoice, not a statutory GST-compliant tax invoice. Issued invoices cannot currently be cancelled or edited.</p>
         <div className="admin-editor-actions">
           <Link href="/admin/vyapaar/sales" className="admin-secondary-button">Cancel</Link>
           <button type="submit" className="admin-primary-button" disabled={saving || !lines.length}>{saving ? 'Creating invoice…' : 'Create & issue invoice'}</button>
@@ -421,15 +487,15 @@ export function SaleDetail({ invoiceNumber }) {
         </div>}
         <div className="vyapaar-invoice-customer"><b>{sale.customer.name}</b>{sale.customer.phone && <span>{sale.customer.phone}</span>}{sale.customer.email && <span>{sale.customer.email}</span>}{sale.customer.address && <span>{sale.customer.address}</span>}</div>
         <div className="vyapaar-sales-table-wrap"><table className="vyapaar-sales-table">
-          <thead><tr><th>Item</th><th>Qty</th><th>Unit price</th><th>Discount</th><th>Tax rate</th><th>Tax</th><th>Total</th></tr></thead>
+          <thead><tr><th>Item</th><th>HSN</th><th>Qty</th><th>Unit price</th><th>Discount</th><th>GST rate</th><th>{sale.taxInclusive ? 'GST included' : 'Tax'}</th><th>Total</th></tr></thead>
           <tbody>{sale.lines.map(line => <tr key={line.slug}>
-            <td>{line.name}<small>{line.sku || line.slug}</small></td><td>{line.quantity} {line.unit}</td><td>{money(line.unitPrice)}</td>
+            <td>{line.name}<small>{line.sku || line.slug}</small></td><td>{line.hsnCode || '—'}</td><td>{line.quantity} {line.unit}</td><td>{money(line.unitPrice)}</td>
             <td>{money(line.discount + line.invoiceDiscountPaise / 100)}</td><td>{line.taxRate}%</td><td>{money(line.tax)}</td><td>{money(line.total)}</td>
           </tr>)}</tbody>
         </table></div>
-        <div className="vyapaar-invoice-totals"><span>Subtotal</span><b>{money(sale.subtotal)}</b><span>Discount</span><b>−{money(sale.discount)}</b><span>Tax</span><b>{money(sale.tax)}</b><strong>Total</strong><strong>{money(sale.total)}</strong><span>Paid</span><b>{money(sale.amountPaid)}</b><strong>Balance due</strong><strong>{money(sale.balanceDue)}</strong></div>
+        <div className="vyapaar-invoice-totals"><span>{sale.taxInclusive ? 'Subtotal (incl. GST)' : 'Subtotal'}</span><b>{money(sale.subtotal)}</b><span>Discount</span><b>−{money(sale.discount)}</b><span>{sale.taxInclusive ? 'GST included' : 'Tax'}</span><b>{money(sale.tax)}</b><strong>Total</strong><strong>{money(sale.total)}</strong><span>Paid</span><b>{money(sale.amountPaid)}</b><strong>Balance due</strong><strong>{money(sale.balanceDue)}</strong></div>
         {sale.business?.invoiceTerms && <p className="vyapaar-disclaimer">{sale.business.invoiceTerms}</p>}
-        <p className="vyapaar-disclaimer">Tax is derived from the item tax rates saved at issue time. This operational invoice is not a claim of statutory GST compliance.</p>
+        <p className="vyapaar-disclaimer">{sale.taxInclusive ? 'Selling prices include GST; the tax value is extracted using item rates saved at issue time.' : 'Tax was added to tax-exclusive selling prices under the calculation used when this invoice was issued.'} This operational invoice is not a statutory GST tax invoice.</p>
       </section>
 
       <section className="admin-panel vyapaar-payments-panel">

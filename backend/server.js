@@ -10,6 +10,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const rateLimit = require('express-rate-limit');
 const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
+const { addedTaxPaise, allocateDiscount, includedTaxPaise, maximumSafeDiscountPaise, minimumGrossForMargin } = require('./pricing');
 
 const scrypt = promisify(crypto.scrypt);
 const app = express();
@@ -24,11 +25,10 @@ const products = [
   ...JSON.parse(fs.readFileSync(path.join(__dirname, 'data/products.json'), 'utf8')),
   ...JSON.parse(fs.readFileSync(path.join(__dirname, 'data/crystal-bubble-products.json'), 'utf8')),
 ];
-const coupons = {
-  GIFTHUB10: { type: 'pct', value: 10 },
-  UPI5: { type: 'pct', value: 5 },
-  DIWALI100: { type: 'flat', value: 100, min: 799 },
-};
+const INITIAL_COUPONS = [
+  { code: 'GIFTHUB10', type: 'pct', value: 10 },
+  { code: 'UPI5', type: 'pct', value: 5 },
+];
 const mongoClient = process.env.MONGODB_URI
   ? new MongoClient(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 })
   : null;
@@ -337,36 +337,87 @@ async function seedAdminUser() {
   });
 }
 
-function price(items, code, gift, catalog) {
+async function price(items, code, gift, catalog) {
   const lines = items.map(item => {
     const product = catalog.find(value =>
       value.slug === item.slug && value.available !== false &&
       Number.isFinite(value.price) && value.price > 0);
-    return product && {
+    const unitPricePaise = product ? amountToPaise(product.price) : null;
+    if (unitPricePaise === null || !Number.isSafeInteger(unitPricePaise * item.qty)) return null;
+    const taxRate = PRODUCT_TAX_RATES.includes(product.taxRate) ? product.taxRate : 0;
+    const unitPurchaseCostPaise = amountToPaise(product.purchasePrice);
+    const unitExtraCostPaise = amountToPaise(product.extraCost ?? 0);
+    const totalPaise = unitPricePaise * item.qty;
+    const purchaseBasePaise = unitPurchaseCostPaise === null ? null : unitPurchaseCostPaise * item.qty;
+    const totalCostPaise = purchaseBasePaise === null || unitExtraCostPaise === null
+      ? null
+      : purchaseBasePaise + addedTaxPaise(purchaseBasePaise, taxRate) + unitExtraCostPaise * item.qty;
+    const minimumGrossPaise = totalCostPaise === null ? null : minimumGrossForMargin(totalCostPaise, taxRate);
+    return {
       slug: product.slug,
       name: product.name,
       variant: typeof item.variant === 'string' ? item.variant.trim().slice(0, 120) : '',
       qty: item.qty,
-      unit: product.price,
-      total: product.price * item.qty,
+      unitPaise: unitPricePaise,
+      totalPaise,
+      taxRate,
+      hsnCode: product.hsnCode || '',
+      maximumDiscountPaise: minimumGrossPaise === null ? null : Math.max(0, totalPaise - minimumGrossPaise),
     };
   }).filter(Boolean);
-  const sub = lines.reduce((sum, line) => sum + line.total, 0);
-  const coupon = coupons[(code || '').toUpperCase()];
-  const off = coupon && (!coupon.min || sub >= coupon.min)
-    ? (coupon.type === 'pct' ? Math.round(sub * coupon.value / 100) : coupon.value)
+  const subtotalPaise = lines.reduce((sum, line) => sum + line.totalPaise, 0);
+  if (!Number.isSafeInteger(subtotalPaise)) {
+    const invalidTotal = new Error('Cart total exceeds the supported amount.');
+    invalidTotal.statusCode = 400;
+    throw invalidTotal;
+  }
+  const normalizedCode = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  const coupon = normalizedCode
+    ? database
+      ? await database.collection('coupons').findOne({ code: normalizedCode, status: 'active', eligibilityStatus: 'configured' })
+      : INITIAL_COUPONS.find(offer => offer.code === normalizedCode)
+    : null;
+  const minimumSpendPaise = coupon?.minimumSpendPaise || 0;
+  const percentBasisPoints = Number.isFinite(coupon?.value) ? Math.round(coupon.value * 100) : 0;
+  const requestedDiscountPaise = coupon?.type === 'pct' && percentBasisPoints > 0 && percentBasisPoints <= 10000 && subtotalPaise >= minimumSpendPaise
+    ? Math.min(subtotalPaise, Number((BigInt(subtotalPaise) * BigInt(percentBasisPoints) + 5000n) / 10000n))
     : 0;
-  const ship = sub - off >= FREE_SHIP || !sub ? 0 : 79;
+  const offPaise = maximumSafeDiscountPaise(requestedDiscountPaise, lines, subtotalPaise);
+  const discountShares = allocateDiscount(offPaise, lines, subtotalPaise);
+  let taxIncludedPaiseTotal = 0;
+  const linesWithTax = lines.map((line, index) => {
+    const discountPaise = discountShares[index];
+    const taxIncludedPaise = includedTaxPaise(line.totalPaise - discountPaise, line.taxRate);
+    taxIncludedPaiseTotal += taxIncludedPaise;
+    return {
+      slug: line.slug,
+      name: line.name,
+      variant: line.variant,
+      qty: line.qty,
+      hsnCode: line.hsnCode,
+      unit: line.unitPaise / 100,
+      total: line.totalPaise / 100,
+      discount: discountPaise / 100,
+      taxRate: line.taxRate,
+      taxable: (line.totalPaise - discountPaise - taxIncludedPaise) / 100,
+      taxIncluded: taxIncludedPaise / 100,
+    };
+  });
+  const sub = subtotalPaise / 100;
+  const off = offPaise / 100;
+  const ship = subtotalPaise - offPaise >= FREE_SHIP * 100 || !subtotalPaise ? 0 : 79;
   const giftFee = gift ? GIFT_WRAP : 0;
   return {
-    lines,
+    lines: linesWithTax,
     sub,
     off,
+    taxIncluded: taxIncludedPaiseTotal / 100,
     ship,
     giftFee,
     total: sub - off + ship + giftFee,
     toFree: Math.max(0, FREE_SHIP - (sub - off)),
-    couponOk: !!off,
+    couponOk: offPaise > 0,
+    couponCapped: offPaise < requestedDiscountPaise,
   };
 }
 
@@ -486,6 +537,7 @@ function parseAdminProduct(input, existing) {
   const subject = typeof input.subject === 'string' ? input.subject.trim() : '';
   const sku = typeof input.sku === 'string' ? input.sku.trim().toUpperCase() : '';
   const barcode = typeof input.barcode === 'string' ? input.barcode.trim().toUpperCase() : '';
+  const hsnCode = typeof input.hsnCode === 'string' ? input.hsnCode.trim() : (existing?.hsnCode || '');
   const unit = typeof input.unit === 'string' ? input.unit.trim().toLowerCase() : 'piece';
   const image = typeof input.image === 'string' ? input.image.trim() : '';
   const desc = typeof input.desc === 'string' ? input.desc.trim() : '';
@@ -494,6 +546,8 @@ function parseAdminProduct(input, existing) {
   const purchasePrice = parseAmount(input.purchasePrice);
   const price = parseAmount(input.price);
   const mrp = parseAmount(input.mrp);
+  const parsedExtraCost = parseAmount(input.extraCost);
+  const extraCost = parsedExtraCost ?? (existing?.extraCost ?? 0);
   const taxRate = input.taxRate === '' || input.taxRate === null || input.taxRate === undefined
     ? (existing?.taxRate ?? 0)
     : Number(input.taxRate);
@@ -511,17 +565,30 @@ function parseAdminProduct(input, existing) {
   if (subject.length > 80) return { error: 'Artwork name must be 80 characters or fewer.' };
   if (sku.length > 80 || (sku && !/^[A-Z0-9][A-Z0-9._/-]*$/.test(sku))) return { error: 'Use a valid SKU with letters, numbers, dots, hyphens, underscores, or slashes.' };
   if (barcode.length > 80 || (barcode && !/^[A-Za-z0-9_-]{4,80}$/.test(barcode))) return { error: 'Barcode must be 4 to 80 letters, numbers, hyphens, or underscores.' };
+  if (hsnCode && !/^\d{4,8}$/.test(hsnCode)) return { error: 'HSN code must contain 4 to 8 digits.' };
   if (!/^[a-z0-9][a-z0-9 -]{0,23}$/.test(unit)) return { error: 'Use a valid unit name of up to 24 characters.' };
   if (!PRODUCT_IMAGE_PATH.test(image) || image.includes('..')) return { error: 'Use an image from the local /products folder.' };
   if (desc.length > 3000) return { error: 'Description must be 3,000 characters or fewer.' };
   if (!PRODUCT_STATUSES.includes(status)) return { error: 'Choose a valid product status.' };
   if (purchasePrice !== null && (!Number.isFinite(purchasePrice) || purchasePrice < 0)) return { error: 'Enter a valid purchase price.' };
+  if (!Number.isFinite(extraCost) || extraCost < 0) return { error: 'Enter a valid extra unit cost.' };
   if (price !== null && (!Number.isFinite(price) || price < 0)) return { error: 'Enter a valid selling price.' };
   if (mrp !== null && (!Number.isFinite(mrp) || mrp < 0)) return { error: 'Enter a valid MRP.' };
+  if ([purchasePrice, extraCost, price, mrp].some(value => value !== null && amountToPaise(value) === null)) {
+    return { error: 'Product prices and costs must use up to two decimal places.' };
+  }
   if (!PRODUCT_TAX_RATES.includes(taxRate)) return { error: 'Choose a supported tax rate.' };
   if (price !== null && mrp !== null && mrp < price) return { error: 'MRP must be equal to or higher than the selling price.' };
   if (status === 'active' && (!Number.isFinite(price) || price <= 0)) {
     return { error: 'Add a selling price before making this product active.' };
+  }
+  if (status === 'active' && purchasePrice !== null) {
+    const purchaseBasePaise = amountToPaise(purchasePrice);
+    const totalCostPaise = purchaseBasePaise + addedTaxPaise(purchaseBasePaise, taxRate) + amountToPaise(extraCost);
+    const minimumPricePaise = minimumGrossForMargin(totalCostPaise, taxRate);
+    if (minimumPricePaise === null || amountToPaise(price) < minimumPricePaise) {
+      return { error: 'The GST-inclusive selling price must preserve at least a 10% gross margin after product and extra unit costs.' };
+    }
   }
   if (!Number.isSafeInteger(lowStockThreshold) || lowStockThreshold < 0) return { error: 'Low-stock threshold must be a non-negative whole number.' };
   if (!gallery.length || gallery.length > 10 || gallery.some(path => typeof path !== 'string' || !PRODUCT_IMAGE_PATH.test(path) || path.includes('..'))) {
@@ -536,9 +603,11 @@ function parseAdminProduct(input, existing) {
     subject,
     ...(sku ? { sku } : {}),
     ...(barcode ? { barcode } : {}),
+    hsnCode,
     unit,
     price,
     purchasePrice,
+    extraCost,
     mrp,
     taxRate,
     available: status === 'active',
@@ -955,6 +1024,31 @@ async function requireAdmin(req, res, next) {
   }
 }
 
+async function requireCustomer(req, res, next) {
+  try {
+    if (!database) return res.status(503).json({ error: 'Account services are unavailable until MongoDB is configured.' });
+    const user = await findCurrentUser(req);
+    if (!user) return res.status(401).json({ error: 'Please sign in to continue.' });
+    if (user.role === 'admin') return res.status(403).json({ error: 'Customer account features are unavailable to administrators.' });
+    req.user = user;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function denyAdmin(req, res, next) {
+  try {
+    const user = database ? await findCurrentUser(req) : null;
+    if (user?.role === 'admin') return res.status(403).json({ error: 'Customer shopping features are unavailable to administrators.' });
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+app.use('/api/account', requireCustomer);
+
 function validateAddress(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
   const label = typeof input.label === 'string' ? input.label.trim() : '';
@@ -1143,11 +1237,15 @@ app.get('/api/account/orders', requireUser, async (req, res, next) => {
 
 app.get('/api/account/coupons', requireUser, async (req, res, next) => {
   try {
-    const offers = Object.entries(coupons).map(([code, offer]) => ({
-      code,
-      description: offer.type === 'pct' ? `${offer.value}% off` : `₹${offer.value} off`,
-      minimumSpend: offer.min || 0,
-    }));
+    const offers = await database.collection('coupons')
+      .find({ status: 'active', eligibilityStatus: 'configured' }, { projection: { _id: 0, code: 1, value: 1, minimumSpendPaise: 1 } })
+      .sort({ code: 1 })
+      .toArray()
+      .then(items => items.map(offer => ({
+        code: offer.code,
+        description: `Up to ${offer.value}% off`,
+        minimumSpend: (offer.minimumSpendPaise || 0) / 100,
+      })));
     const redemptions = await database.collection('orders')
       .find(
         { userId: req.user._id, couponCode: { $exists: true, $ne: '' } },
@@ -1600,6 +1698,57 @@ app.delete('/api/account', requireUser, async (req, res, next) => {
     const options = sessionCookieOptions();
     delete options.maxAge;
     res.clearCookie(SESSION_COOKIE, options);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/admin/coupons', requireAdmin, async (req, res, next) => {
+  try {
+    const items = await database.collection('coupons')
+      .find({}, { projection: { _id: 0 } })
+      .sort({ updatedAt: -1, code: 1 })
+      .toArray();
+    res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/admin/coupons', requireAdmin, async (req, res, next) => {
+  const code = typeof req.body?.code === 'string' ? req.body.code.trim().toUpperCase() : '';
+  const value = Number(req.body?.value);
+  if (!/^[A-Z0-9][A-Z0-9_-]{2,29}$/.test(code) || !Number.isFinite(value) || value < 1 || value > 100 ||
+      Math.round(value * 100) !== value * 100) {
+    return res.status(400).json({ error: 'Use a 3–30 character coupon code and a percentage from 1 to 100 (up to two decimals).' });
+  }
+  try {
+    const coupon = {
+      code,
+      type: 'pct',
+      value,
+      status: 'draft',
+      eligibilityStatus: 'draft',
+      eligibility: null,
+      createdBy: req.user._id.toString(),
+      createdByEmail: req.user.email,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    await database.collection('coupons').insertOne(coupon);
+    res.status(201).json(coupon);
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ error: 'That coupon code already exists.' });
+    next(error);
+  }
+});
+
+app.delete('/api/admin/coupons/:code', requireAdmin, async (req, res, next) => {
+  try {
+    const code = req.params.code.trim().toUpperCase();
+    const result = await database.collection('coupons').deleteOne({ code, status: 'draft' });
+    if (!result.deletedCount) return res.status(409).json({ error: 'Only unused draft coupons can be removed.' });
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -2073,7 +2222,7 @@ app.get('/api/admin/products/export', requireAdmin, async (req, res, next) => {
     const total = await productsCollection.countDocuments({});
     if (total > 10000) return res.status(413).json({ error: 'The catalogue is too large for a single export. Narrow the export or contact support.' });
     const items = await productsCollection.find({}, { projection: { _id: 0 } }).sort({ name: 1 }).limit(10000).toArray();
-    const fields = ['name', 'slug', 'sku', 'barcode', 'category', 'subject', 'unit', 'purchasePrice', 'price', 'mrp', 'taxRate', 'stock', 'lowStockThreshold', 'status', 'image'];
+    const fields = ['name', 'slug', 'sku', 'barcode', 'hsnCode', 'category', 'subject', 'unit', 'purchasePrice', 'extraCost', 'price', 'mrp', 'taxRate', 'stock', 'lowStockThreshold', 'status', 'image'];
     const rows = [fields.map(csvCell).join(',')];
     for (const item of items) rows.push(fields.map(field => csvCell(item[field])).join(','));
     res.set('Content-Disposition', 'attachment; filename="vyapaar-items.csv"');
@@ -2440,11 +2589,13 @@ function serializeSale(sale) {
       unitPrice: line.unitPricePaise / 100,
       gross: line.grossPaise / 100,
       discount: line.discountPaise / 100,
+      taxable: line.taxablePaise === undefined ? undefined : line.taxablePaise / 100,
       tax: line.taxPaise / 100,
       total: line.totalPaise / 100,
       unitPricePaise: undefined,
       grossPaise: undefined,
       discountPaise: undefined,
+      taxablePaise: undefined,
       taxPaise: undefined,
       totalPaise: undefined,
     })),
@@ -2681,7 +2832,7 @@ app.get('/api/admin/sales/catalog', requireAdmin, async (req, res, next) => {
       ];
     }
     const items = await database.collection('products').find(filter, {
-      projection: { _id: 0, slug: 1, name: 1, sku: 1, barcode: 1, unit: 1, price: 1, taxRate: 1, stock: 1 },
+      projection: { _id: 0, slug: 1, name: 1, sku: 1, hsnCode: 1, barcode: 1, unit: 1, price: 1, taxRate: 1, purchasePrice: 1, extraCost: 1, stock: 1 },
     }).sort({ name: 1 }).limit(50).toArray();
     res.json({ items });
   } catch (error) {
@@ -2827,7 +2978,7 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
       for (const inputLine of lines) {
         const product = await productCollection.findOne(
           { slug: inputLine.slug, archived: { $ne: true }, available: true },
-          { session, projection: { slug: 1, name: 1, sku: 1, barcode: 1, unit: 1, price: 1, taxRate: 1, stock: 1 } },
+          { session, projection: { slug: 1, name: 1, sku: 1, hsnCode: 1, barcode: 1, unit: 1, price: 1, taxRate: 1, purchasePrice: 1, extraCost: 1, stock: 1 } },
         );
         if (!product) {
           const unavailable = new Error(`"${inputLine.slug}" is no longer available.`);
@@ -2843,6 +2994,13 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
         const taxRate = PRODUCT_TAX_RATES.includes(product.taxRate) ? product.taxRate : 0;
         const grossPaise = unitPricePaise * inputLine.quantity;
         const discountPaise = amountToPaise(inputLine.discount ?? 0);
+        const unitPurchaseCostPaise = amountToPaise(product.purchasePrice);
+        const unitExtraCostPaise = amountToPaise(product.extraCost ?? 0);
+        const purchaseBasePaise = unitPurchaseCostPaise === null ? null : unitPurchaseCostPaise * inputLine.quantity;
+        const totalCostPaise = purchaseBasePaise === null || unitExtraCostPaise === null
+          ? null
+          : purchaseBasePaise + addedTaxPaise(purchaseBasePaise, taxRate) + unitExtraCostPaise * inputLine.quantity;
+        const minimumGrossPaise = totalCostPaise === null ? null : minimumGrossForMargin(totalCostPaise, taxRate);
         if (!Number.isSafeInteger(grossPaise) || discountPaise > grossPaise) {
           const invalidAmount = new Error(`The discount for ${product.name} exceeds its line amount.`);
           invalidAmount.statusCode = 400;
@@ -2852,6 +3010,7 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
           slug: product.slug,
           name: product.name,
           sku: product.sku || '',
+          hsnCode: product.hsnCode || '',
           quantity: inputLine.quantity,
           unit: product.unit || 'piece',
           stockBefore: product.stock,
@@ -2859,6 +3018,7 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
           taxRate,
           grossPaise,
           discountPaise,
+          minimumGrossPaise,
         });
       }
 
@@ -2879,9 +3039,21 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
           ? discountRemaining
           : taxBasePaise === 0 ? 0 : Number((BigInt(invoiceDiscountPaise) * BigInt(lineBasePaise)) / BigInt(taxBasePaise));
         discountRemaining -= invoiceShare;
-        const taxablePaise = lineBasePaise - invoiceShare;
-        const taxPaise = Number((BigInt(taxablePaise) * BigInt(line.taxRate) + 50n) / 100n);
-        return { ...line, invoiceDiscountPaise: invoiceShare, taxPaise, totalPaise: taxablePaise + taxPaise };
+        const totalPaise = lineBasePaise - invoiceShare;
+        if ((line.minimumGrossPaise !== null && totalPaise < line.minimumGrossPaise) ||
+            (line.minimumGrossPaise === null && line.discountPaise + invoiceShare > 0)) {
+          const marginConflict = new Error(
+            line.minimumGrossPaise === null
+              ? `Add purchase and extra unit costs for ${line.name} before applying a discount.`
+              : `The discount for ${line.name} would reduce its gross margin below 10%.`,
+          );
+          marginConflict.statusCode = 400;
+          throw marginConflict;
+        }
+        const denominator = 100 + line.taxRate;
+        const taxPaise = Number((BigInt(totalPaise) * BigInt(line.taxRate) + BigInt(Math.floor(denominator / 2))) / BigInt(denominator));
+        const { minimumGrossPaise, ...invoiceLine } = line;
+        return { ...invoiceLine, invoiceDiscountPaise: invoiceShare, taxPaise, taxablePaise: totalPaise - taxPaise, totalPaise };
       });
       const taxPaise = finalizedLines.reduce((sum, line) => sum + line.taxPaise, 0);
       const totalPaise = finalizedLines.reduce((sum, line) => sum + line.totalPaise, 0);
@@ -2909,6 +3081,7 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
         },
         currency: 'INR',
         lines: finalizedLines,
+        taxInclusive: true,
         subtotalPaise,
         discountPaise: lineDiscountPaise + invoiceDiscountPaise,
         taxPaise,
@@ -3670,7 +3843,7 @@ app.get('/api/pincode/:pin', async (req, res) => {
   }
 });
 
-app.post('/api/cart/price', async (req, res, next) => {
+app.post('/api/cart/price', denyAdmin, async (req, res, next) => {
   try {
     const items = req.body.items || [];
     if (!Array.isArray(items) || items.length > 30 ||
@@ -3683,13 +3856,14 @@ app.post('/api/cart/price', async (req, res, next) => {
       product.slug === item.slug && product.available !== false &&
       Number.isFinite(product.price) && product.price > 0));
     if (!pricedItems) return res.status(409).json({ error: 'One or more products are not available for purchase yet.' });
-    res.json(price(items, req.body.coupon, !!req.body.gift, catalog));
+    res.json(await price(items, req.body.coupon, !!req.body.gift, catalog));
   } catch (error) {
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
     next(error);
   }
 });
 
-app.post('/api/orders', requireUser, async (req, res, next) => {
+app.post('/api/orders', requireCustomer, async (req, res, next) => {
   try {
     const { items, coupon, gift, customer } = req.body;
     const giftMessage = typeof req.body.giftMessage === 'string' ? req.body.giftMessage.trim() : '';
@@ -3701,7 +3875,7 @@ app.post('/api/orders', requireUser, async (req, res, next) => {
       return res.status(400).json({ error: 'Enter valid delivery details and cart items.' });
     }
 
-    const total = price(items, coupon, !!gift, await getProducts());
+    const total = await price(items, coupon, !!gift, await getProducts());
     if (!total.lines.length || total.lines.length !== items.length) {
       return res.status(400).json({ error: 'One or more cart products are no longer available.' });
     }
@@ -3739,6 +3913,7 @@ app.post('/api/orders', requireUser, async (req, res, next) => {
     }
     res.status(201).json({ id: order.orderId, total: order.total });
   } catch (error) {
+    if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
     next(error);
   }
 });
@@ -3792,6 +3967,7 @@ async function start() {
       database.collection('vyapaar_purchase_returns').createIndex({ requestId: 1 }, { unique: true }),
       database.collection('vyapaar_purchase_returns').createIndex({ purchaseNumber: 1, createdAt: -1 }),
       database.collection('vyapaar_activity').createIndex({ createdAt: -1 }),
+      database.collection('coupons').createIndex({ code: 1 }, { unique: true }),
     ]);
     await database.collection('products').bulkWrite(products.map(product => ({
       updateOne: { filter: { slug: product.slug }, update: { $setOnInsert: product }, upsert: true },
@@ -3813,6 +3989,21 @@ async function start() {
       updateOne: {
         filter: { id: account.id },
         update: { $setOnInsert: { ...account, openingBalancePaise: 0, createdAt: new Date() } },
+        upsert: true,
+      },
+    })));
+    await database.collection('coupons').bulkWrite(INITIAL_COUPONS.map(coupon => ({
+      updateOne: {
+        filter: { code: coupon.code },
+        update: { $setOnInsert: {
+          ...coupon,
+          status: 'active',
+          eligibilityStatus: 'configured',
+          eligibility: { type: 'all-products' },
+          minimumSpendPaise: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } },
         upsert: true,
       },
     })));

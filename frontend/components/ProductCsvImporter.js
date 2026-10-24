@@ -10,12 +10,14 @@ const FIELD_NAMES = [
   ['image', 'Image path', true],
   ['sku', 'SKU', false],
   ['barcode', 'Barcode', false],
+  ['hsnCode', 'HSN code', false],
   ['subject', 'Artwork / deity', false],
   ['unit', 'Unit', false],
-  ['purchasePrice', 'Purchase price', false],
-  ['price', 'Selling price', false],
-  ['mrp', 'MRP', false],
-  ['taxRate', 'Tax rate', false],
+  ['purchasePrice', 'Purchase price (before GST)', false],
+  ['extraCost', 'Other landed unit costs', false],
+  ['price', 'Selling price (GST inclusive)', false],
+  ['mrp', 'MRP (GST inclusive)', false],
+  ['taxRate', 'GST rate (%)', false],
   ['lowStockThreshold', 'Low-stock threshold', false],
   ['status', 'Status', false],
   ['desc', 'Description', false],
@@ -119,10 +121,14 @@ export default function ProductCsvImporter() {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(row.slug.trim().toLowerCase())) issues.push('Invalid slug');
     if (categoriesLoaded && !categories.some(category => category.slug === row.category.trim() && !category.archived)) issues.push('Unknown category');
     if (!/^\/products\/[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpe?g)$/i.test(row.image.trim())) issues.push('Invalid image path');
-    for (const field of ['price', 'purchasePrice', 'mrp', 'taxRate', 'lowStockThreshold']) {
+    for (const field of ['price', 'purchasePrice', 'extraCost', 'mrp', 'taxRate', 'lowStockThreshold']) {
       if (row[field].trim() && !Number.isFinite(Number(row[field]))) issues.push(`Invalid ${field}`);
     }
+    for (const field of ['price', 'purchasePrice', 'extraCost', 'mrp']) {
+      if (row[field].trim() && Math.round(Number(row[field]) * 100) !== Number(row[field]) * 100) issues.push(`${field} supports up to two decimals`);
+    }
     if (row.taxRate.trim() && ![0, 5, 12, 18, 28].includes(Number(row.taxRate))) issues.push('Unsupported tax rate');
+    if (row.hsnCode.trim() && !/^\d{4,8}$/.test(row.hsnCode.trim())) issues.push('Invalid HSN code');
     if (row.status.trim() && !['active', 'coming-soon', 'out-of-stock'].includes(row.status.trim())) issues.push('Invalid status');
     for (const field of ['slug', 'sku', 'barcode']) {
       const value = row[field].trim().toLowerCase();

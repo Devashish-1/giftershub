@@ -260,6 +260,7 @@ footer{border-top:1px solid var(--line);margin-top:72px;padding:36px 0;font-size
 .quick .btn{width:100%;padding:12px;background:#fff;color:var(--text);box-shadow:0 6px 20px #0002}.quick .btn:hover{background:var(--primary);color:#fff}.quick .btn.done{background:var(--green);color:#fff}
 .meta h3{font-family:Inter;font-size:15px;font-weight:500;letter-spacing:0;line-height:1.35}.meta h3 a:hover{color:var(--primary)}
 .pr{display:flex;align-items:baseline;gap:8px;margin-top:3px}.pr b{font-size:15px;font-weight:600}.pr s{font-size:13px;color:var(--muted)}.pr em{font-style:normal;font-size:12px;color:var(--primary);font-weight:600}
+.gst-included-note{display:block;margin-top:3px;color:var(--muted);font-size:10px}
 /* shop */
 .shop{padding:40px 0 0}.shop h1{font-size:44px;margin-bottom:20px}
 .shop-category-description{max-width:680px;margin:-4px 0 26px;color:var(--muted);font-size:15px;line-height:1.7}
@@ -340,6 +341,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .pdp{grid-template-columns:1fr;gap:24px}.pdp .img{position:relative;top:0}.heart{opacity:1;transform:none}.quick{display:none}
  footer .wrap{flex-direction:column;align-items:flex-start}
  .bottom{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:35;padding:8px 0 calc(8px + env(safe-area-inset-bottom));text-align:center;font-size:11px;color:var(--muted)}.bottom span{display:block;font-size:19px;color:var(--primary)}
+ .bottom.admin-bottom{grid-template-columns:repeat(3,1fr)}
  .sticky{display:flex;position:fixed;bottom:60px;left:0;right:0;background:#fff;padding:10px 16px;z-index:34;border-top:1px solid var(--line)}.sticky .btn{flex:1;text-align:center}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}.reveal,.reveal>*{opacity:1!important;transform:none!important}}
 
@@ -682,6 +684,15 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .admin-user{display:grid;grid-template-columns:1.4fr .7fr 1fr;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--line);font-size:12px}
 .admin-user>div{display:grid;gap:4px}
 .admin-user>div span,.admin-user time{color:var(--muted);overflow-wrap:anywhere}
+.admin-coupon-manager{display:grid;gap:16px}
+.admin-coupon-manager>.admin-page-heading{padding:22px 0}
+.admin-coupon-manager>.admin-page-heading h1{margin-top:5px;color:var(--dark);font-size:32px}
+.admin-coupon-manager>.admin-page-heading p{margin-top:7px;color:var(--muted);font-size:13px}
+.admin-coupon-form{max-width:700px}
+.admin-coupon-list{display:grid}
+.admin-coupon-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--line)}
+.admin-coupon-row>div{display:grid;gap:4px}
+.admin-coupon-row>div span,.admin-coupon-row>div small{color:var(--muted);font-size:12px}
 .admin-search{max-width:420px;margin-bottom:12px}
 .admin-search input{width:100%}
 .admin-product-row{display:grid;grid-template-columns:64px minmax(160px,1fr) minmax(95px,.4fr) auto;align-items:center;gap:15px;padding:12px 0;border-top:1px solid var(--line)}
@@ -872,6 +883,8 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .admin-order-controls select{min-width:0;width:100%}
  .admin-user{grid-template-columns:1fr auto}
  .admin-user time{grid-column:1/-1}
+ .admin-coupon-row{grid-template-columns:minmax(0,1fr) auto}
+ .admin-coupon-row>.admin-secondary-button{grid-column:1/-1}
  .admin-form-row,.admin-form-row-prices{grid-template-columns:1fr}
  .admin-product-editor{padding:18px}
 }
