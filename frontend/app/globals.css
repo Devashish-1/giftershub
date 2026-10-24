@@ -885,12 +885,14 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .admin-stock-form .admin-stock-reason{grid-column:1/-1}
 }
 @media(max-width:700px){
- .vyapaar-layout{display:block;min-height:calc(100vh - 64px)}
- .vyapaar-sidebar{position:sticky;top:64px;z-index:26;display:block;width:100%;height:auto;min-height:0;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line)}
+ .vyapaar-layout{display:grid;grid-template-columns:58px minmax(0,1fr);min-height:calc(100vh - 64px)}
+ .vyapaar-sidebar{position:sticky;top:64px;z-index:26;display:flex;width:auto;height:calc(100vh - 64px);height:calc(100dvh - 64px);min-height:0;padding:9px 5px;border-right:1px solid var(--line);border-bottom:0}
  .vyapaar-brand,.vyapaar-back-link,.vyapaar-nav-label,.vyapaar-planned,.vyapaar-sidebar-footer{display:none}
- .vyapaar-nav{display:flex;gap:5px;margin:0;overflow-x:auto}
- .vyapaar-nav a{flex:none;gap:6px;padding:9px;border:1px solid transparent;white-space:nowrap;font-size:10px}
- .vyapaar-nav a.active{border-color:#ead8ce}
+ .vyapaar-nav{display:grid;align-content:start;gap:5px;margin:0;overflow-x:visible}
+ .vyapaar-nav a{display:grid;place-items:center;width:46px;height:42px;gap:0;padding:5px;border:1px solid transparent;border-radius:5px;font-size:10px}
+ .vyapaar-nav a>span:first-child{width:auto;font-size:18px}
+ .vyapaar-nav-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ .vyapaar-nav a.active{border-color:var(--line)}
  .vyapaar-content{padding:20px 16px 35px}
  .vyapaar-welcome{align-items:flex-start;flex-direction:column;padding:22px}
  .vyapaar-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -907,6 +909,10 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .admin-stock-form{grid-template-columns:1fr 1fr}
 }
 @media(max-width:420px){
+ .vyapaar-layout{grid-template-columns:50px minmax(0,1fr)}
+ .vyapaar-sidebar{padding-right:3px;padding-left:3px}
+ .vyapaar-nav a{width:42px}
+ .vyapaar-content{padding-right:10px;padding-left:10px}
  .admin-stock-form{grid-template-columns:1fr}
  .admin-stock-form .admin-stock-reason{grid-column:auto}
  .admin-stock-history article{grid-template-columns:minmax(0,1fr) auto;gap:8px}

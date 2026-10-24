@@ -55,8 +55,8 @@ export default function VyapaarShell({ children }) {
               ? pathname === item.href
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
-              <Link className={active ? 'active' : ''} href={item.href} key={item.href} aria-current={active ? 'page' : undefined}>
-                <span aria-hidden="true">{item.icon}</span>{item.label}
+              <Link className={active ? 'active' : ''} href={item.href} key={item.href} aria-label={item.label} title={item.label} aria-current={active ? 'page' : undefined}>
+                <span aria-hidden="true">{item.icon}</span><span className="vyapaar-nav-text">{item.label}</span>
               </Link>
             );
           })}
