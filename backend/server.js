@@ -33,10 +33,14 @@ const mongoClient = process.env.MONGODB_URI
   ? new MongoClient(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 })
   : null;
 let database = null;
-const firebaseAuth = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
+const firebaseServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
+  : null;
+const firebaseAuth = firebaseProjectId
   ? getAuth(getApps().find(app => app.name === 'gifter-hub-auth') || initializeApp({
-    credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)),
-    projectId: process.env.FIREBASE_PROJECT_ID || undefined,
+    ...(firebaseServiceAccount ? { credential: cert(firebaseServiceAccount) } : {}),
+    projectId: firebaseProjectId,
   }, 'gifter-hub-auth'))
   : null;
 
@@ -565,7 +569,7 @@ app.post('/api/auth/google', authLimiter, dbRequired, async (req, res, next) => 
 
     let identity;
     try {
-      identity = await firebaseAuth.verifyIdToken(req.body.idToken, true);
+      identity = await firebaseAuth.verifyIdToken(req.body.idToken, Boolean(firebaseServiceAccount));
     } catch (error) {
       if (['auth/argument-error', 'auth/id-token-expired', 'auth/id-token-revoked', 'auth/invalid-id-token'].includes(error.code)) {
         return res.status(401).json({ error: 'Google sign-in could not be verified. Please try again.' });
