@@ -112,13 +112,6 @@ export default function Shell({ children }) {
   return (<>
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
     <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}${isAccountPage ? ' account-top' : ''}`}><div className="wrap bar">
-      {user
-        ? <Link className="mobile-account-link" href="/account" aria-label="Open account page">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
-        </Link>
-        : <button className="mobile-account-link" type="button" aria-label="Sign in or create account" onClick={openLogin}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
-        </button>}
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
       {!isAccountPage && <nav
         className="main"
@@ -160,6 +153,13 @@ export default function Shell({ children }) {
             </div>}
           </div>
           : <form className="search" role="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><label className="sr-only" htmlFor="header-search">Search products</label><input id="header-search" name="q" placeholder="Search designs" /><button type="submit" aria-label="Search catalogue">Search</button></form>}
+        {user
+          ? <Link className="mobile-account-link" href="/account" aria-label="Open account page">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
+          </Link>
+          : <button className="mobile-account-link" type="button" aria-label="Sign in or create account" onClick={openLogin}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
+          </button>}
         {user
           ? <div className="account-control" ref={accountControl}>
             <button className="account-icon" type="button" aria-label="Account menu" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(current => !current)}>
