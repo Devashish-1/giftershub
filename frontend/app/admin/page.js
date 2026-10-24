@@ -171,14 +171,13 @@ export default function AdminPage() {
     <div className="wrap admin-page">
       <header className="admin-hero">
         <div>
-          <div className="eyebrow">The Gifter’s Hub · Store operations</div>
-          <h1>Good to see you, {user.name?.split(' ')[0] || 'admin'}.</h1>
-          <p>Keep your catalogue, orders, and customers in one place.</p>
+          <div className="eyebrow">STORE ADMIN</div>
+          <h1>Store operations</h1>
+          <p>Manage orders, products, coupons, and customers.</p>
         </div>
         <div className="admin-hero-side">
-          <span className="admin-badge">Administrator</span>
-          <Link href="/admin/vyapaar" className="admin-store-link">Open Vyapaar <span aria-hidden="true">→</span></Link>
-          <Link href="/" className="admin-store-link">View store <span aria-hidden="true">↗</span></Link>
+          <Link href="/admin/vyapaar" className="admin-secondary-button">Open Vyapaar</Link>
+          <Link href="/" className="admin-store-link">View store ↗</Link>
         </div>
       </header>
 
@@ -193,6 +192,14 @@ export default function AdminPage() {
             <article><span>Payments pending</span><b>{data.summary.pendingPayments}</b><small>Need attention</small></article>
             <article><span>Customers</span><b>{data.summary.userCount}</b><small>Registered accounts</small></article>
           </section>}
+
+          <nav className="admin-shortcuts" aria-label="Common admin tasks">
+            <button type="button" onClick={() => setTab('orders')}>Manage orders</button>
+            <button type="button" onClick={() => setTab('products')}>Manage products</button>
+            <button type="button" onClick={() => setTab('coupons')}>Manage coupons</button>
+            <button type="button" onClick={() => setTab('customers')}>View customers</button>
+            <Link href="/admin/vyapaar/sales/new">Create Vyapaar sale</Link>
+          </nav>
 
           <nav className="admin-tabs" aria-label="Admin sections">
             {TABS.map(([value, label]) => <button

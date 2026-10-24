@@ -92,21 +92,13 @@ export default function VyapaarOverview() {
             <p className="vyapaar-disclaimer">Checks: reorder levels, 30% weekly sales drop, invoices unpaid over 30 days, and 10% sales-return rate.</p>
           </section>
           <section className="vyapaar-quick-actions" aria-labelledby="vyapaar-actions-title">
-            <div className="vyapaar-section-heading"><span className="vyapaar-eyebrow">GET STARTED</span><h2 id="vyapaar-actions-title">Business actions</h2></div>
+            <div className="vyapaar-section-heading"><span className="vyapaar-eyebrow">COMMON TASKS</span><h2 id="vyapaar-actions-title">Quick actions</h2></div>
             <div className="vyapaar-action-grid">
-              <Link href="/admin/vyapaar/items"><span aria-hidden="true">▤</span><b>Items &amp; inventory</b><small>Add, edit, search and archive catalogue items.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/stock"><span aria-hidden="true">↕</span><b>Adjust stock</b><small>Record a stock correction with a reason and history.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/sales/new"><span aria-hidden="true">▧</span><b>Create a sale</b><small>Issue an invoice, deduct stock, and record payment.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/purchases"><span aria-hidden="true">↓</span><b>Receive a purchase</b><small>Record a supplier bill and increase item stock.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/returns"><span aria-hidden="true">↩</span><b>Record a return</b><small>Restock or dispatch verified returned items.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/expenses"><span aria-hidden="true">−</span><b>Record an expense</b><small>Post a paid expense to a cash or bank account.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/cashbook"><span aria-hidden="true">₹</span><b>Cash &amp; bank</b><small>Track account movements and transfers.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/reports"><span aria-hidden="true">▥</span><b>Reports</b><small>Review operational totals and export CSV.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/analytics"><span aria-hidden="true">⌁</span><b>Analytics &amp; alerts</b><small>Track sales trends, GST estimates, and business alerts.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/parties"><span aria-hidden="true">♧</span><b>Manage parties</b><small>Maintain customer and supplier contact records.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/barcodes"><span aria-hidden="true">▤</span><b>Barcode labels</b><small>Print item labels from the catalogue.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin/vyapaar/activity"><span aria-hidden="true">◷</span><b>Activity log</b><small>Review successful administrator changes.</small><i aria-hidden="true">→</i></Link>
-              <Link href="/admin"><span aria-hidden="true">▧</span><b>Orders &amp; payments</b><small>Review orders and update their fulfilment status.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/items">Manage inventory</Link>
+              <Link href="/admin/vyapaar/stock">Adjust stock</Link>
+              <Link href="/admin/vyapaar/sales/new">Create a sale / invoice</Link>
+              <Link href="/admin/vyapaar/purchases">Record a purchase</Link>
+              <Link href="/admin/vyapaar/returns">Record a return</Link>
             </div>
           </section>
           <section className="vyapaar-recent">
