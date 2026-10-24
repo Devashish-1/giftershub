@@ -194,7 +194,6 @@ export default function Shell({ children }) {
         onClick={() => setMobileMenuOpen(true)}
       >
         <span /><span /><span />
-        <b>Browse collections</b>
       </button>}
     </div></header>
     {mobileMenuOpen && <div className="mobile-navigation">
