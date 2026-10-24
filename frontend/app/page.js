@@ -22,6 +22,7 @@ export const metadata = {
 const CATS = [
   { name: 'God Frames', slug: 'god-frames', image: '/products/radha-ka-mohan-radha-krishna-main.webp', note: 'Bring devotion home', action: 'Explore now' },
   { name: 'Family Photo Frames', slug: 'family-frames', image: '/products/heart-family-photo-frame-main.webp', note: 'Keep a memory close', action: 'Discover for more' },
+  { name: 'Crystal Bubble', slug: 'crystal-bubble', image: '/products/crystal-bubble-14.webp', note: 'A little sparkle, a lasting keepsake', action: 'See the collection' },
 ];
 
 export default async function Home() {
@@ -41,6 +42,7 @@ export default async function Home() {
       .map(subject => products.find(product => product.subject === subject))
       .filter(Boolean)
       .slice(0, 4);
+    if (!previewProducts.length) previewProducts.push(...products.slice(0, 4));
     return { ...category, images, subcategories, products: previewProducts };
   });
   return (<div className="wrap home-page">
@@ -91,17 +93,29 @@ export default async function Home() {
     }} />
     <section className="hero">
       <div className="hero-copy">
-        <div className="eyebrow">Crystal bubble art &amp; meaningful keepsakes</div>
-        <h1>Give a little <em>meaning.</em></h1>
-        <p>Discover crystal bubble frames, devotional art, and family keepsakes from The Gifter’s Hub catalogue.</p>
-        <div className="btns"><Link className="btn" href={shopCategoryHref('god-frames')}>Browse god frames</Link><Link className="btn ghost" href="/shop">Explore the collection</Link></div>
+        <div className="hero-kicker"><span aria-hidden="true">✳</span> Thoughtful finds for meaningful moments</div>
+        <div className="eyebrow">Gifts, devotional art &amp; keepsakes</div>
+        <h1>Make it a moment <em>to remember.</em></h1>
+        <p>Explore a considered collection of devotional frames, family keepsakes and Crystal Bubble designs from The Gifter’s Hub.</p>
+        <div className="btns">
+          <Link className="btn" href="/gifts">Find a gift <span aria-hidden="true">→</span></Link>
+          <Link className="btn ghost" href="/shop">Explore the collection</Link>
+        </div>
+        <div className="hero-caption-row"><span>Made for giving</span><i aria-hidden="true" /><span>Chosen to be remembered</span></div>
       </div>
       <HeroSlideshow />
     </section>
 
+    <div className="home-curation" aria-label="Explore the catalogue">
+      <div><span>01</span><b>Devotional art</b><small>Beloved deities, beautifully framed</small></div>
+      <div><span>02</span><b>Family keepsakes</b><small>Decorative frames for favourite memories</small></div>
+      <div><span>03</span><b>Crystal Bubble</b><small>Discover the signature collection</small></div>
+      <Link href="/gifts">Browse by occasion <span aria-hidden="true">↗</span></Link>
+    </div>
+
     <section className="category-section" aria-labelledby="category-heading">
       <div className="section-heading">
-        <div><div className="eyebrow">Find your something special</div><h2 id="category-heading">Explore our categories</h2></div>
+        <div><div className="eyebrow">Start with what speaks to you</div><h2 id="category-heading">Find your kind of thoughtful</h2></div>
         <Link href="/shop">Explore everything <span aria-hidden="true">→</span></Link>
       </div>
       <Reveal className="category-showcase"><CategoryCards categories={categories} /></Reveal>

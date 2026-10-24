@@ -130,6 +130,7 @@ export default function Shell({ children }) {
               <Link role="menuitem" href="/account/profile" onClick={() => setAccountMenuOpen(false)}>Personal details</Link>
               <Link role="menuitem" href="/account/addresses" onClick={() => setAccountMenuOpen(false)}>Addresses</Link>
               <Link role="menuitem" href="/account/orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
+              <Link role="menuitem" href="/account/wishlist" onClick={() => setAccountMenuOpen(false)}>Wishlist &amp; reminders</Link>
               <Link role="menuitem" href="/account/coupons" onClick={() => setAccountMenuOpen(false)}>Coupons &amp; rewards</Link>
               <Link role="menuitem" href="/account/payments" onClick={() => setAccountMenuOpen(false)}>Payment methods</Link>
               <Link role="menuitem" href="/account/notifications" onClick={() => setAccountMenuOpen(false)}>Email notifications</Link>
@@ -189,10 +190,25 @@ export default function Shell({ children }) {
 }
 
 function Drawer() {
-  const { items, setQty, open, setOpen } = useCart(), { requireAuth } = useAuth(), [gift, setGift] = useState(false), [code, setCode] = useState(''), [applied, setApplied] = useState(''), [q, setQ] = useState(null), router = useRouter();
+  const { items, setQty, open, setOpen } = useCart(), { requireAuth } = useAuth(), [gift, setGift] = useState(false), [code, setCode] = useState(''), [applied, setApplied] = useState(''), [q, setQ] = useState(null), [quoteError, setQuoteError] = useState(''), router = useRouter();
   useEffect(() => {
     if (!open) return;
-    fetch('/api/cart/price', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items, coupon: applied, gift }) }).then(r => r.json()).then(setQ).catch(() => {});
+    const controller = new AbortController();
+    setQ(null);
+    setQuoteError('');
+    fetch('/api/cart/price', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items.map(item => ({ slug: item.slug, qty: item.qty, variant: item.variant })), coupon: applied, gift }),
+    }).then(async response => {
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not confirm cart prices.');
+      if (!controller.signal.aborted) setQ(result);
+    }).catch(error => {
+      if (!controller.signal.aborted) setQuoteError(error.message || 'Could not confirm cart prices.');
+    });
+    return () => controller.abort();
   }, [items, applied, gift, open]);
   const pct = q ? Math.min(100, ((q.sub - q.off) / 999) * 100) : 0;
   const go = () => {
@@ -205,21 +221,25 @@ function Drawer() {
     <aside className={`drawer ${open ? 'on' : ''}`}>
       <div className="dh"><h3>Your Cart</h3><button onClick={() => setOpen(false)} aria-label="Close">✕</button></div>
       {items.length === 0 ? <div className="items"><p style={{ padding: '40px 0', textAlign: 'center', color: 'var(--muted)' }}>Your cart is empty.<br /><br /><Link className="btn" href="/shop" onClick={() => setOpen(false)}>Start shopping</Link></p></div> : <>
-        <div className="meter">{q && q.toFree > 0 ? <>Add <b>{inr(q.toFree)}</b> more for free shipping</> : '🎉 You unlocked free shipping'}<div><i style={{ width: pct + '%' }} /></div></div>
-        <div className="items">{items.map(i => <div className="line" key={i.key}>
-          <div className="th">{i.name[0]}</div>
-          <div style={{ flex: 1 }}><b>{i.name}</b>{i.variant && <div className="tag">{i.variant}</div>}
+        <div className="meter">{quoteError ? 'Shipping estimate unavailable' : !q ? 'Checking prices and shipping…' : q.toFree > 0 ? <>Add <b>{inr(q.toFree)}</b> more for free shipping</> : '🎉 You unlocked free shipping'}<div><i style={{ width: pct + '%' }} /></div></div>
+        <div className="items">{items.map(i => {
+          const quotedLine = q?.lines?.find(line => line.slug === i.slug && line.variant === (i.variant || ''));
+          return <div className="line" key={i.key}>
+          <div className="th">{(quotedLine?.name || i.name)[0]}</div>
+          <div style={{ flex: 1 }}><b>{quotedLine?.name || i.name}</b>{i.variant && <div className="tag">{i.variant}</div>}
             <div className="qty"><button onClick={() => setQty(i.key, -1)}>−</button><span>{i.qty}</span><button onClick={() => setQty(i.key, 1)}>+</button></div></div>
-          <b>{inr(i.price * i.qty)}</b></div>)}</div>
+          <b>{inr(quotedLine?.total ?? i.price * i.qty)}</b></div>;
+        })}</div>
         <div className="df">
           <label><input type="checkbox" checked={gift} onChange={e => setGift(e.target.checked)} /> Gift wrap + greeting card (+₹99)</label>
           <div className="row"><input type="text" placeholder="Coupon code" value={code} onChange={e => setCode(e.target.value)} /><button className="btn ghost" style={{ padding: '8px 14px' }} onClick={() => setApplied(code)}>Apply</button></div>
           {applied && q && <div className={q.couponOk ? 'ok' : 'bad'}>{q.couponOk ? `${applied.toUpperCase()} applied` : 'Invalid code or minimum not met'}</div>}
+          {quoteError && <div className="bad" role="alert">{quoteError}</div>}
           {q && <><div className="row"><span>Subtotal</span><span>{inr(q.sub)}</span></div>
             {q.off > 0 && <div className="row ok"><span>Discount</span><span>−{inr(q.off)}</span></div>}
             <div className="row"><span>Shipping</span><span>{q.ship ? inr(q.ship) : 'Free'}</span></div>
             <div className="row"><b>Total</b><b>{inr(q.total)}</b></div></>}
-          <button className="btn alt" onClick={go}>Checkout</button>
+          <button className="btn alt" onClick={go} disabled={!q || Boolean(quoteError)}>Checkout</button>
         </div></>}
     </aside></>);
 }

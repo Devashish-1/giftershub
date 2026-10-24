@@ -172,6 +172,83 @@ async function sendOrderUpdateEmail(order, subject, heading) {
   if (!response.ok) throw new Error(`Brevo returned status ${response.status}.`);
 }
 
+async function sendGiftReminderEmail(email, reminder, daysUntil) {
+  if (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) {
+    throw new Error('Brevo is not configured for gift reminders.');
+  }
+  const safe = value => String(value || '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+  const occasion = reminder.occasion[0].toUpperCase() + reminder.occasion.slice(1);
+  const timing = daysUntil === 0 ? 'today' : `in ${daysUntil} days`;
+  const subject = `${occasion} reminder: ${reminder.name} is coming up`;
+  const heading = `${reminder.name}'s ${occasion.toLowerCase()} is ${timing}. Find a thoughtful gift at The Gifter's Hub.`;
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    signal: AbortSignal.timeout(10000),
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: {
+        name: process.env.BREVO_SENDER_NAME || 'The Gifters Hub',
+        email: process.env.BREVO_SENDER_EMAIL,
+      },
+      to: [{ email }],
+      subject,
+      textContent: `${heading}\n${reminder.name} · ${reminder.date}`,
+      htmlContent: `<p>${safe(heading)}</p><p>${safe(reminder.name)} · ${safe(reminder.date)}</p><p><a href="https://giftershub.vercel.app/shop">Browse gift ideas</a></p>`,
+    }),
+  });
+  if (!response.ok) throw new Error(`Brevo returned status ${response.status}.`);
+}
+
+async function runGiftReminderSweep() {
+  if (!database || !process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) return;
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const reminders = await database.collection('gift_reminders').find({ emailEnabled: true }).toArray();
+  for (const reminder of reminders) {
+    const [, month, day] = reminder.date.split('-').map(Number);
+    let eventYear = today.getUTCFullYear();
+    let eventDate = new Date(Date.UTC(eventYear, month - 1, day));
+    if (eventDate.getUTCMonth() !== month - 1 || eventDate.getUTCDate() !== day) {
+      eventDate = new Date(Date.UTC(eventYear, month, 0));
+    }
+    if (eventDate.getTime() < todayUtc) {
+      eventYear += 1;
+      eventDate = new Date(Date.UTC(eventYear, month - 1, day));
+      if (eventDate.getUTCMonth() !== month - 1 || eventDate.getUTCDate() !== day) {
+        eventDate = new Date(Date.UTC(eventYear, month, 0));
+      }
+    }
+    const daysUntil = Math.floor((eventDate.getTime() - todayUtc) / 86400000);
+    if (daysUntil > 7) continue;
+
+    const claim = await database.collection('gift_reminders').updateOne(
+      { _id: reminder._id, emailEnabled: true, lastNotifiedFor: { $ne: eventYear } },
+      { $set: { lastNotifiedFor: eventYear } },
+    );
+    if (!claim.modifiedCount) continue;
+    try {
+      const user = await database.collection('users').findOne(
+        { _id: reminder.userId },
+        { projection: { email: 1 } },
+      );
+      if (!user?.email) throw new Error('Reminder account email is unavailable.');
+      await sendGiftReminderEmail(user.email, reminder, daysUntil);
+    } catch (error) {
+      await database.collection('gift_reminders').updateOne(
+        { _id: reminder._id, lastNotifiedFor: eventYear },
+        { $unset: { lastNotifiedFor: '' } },
+      );
+      console.error(`Gift reminder delivery failed for ${reminder._id}:`, error.message);
+    }
+  }
+}
+
 async function findCurrentUser(req) {
   if (!database) return null;
   const token = readCookie(req, SESSION_COOKIE);
@@ -228,6 +305,7 @@ function price(items, code, gift, catalog) {
     return product && {
       slug: product.slug,
       name: product.name,
+      variant: typeof item.variant === 'string' ? item.variant.trim().slice(0, 120) : '',
       qty: item.qty,
       unit: product.price,
       total: product.price * item.qty,
@@ -255,7 +333,44 @@ function price(items, code, gift, catalog) {
 function validItems(items) {
   return Array.isArray(items) && items.length > 0 && items.length <= 30 &&
     items.every(item => item && typeof item.slug === 'string' &&
-      Number.isInteger(item.qty) && item.qty > 0 && item.qty <= 99);
+      Number.isInteger(item.qty) && item.qty > 0 && item.qty <= 99 &&
+      (item.variant === undefined || (typeof item.variant === 'string' && item.variant.length <= 120)));
+}
+
+function validCartItems(items) {
+  return Array.isArray(items) && items.length <= 30 &&
+    items.every(item => item && typeof item.slug === 'string' && item.slug.length <= 200 &&
+      Number.isInteger(item.qty) && item.qty > 0 && item.qty <= 99 &&
+      (item.variant === undefined || (typeof item.variant === 'string' && item.variant.length <= 120)));
+}
+
+function mergeCartItems(currentItems, incomingItems) {
+  const merged = new Map();
+  for (const item of [...currentItems, ...incomingItems]) {
+    const variant = item.variant || '';
+    const key = `${item.slug}\u0000${variant}`;
+    const current = merged.get(key);
+    const qty = (current?.qty || 0) + item.qty;
+    if (qty > 99) throw new Error('The combined quantity of a product cannot exceed 99.');
+    merged.set(key, { slug: item.slug, variant, qty });
+  }
+  if (merged.size > 30) throw new Error('Your account cart cannot contain more than 30 different items.');
+  return [...merged.values()];
+}
+
+function cartItemsForClient(items, catalog) {
+  return items.map(item => {
+    const product = catalog.find(value => value.slug === item.slug);
+    const variant = item.variant || '';
+    return {
+      key: `${item.slug}${variant}`,
+      slug: item.slug,
+      name: product?.name || item.slug,
+      price: product?.price || 0,
+      variant,
+      qty: item.qty,
+    };
+  });
 }
 
 app.get('/health', (req, res) => res.json({ ok: true, database: database ? 'connected' : 'not_configured' }));
@@ -917,6 +1032,179 @@ app.get('/api/account/coupons', requireUser, async (req, res, next) => {
   }
 });
 
+app.get('/api/account/shopping', requireUser, async (req, res, next) => {
+  try {
+    const catalog = await getProducts();
+    const wishlist = Array.isArray(req.user.wishlist) ? req.user.wishlist : [];
+    const wishlistProducts = wishlist
+      .map(slug => catalog.find(product => product.slug === slug))
+      .filter(Boolean);
+    res.set('Cache-Control', 'no-store');
+    res.json({
+      items: cartItemsForClient(Array.isArray(req.user.cartItems) ? req.user.cartItems : [], catalog),
+      wishlist: wishlist,
+      wishlistProducts,
+      unavailableWishlist: wishlist.filter(slug => !catalog.some(product => product.slug === slug)),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/account/shopping', requireUser, async (req, res, next) => {
+  try {
+    const { items, wishlist } = req.body;
+    if (!validCartItems(items) || !Array.isArray(wishlist) || wishlist.length > 1000 ||
+        wishlist.some(slug => typeof slug !== 'string' || slug.length > 200)) {
+      return res.status(400).json({ error: 'Your saved cart or wishlist is invalid.' });
+    }
+    const catalog = await getProducts();
+    const validSlugs = new Set(catalog.map(product => product.slug));
+    const cartItems = items.filter(item => catalog.some(product =>
+      product.slug === item.slug && product.available !== false &&
+      Number.isFinite(product.price) && product.price > 0))
+      .map(({ slug, qty, variant }) => ({ slug, qty, variant: variant || '' }));
+    const unavailable = items.filter(item => !cartItems.includes(item)).map(item => item.slug);
+    const savedWishlist = [...new Set(wishlist.filter(slug => validSlugs.has(slug)))];
+    const unavailableWishlist = [...new Set(wishlist.filter(slug => !validSlugs.has(slug)))];
+    await database.collection('users').updateOne(
+      { _id: req.user._id },
+      { $set: { cartItems, wishlist: savedWishlist, updatedAt: new Date() } },
+    );
+    res.json({
+      items: cartItemsForClient(cartItems, catalog),
+      wishlist: savedWishlist,
+      unavailable,
+      unavailableWishlist,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/account/shopping/merge', requireUser, async (req, res, next) => {
+  try {
+    const guestItems = req.body.items === undefined ? [] : req.body.items;
+    const guestWishlist = req.body.wishlist === undefined ? [] : req.body.wishlist;
+    const mergeId = req.body.mergeId;
+    if (typeof mergeId !== 'string' || !/^[a-f0-9-]{16,64}$/i.test(mergeId) ||
+        !validCartItems(guestItems) || !Array.isArray(guestWishlist) || guestWishlist.length > 1000 ||
+        guestWishlist.some(slug => typeof slug !== 'string' || slug.length > 200)) {
+      return res.status(400).json({ error: 'Your guest cart or wishlist could not be merged.' });
+    }
+    const catalog = await getProducts();
+    if (req.user.cartMergeId === mergeId) {
+      return res.json({
+        items: cartItemsForClient(Array.isArray(req.user.cartItems) ? req.user.cartItems : [], catalog),
+        wishlist: Array.isArray(req.user.wishlist) ? req.user.wishlist : [],
+        unavailable: [],
+        unavailableWishlist: [],
+      });
+    }
+    const purchasableSlugs = new Set(catalog
+      .filter(product => product.available !== false && Number.isFinite(product.price) && product.price > 0)
+      .map(product => product.slug));
+    const validSlugs = new Set(catalog.map(product => product.slug));
+    const availableGuestItems = guestItems.filter(item => purchasableSlugs.has(item.slug));
+    const unavailable = guestItems.filter(item => !purchasableSlugs.has(item.slug)).map(item => item.slug);
+    const existingItems = Array.isArray(req.user.cartItems) ? req.user.cartItems.filter(item =>
+      purchasableSlugs.has(item.slug) && Number.isInteger(item.qty) && item.qty > 0 && item.qty <= 99)
+      .map(({ slug, qty, variant }) => ({ slug, qty, variant: variant || '' })) : [];
+    let items;
+    try {
+      items = mergeCartItems(existingItems, availableGuestItems);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const currentWishlist = Array.isArray(req.user.wishlist) ? req.user.wishlist : [];
+    const combinedWishlist = [...new Set([...currentWishlist, ...guestWishlist].filter(slug => validSlugs.has(slug)))];
+    if (combinedWishlist.length > 1000) {
+      return res.status(400).json({ error: 'Your merged wishlist exceeds the supported size. Remove a few saved products and try again.' });
+    }
+    const wishlist = combinedWishlist;
+    const unavailableWishlist = [...new Set([...currentWishlist, ...guestWishlist].filter(slug => !validSlugs.has(slug)))];
+    await database.collection('users').updateOne(
+      { _id: req.user._id },
+      { $set: { cartItems: items, wishlist, cartMergeId: mergeId, updatedAt: new Date() } },
+    );
+    res.json({
+      items: cartItemsForClient(items, catalog),
+      wishlist,
+      unavailable,
+      unavailableWishlist,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/reminders', requireUser, async (req, res, next) => {
+  try {
+    const reminders = await database.collection('gift_reminders').find(
+      { userId: req.user._id },
+      { projection: { userId: 0, lastNotifiedFor: 0 } },
+    ).sort({ date: 1 }).toArray();
+    res.set('Cache-Control', 'no-store');
+    res.json({
+      reminders: reminders.map(({ _id, ...reminder }) => ({ id: _id, ...reminder })),
+      emailConfigured: Boolean(process.env.BREVO_API_KEY && process.env.BREVO_SENDER_EMAIL),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/account/reminders', requireUser, async (req, res, next) => {
+  try {
+    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    const occasion = req.body.occasion;
+    const date = typeof req.body.date === 'string' ? req.body.date : '';
+    const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00.000Z`) : null;
+    const emailEnabled = req.body.emailEnabled === true;
+    if (name.length < 2 || name.length > 80 ||
+        !['birthday', 'anniversary'].includes(occasion) ||
+        !dateValue || Number.isNaN(dateValue.getTime()) || dateValue.toISOString().slice(0, 10) !== date ||
+        !emailEnabled) {
+      return res.status(400).json({ error: 'Enter a name, occasion, valid date, and opt in to email reminders.' });
+    }
+    if (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) {
+      return res.status(503).json({ error: 'Email reminders are not configured yet. Please try again later.' });
+    }
+    const reminderCount = await database.collection('gift_reminders').countDocuments({ userId: req.user._id });
+    if (reminderCount >= 100) {
+      return res.status(400).json({ error: 'You can save up to 100 gift reminders.' });
+    }
+    const reminder = {
+      _id: crypto.randomBytes(12).toString('hex'),
+      userId: req.user._id,
+      name,
+      occasion,
+      date,
+      emailEnabled: true,
+      createdAt: new Date(),
+    };
+    await database.collection('gift_reminders').insertOne(reminder);
+    res.status(201).json({
+      reminder: { id: reminder._id, name, occasion, date, emailEnabled: true, createdAt: reminder.createdAt },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/account/reminders/:reminderId', requireUser, async (req, res, next) => {
+  try {
+    const result = await database.collection('gift_reminders').deleteOne({
+      _id: req.params.reminderId,
+      userId: req.user._id,
+    });
+    if (!result.deletedCount) return res.status(404).json({ error: 'That reminder could not be found.' });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/account/preferences', requireUser, async (req, res, next) => {
   try {
     res.json({
@@ -950,15 +1238,19 @@ app.put('/api/account/preferences', requireUser, async (req, res, next) => {
 app.get('/api/account/export', requireUser, async (req, res, next) => {
   try {
     res.set('Cache-Control', 'no-store');
-    const [user, orders] = await Promise.all([
+    const [user, orders, reminders] = await Promise.all([
       database.collection('users').findOne(
         { _id: req.user._id },
-        { projection: { name: 1, email: 1, phone: 1, addresses: 1, defaultAddressId: 1, preferences: 1, createdAt: 1, updatedAt: 1 } },
+        { projection: { name: 1, email: 1, phone: 1, addresses: 1, defaultAddressId: 1, preferences: 1, cartItems: 1, wishlist: 1, createdAt: 1, updatedAt: 1 } },
       ),
       database.collection('orders').find(
         { userId: req.user._id },
         { projection: { _id: 0, orderId: 1, customer: 1, email: 1, lines: 1, sub: 1, off: 1, couponCode: 1, ship: 1, giftFee: 1, total: 1, giftMessage: 1, status: 1, paymentMethod: 1, paymentStatus: 1, createdAt: 1 } },
       ).sort({ createdAt: -1 }).toArray(),
+      database.collection('gift_reminders').find(
+        { userId: req.user._id },
+        { projection: { _id: 0, userId: 0, lastNotifiedFor: 0 } },
+      ).toArray(),
     ]);
     if (!user) return res.status(404).json({ error: 'Your account could not be found.' });
     res.set('Content-Disposition', 'attachment; filename="gifters-hub-account-data.json"');
@@ -970,11 +1262,14 @@ app.get('/api/account/export', requireUser, async (req, res, next) => {
         phone: user.phone || '',
         addresses: user.addresses || [],
         defaultAddressId: user.defaultAddressId || user.addresses?.[0]?.id || '',
+        cartItems: user.cartItems || [],
+        wishlist: user.wishlist || [],
         notifications: { orderEmail: user.preferences?.orderEmail === true },
         createdAt: user.createdAt || null,
         updatedAt: user.updatedAt || null,
       },
       orders,
+      reminders,
     });
   } catch (error) {
     next(error);
@@ -1044,7 +1339,7 @@ app.get('/api/account/search', requireUser, async (req, res, next) => {
     if (query.length < 2) return res.status(400).json({ error: 'Enter at least 2 characters to search your account.' });
     const user = await database.collection('users').findOne(
       { _id: req.user._id },
-      { projection: { name: 1, email: 1, phone: 1, addresses: 1 } },
+      { projection: { name: 1, email: 1, phone: 1, addresses: 1, wishlist: 1 } },
     );
     if (!user) return res.status(404).json({ error: 'Your account could not be found.' });
 
@@ -1066,6 +1361,29 @@ app.get('/api/account/search', requireUser, async (req, res, next) => {
           href: '/account/addresses',
         });
       }
+    }
+    const catalog = await getProducts();
+    const wishlistProducts = (user.wishlist || [])
+      .map(slug => catalog.find(product => product.slug === slug))
+      .filter(Boolean);
+    if (matches(wishlistProducts.flatMap(product => [product.name, product.subject, product.slug]))) {
+      results.push({
+        title: 'Saved gift ideas',
+        detail: wishlistProducts.filter(product => matches([product.name, product.subject, product.slug])).map(product => product.name).join(' · '),
+        href: '/account/wishlist',
+      });
+    }
+    const reminders = await database.collection('gift_reminders').find(
+      { userId: req.user._id },
+      { projection: { name: 1, occasion: 1, date: 1 } },
+    ).toArray();
+    const matchingReminders = reminders.filter(reminder => matches([reminder.name, reminder.occasion, reminder.date]));
+    if (matchingReminders.length) {
+      results.push({
+        title: 'Gift reminders',
+        detail: matchingReminders.map(reminder => `${reminder.name} · ${reminder.occasion} · ${reminder.date}`).join(' | '),
+        href: '/account/wishlist',
+      });
     }
     const orders = await database.collection('orders')
       .find(
@@ -1142,6 +1460,7 @@ app.delete('/api/account', requireUser, async (req, res, next) => {
           { session },
         );
         await database.collection('sessions').deleteMany({ userId: req.user._id }, { session });
+        await database.collection('gift_reminders').deleteMany({ userId: req.user._id }, { session });
         await database.collection('password_reset_codes').deleteOne({ _id: req.user.email }, { session });
         await database.collection('users').deleteOne({ _id: req.user._id }, { session });
       });
@@ -2649,7 +2968,8 @@ app.post('/api/cart/price', async (req, res, next) => {
   try {
     const items = req.body.items || [];
     if (!Array.isArray(items) || items.length > 30 ||
-        items.some(item => !item || typeof item.slug !== 'string' || !Number.isInteger(item.qty) || item.qty < 1 || item.qty > 99)) {
+        items.some(item => !item || typeof item.slug !== 'string' || !Number.isInteger(item.qty) || item.qty < 1 || item.qty > 99 ||
+          (item.variant !== undefined && (typeof item.variant !== 'string' || item.variant.length > 120)))) {
       return res.status(400).json({ error: 'Cart items are invalid.' });
     }
     const catalog = await getProducts();
@@ -2699,6 +3019,14 @@ app.post('/api/orders', requireUser, async (req, res, next) => {
     };
     await database.collection('orders').insertOne(order);
     try {
+      await database.collection('users').updateOne(
+        { _id: req.user._id },
+        { $set: { cartItems: [], updatedAt: new Date() } },
+      );
+    } catch (cartError) {
+      console.error(`Could not clear saved cart after order ${order.orderId}:`, cartError.message);
+    }
+    try {
       await sendOrderUpdateEmail(order, `Order ${order.orderId} confirmed`, 'We received your order.');
     } catch (deliveryError) {
       console.error(`Order confirmation email failed for ${order.orderId}:`, deliveryError.message);
@@ -2728,6 +3056,7 @@ async function start() {
       database.collection('sessions').createIndex({ tokenHash: 1 }, { unique: true }),
       database.collection('sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       database.collection('password_reset_codes').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      database.collection('gift_reminders').createIndex({ userId: 1, date: 1 }),
       database.collection('orders').createIndex({ orderId: 1 }, { unique: true }),
       database.collection('orders').createIndex({ userId: 1, createdAt: -1 }),
       database.collection('products').createIndex({ slug: 1 }, { unique: true }),
@@ -2761,6 +3090,10 @@ async function start() {
     })));
     await seedAdminUser();
     console.log(`Connected to MongoDB database "${DATABASE_NAME}" and synchronized ${products.length} products.`);
+    runGiftReminderSweep().catch(error => console.error('Gift reminder scan failed:', error.message));
+    setInterval(() => {
+      runGiftReminderSweep().catch(error => console.error('Gift reminder scan failed:', error.message));
+    }, 6 * 60 * 60 * 1000).unref();
   } else {
     console.warn('MONGODB_URI is not set. Authentication, persistent products, and orders are unavailable.');
   }

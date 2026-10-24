@@ -23,7 +23,7 @@ export default function PrivacyPage() {
       <section>
         <h2>1. Information we collect</h2>
         <ul>
-          <li><strong>Account information:</strong> name, email address, optional mobile number, saved delivery addresses, and protected password hashes or Firebase account identifiers used for sign-in.</li>
+          <li><strong>Account information:</strong> name, email address, optional mobile number, saved delivery addresses, cart contents, wishlist products, and the names and dates you choose to save for birthday or anniversary reminders, along with protected password hashes or Firebase account identifiers used for sign-in.</li>
           <li><strong>Order and delivery information:</strong> recipient name, mobile number, delivery address, pincode, products ordered, order total and any gift message you choose to provide.</li>
           <li><strong>Technical information:</strong> essential session-cookie information used to keep you signed in and protect account and checkout requests.</li>
         </ul>
@@ -31,11 +31,11 @@ export default function PrivacyPage() {
       </section>
       <section>
         <h2>2. How we use information</h2>
-        <p>We use information to create and secure accounts, process and deliver orders, respond to customer-service requests, prevent misuse, maintain the website and meet applicable legal obligations.</p>
+        <p>We use information to create and secure accounts, process and deliver orders, retain your cart and wishlist, send opted-in order updates and gift reminders, respond to customer-service requests, prevent misuse, maintain the website and meet applicable legal obligations. Gift reminders are sent by email only when you opt in.</p>
       </section>
       <section>
         <h2>3. When information is shared</h2>
-        <p>We share information only as needed to operate the service: with hosting, database and technical service providers that support the website; with delivery or fulfilment partners for orders; and where disclosure is required by law. We do not sell personal information. Online payment providers are not currently used for checkout.</p>
+        <p>We share information only as needed to operate the service: with hosting, database and technical service providers that support the website; with delivery or fulfilment partners for orders; with our email provider to send emails you have opted into; and where disclosure is required by law. We do not sell personal information. Online payment providers are not currently used for checkout.</p>
       </section>
       <section>
         <h2>4. Cookies and security</h2>
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
       </section>
       <section>
         <h2>5. Retention and your choices</h2>
-        <p>You can update your profile and saved addresses, choose a default delivery address, download a copy of your account and order data, and revoke other active sessions from the account privacy controls. You can opt in to order and payment status emails from notification settings. You can also request account deletion from the security page. Deleting an account removes its personal account data and sessions; personal delivery details are erased from past orders, while anonymized order items and totals may be retained for store records, support, disputes or legal and accounting requirements.</p>
+        <p>You can update your profile and saved addresses, choose a default delivery address, manage saved gift ideas and reminders, download a copy of your account and order data, and revoke other active sessions from your account. Gift reminders are recurring annual reminders sent once during the week before the saved date, and can be removed at any time. You can opt in to order and payment status emails separately. You can also request account deletion from the security page. Deleting an account removes its personal account data, reminders and sessions; personal delivery details are erased from past orders, while anonymized order items and totals may be retained for store records, support, disputes or legal and accounting requirements.</p>
       </section>
       <section>
         <h2>6. Children</h2>

@@ -1,0 +1,30 @@
+# The Gifter's Hub
+
+> The Gifter's Hub is a New Delhi gift and decor catalogue featuring devotional frames, family photo frames, Crystal Bubble frames, and gift ideas by occasion.
+
+The website helps visitors browse product designs, compare catalogue details, find ideas for celebrations, and contact the shop. Product pages are the source of truth for current availability, specifications, and retail ordering status. Do not infer prices, stock, delivery promises, or product attributes that are not explicitly shown on the site.
+
+## Main pages
+
+- [Home](https://giftershub.vercel.app/): Overview of the shop and featured collections.
+- [Shop](https://giftershub.vercel.app/shop): Search and browse the product catalogue.
+- [Gift ideas](https://giftershub.vercel.app/gifts): Curated gift ideas for Diwali, Rakhi, weddings, and housewarming.
+- [Devotional frames](https://giftershub.vercel.app/shop/god-frames): Frames featuring devotional artwork.
+- [Family frames](https://giftershub.vercel.app/shop/family-frames): Decorative family photo frames.
+- [Crystal Bubble frames](https://giftershub.vercel.app/shop/crystal-bubble): Crystal Bubble frame designs.
+- [Privacy policy](https://giftershub.vercel.app/privacy): Information about account and website privacy.
+- [Terms and conditions](https://giftershub.vercel.app/terms): Website and ordering terms.
+
+## Business information
+
+- Location: New Delhi, India.
+- Phone: +91 95555 32044.
+- Address: B - 21, Street No. 3, Dichaon Enclave, Kalan, Dichaon Kalan, Delhi, 110043, Jai Vihar, New Delhi.
+- Catalogues and prices can change; refer to the product listing or contact the shop for current details.
+
+## Guidance
+
+- Use the canonical product or collection pages when citing a design.
+- Clearly distinguish catalogue inspiration from items currently available to order.
+- Do not present the gift-occasion collections as endorsements or guarantees of suitability.
+- Customer account pages and administrative pages contain user-specific or restricted information and should not be indexed or summarized.

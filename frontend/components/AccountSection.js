@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { useCart } from './CartProvider';
+import ProductCard from './ProductCard';
 import { inr } from '../lib/api';
 import { signInWithGoogle } from '../lib/firebase';
 
@@ -10,6 +12,7 @@ const SECTIONS = {
   overview: { title: 'Your account', description: 'Manage your details, delivery addresses, orders, and account security.' },
   profile: { title: 'Personal details', description: 'Update the contact details associated with your account.' },
   addresses: { title: 'Saved addresses', description: 'Keep delivery addresses ready for your next order.' },
+  wishlist: { title: 'Wishlist & reminders', description: 'Save gift ideas and get an email nudge before birthdays and anniversaries.' },
   orders: { title: 'Your orders', description: 'Review the latest orders placed with this account.' },
   coupons: { title: 'Coupons & rewards', description: 'Browse available coupons and review your coupon redemptions.' },
   payments: { title: 'Payment methods', description: 'Manage payment options securely.' },
@@ -34,6 +37,7 @@ async function request(path, options = {}) {
 
 export default function AccountSection({ section }) {
   const { user, loading: authLoading, openLogin, logout, finishAccountDeletion } = useAuth();
+  const { wish } = useCart();
   const [profile, setProfile] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [defaultAddressId, setDefaultAddressId] = useState('');
@@ -42,6 +46,10 @@ export default function AccountSection({ section }) {
   const [redemptions, setRedemptions] = useState([]);
   const [notificationPreferences, setNotificationPreferences] = useState(null);
   const [sessions, setSessions] = useState([]);
+  const [wishlistProducts, setWishlistProducts] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [reminderEmailConfigured, setReminderEmailConfigured] = useState(false);
+  const [reminderForm, setReminderForm] = useState({ name: '', occasion: 'birthday', date: '', emailEnabled: false });
   const [exportBusy, setExportBusy] = useState(false);
   const [form, setForm] = useState(EMPTY_ADDRESS);
   const [pincodeLookup, setPincodeLookup] = useState({ pincode: '', status: 'idle', location: null });
@@ -70,7 +78,8 @@ export default function AccountSection({ section }) {
       section === 'coupons' ? request('/api/account/coupons') : Promise.resolve(null),
       section === 'notifications' ? request('/api/account/preferences') : Promise.resolve(null),
       section === 'privacy' ? request('/api/account/sessions') : Promise.resolve(null),
-    ]).then(([profileResult, addressResult, orderResult, couponResult, preferencesResult, sessionsResult]) => {
+      section === 'wishlist' ? Promise.all([request('/api/account/shopping'), request('/api/account/reminders')]) : Promise.resolve(null),
+    ]).then(([profileResult, addressResult, orderResult, couponResult, preferencesResult, sessionsResult, wishlistResult]) => {
       if (!active) return;
       setProfile(profileResult.profile);
       setProfileForm({ name: profileResult.profile.name, phone: profileResult.profile.phone });
@@ -85,6 +94,12 @@ export default function AccountSection({ section }) {
       }
       if (preferencesResult) setNotificationPreferences(preferencesResult);
       if (sessionsResult) setSessions(sessionsResult.sessions);
+      if (wishlistResult) {
+        const [shoppingResult, reminderResult] = wishlistResult;
+        setWishlistProducts(shoppingResult.wishlistProducts || []);
+        setReminders(reminderResult.reminders || []);
+        setReminderEmailConfigured(reminderResult.emailConfigured);
+      }
     }).catch(loadError => {
       if (active) setError(loadError.message || 'Could not load your account details.');
     });
@@ -214,6 +229,41 @@ export default function AccountSection({ section }) {
       setNotice('Default delivery address updated.');
     } catch (saveError) {
       setError(saveError.message || 'Could not set the default address.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveReminder = async event => {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await request('/api/account/reminders', {
+        method: 'POST',
+        body: JSON.stringify(reminderForm),
+      });
+      setReminders(current => [...current, result.reminder].sort((first, second) => first.date.localeCompare(second.date)));
+      setReminderForm({ name: '', occasion: 'birthday', date: '', emailEnabled: false });
+      setNotice('Your gift reminder has been saved.');
+    } catch (saveError) {
+      setError(saveError.message || 'Could not save this reminder.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteReminder = async reminderId => {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await request(`/api/account/reminders/${encodeURIComponent(reminderId)}`, { method: 'DELETE' });
+      setReminders(current => current.filter(reminder => reminder.id !== reminderId));
+      setNotice('Gift reminder removed.');
+    } catch (removeError) {
+      setError(removeError.message || 'Could not remove this reminder.');
     } finally {
       setBusy(false);
     }
@@ -397,6 +447,32 @@ export default function AccountSection({ section }) {
         </article>
       </div>}
 
+      {section === 'wishlist' && <div className="account-wishlist-layout">
+        <section className="account-wishlist-products" aria-labelledby="wishlist-products-title">
+          <div className="account-subheading"><h2 id="wishlist-products-title">Saved gift ideas</h2><p>Tap the heart on any product to save it here.</p></div>
+          {wishlistProducts.filter(product => wish.includes(product.slug)).length
+            ? <div className="grid">{wishlistProducts.filter(product => wish.includes(product.slug)).map(product => <ProductCard key={product.slug} p={product} />)}</div>
+            : <div className="account-panel account-empty">Your wishlist is empty. <Link href="/shop">Browse gifts and save your favourites →</Link></div>}
+        </section>
+        <section className="account-reminders" aria-labelledby="gift-reminders-title">
+          <div className="account-subheading"><h2 id="gift-reminders-title">Birthday &amp; anniversary reminders</h2><p>We’ll send one email reminder during the week before each date.</p></div>
+          <form className="account-panel account-form" onSubmit={saveReminder}>
+            {!reminderEmailConfigured && <p className="account-message account-error">Email reminders are unavailable until the email service is configured.</p>}
+            <label>Person’s name<input required minLength={2} maxLength={80} value={reminderForm.name} onChange={event => setReminderForm(current => ({ ...current, name: event.target.value }))} /></label>
+            <label>Occasion<select value={reminderForm.occasion} onChange={event => setReminderForm(current => ({ ...current, occasion: event.target.value }))}><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option></select></label>
+            <label>Date<input required type="date" value={reminderForm.date} onChange={event => setReminderForm(current => ({ ...current, date: event.target.value }))} /></label>
+            <label className="account-checkbox"><input required type="checkbox" checked={reminderForm.emailEnabled} onChange={event => setReminderForm(current => ({ ...current, emailEnabled: event.target.checked }))} />Email me a reminder before this date</label>
+            <button className="btn alt" type="submit" disabled={busy || !reminderEmailConfigured}>{busy ? 'Saving…' : 'Save reminder'}</button>
+          </form>
+          <div className="account-reminder-list">
+            {reminders.length ? reminders.map(reminder => <article className="account-panel account-reminder" key={reminder.id}>
+              <div><strong>{reminder.name} · {reminder.occasion}</strong><span>{new Date(`${reminder.date}T00:00:00`).toLocaleDateString()}</span></div>
+              <button type="button" disabled={busy} onClick={() => deleteReminder(reminder.id)}>Remove</button>
+            </article>) : <p className="account-empty">No reminders saved yet.</p>}
+          </div>
+        </section>
+      </div>}
+
       {section === 'orders' && <div className="account-order-list">
         {orders.length ? orders.map(order => <article className="account-panel account-order" key={order.orderId}>
           <div><span>Order {order.orderId}</span><b>{new Date(order.createdAt).toLocaleDateString()}</b></div>
@@ -421,7 +497,7 @@ export default function AccountSection({ section }) {
       </form>}
 
       {section === 'privacy' && <div className="account-security">
-        <article className="account-panel"><h2>Download your data</h2><p>Export your profile, saved addresses, preferences, and order history as a JSON file.</p><button className="btn alt" type="button" disabled={exportBusy} onClick={downloadAccountData}>{exportBusy ? 'Preparing download…' : 'Download account data'}</button></article>
+        <article className="account-panel"><h2>Download your data</h2><p>Export your profile, addresses, cart, wishlist, gift reminders, preferences, and order history as a JSON file.</p><button className="btn alt" type="button" disabled={exportBusy} onClick={downloadAccountData}>{exportBusy ? 'Preparing download…' : 'Download account data'}</button></article>
         <article className="account-panel"><h2>Signed-in sessions</h2><p>Review active sign-ins for this account. This device is marked as the current session.</p>
           <div className="account-session-list">{sessions.map(session => <div className="account-session" key={session.id}>
             <div><strong>{session.current ? 'This device · Current session' : 'Signed-in session'}</strong><span>Signed in {new Date(session.createdAt).toLocaleString()} · Expires {new Date(session.expiresAt).toLocaleDateString()}</span></div>
@@ -438,7 +514,7 @@ export default function AccountSection({ section }) {
           {profile.isAdmin
             ? <p>Administrator access is managed using backend credentials. To remove an administrator, update those credentials on the backend.</p>
             : <>
-              <p>This permanently removes your account, saved addresses, and active sessions. Personal details and gift messages on past orders are erased; anonymized order totals and items are retained for store records. This cannot be undone.</p>
+              <p>This permanently removes your account, saved addresses, cart, wishlist, gift reminders, and active sessions. Personal details and gift messages on past orders are erased; anonymized order totals and items are retained for store records. This cannot be undone.</p>
               {!deletionOpen
                 ? <button className="account-delete" type="button" onClick={() => setDeletionOpen(true)}>Delete my account</button>
                 : <form className="account-form" onSubmit={deleteAccount}>

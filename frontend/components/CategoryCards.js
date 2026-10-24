@@ -43,10 +43,10 @@ function CategoryCard({ category, onActivate, onToggle, isOpen }) {
         className="category-browse-toggle"
         type="button"
         aria-expanded={isOpen}
-        aria-controls={`category-preview-${slug}`}
+        aria-controls={isOpen ? `category-preview-${slug}` : undefined}
         onClick={() => onToggle(slug)}
       >
-        {isOpen ? 'Hide artwork' : 'Browse by artwork'} <span aria-hidden="true">{isOpen ? '−' : '+'}</span>
+        {isOpen ? 'Hide designs' : category.subcategories.length ? 'Browse by artwork' : 'Browse designs'} <span aria-hidden="true">{isOpen ? '−' : '+'}</span>
       </button>
     </article>
   );
@@ -56,18 +56,20 @@ function CategoryPreview({ category }) {
   return (
     <div className="category-preview" id={`category-preview-${category.slug}`}>
       <div className="category-subcategories">
-        <div className="eyebrow">Browse by style</div>
+        <div className="eyebrow">{category.subcategories.length ? 'Browse by style' : 'Explore collection'}</div>
         <h3>{category.name}</h3>
-        <div className="category-subcategory-list">
-          {category.subcategories.map(subject => (
-            <Link
-              key={subject}
-              href={shopSubjectHref(category.slug, subject)}
-            >
-              {subject} <span aria-hidden="true">→</span>
-            </Link>
-          ))}
-        </div>
+        {category.subcategories.length
+          ? <div className="category-subcategory-list">
+            {category.subcategories.map(subject => (
+              <Link
+                key={subject}
+                href={shopSubjectHref(category.slug, subject)}
+              >
+                {subject} <span aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+          : <Link className="category-all-link" href={shopCategoryHref(category.slug)}>View all designs <span aria-hidden="true">→</span></Link>}
       </div>
       <div className="category-product-preview">
         {category.products.map(product => (
@@ -88,7 +90,13 @@ export default function CategoryCards({ categories }) {
   const activeCategory = categories.find(category => category.slug === activeSlug);
 
   return (
-    <div className="category-picker" onMouseLeave={() => setActiveSlug(null)}>
+    <div
+      className="category-picker"
+      onMouseLeave={() => setActiveSlug(null)}
+      onBlur={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setActiveSlug(null);
+      }}
+    >
       <div className="category-tiles">
         {categories.map(category => (
           <CategoryCard

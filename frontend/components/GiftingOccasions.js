@@ -14,10 +14,8 @@ export default function GiftingOccasions({ products }) {
       </div>
       <div className="gifting-occasion-grid">
         {GIFT_OCCASIONS.map(occasion => {
-          const selectedProducts = products
-            .filter(product => product.category === occasion.category && product.subject === occasion.subject)
-            .slice(0, 3);
-          const image = selectedProducts[0]?.image || occasion.image;
+          const image = products.find(product =>
+            product.category === occasion.category && product.subject === occasion.subject)?.image || occasion.image;
 
           return (
             <article className="gifting-occasion-card" key={occasion.slug}>
@@ -28,15 +26,6 @@ export default function GiftingOccasions({ products }) {
               <div className="gifting-occasion-content">
                 <h3>{occasion.heading}</h3>
                 <p>{occasion.description}</p>
-                {selectedProducts.length > 0 && (
-                  <ul aria-label={`Featured ${occasion.title} gift ideas`}>
-                    {selectedProducts.map(product => (
-                      <li key={product.slug}>
-                        <Link href={`/product/${product.slug}`}>{product.name}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
                 <Link className="gifting-occasion-link" href={`/shop?occasion=${occasion.slug}`}>
                   Browse {occasion.title.toLowerCase()} ideas <span aria-hidden="true">→</span>
                 </Link>
