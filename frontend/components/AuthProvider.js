@@ -12,10 +12,12 @@ export default function AuthProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('login');
   const [method, setMethod] = useState('choose');
+  const [resetStage, setResetStage] = useState('email');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', code: '' });
   const pendingAction = useRef(null);
 
   useEffect(() => {
@@ -60,6 +62,7 @@ export default function AuthProvider({ children }) {
     setMode('login');
     setMethod('choose');
     setError('');
+    setNotice('');
     setOpen(true);
   }, []);
 
@@ -76,6 +79,7 @@ export default function AuthProvider({ children }) {
     setMode('login');
     setMethod('choose');
     setError('');
+    setNotice('');
     setOpen(true);
   }, [loading, user]);
 
@@ -97,7 +101,33 @@ export default function AuthProvider({ children }) {
     event.preventDefault();
     setBusy(true);
     setError('');
+    setNotice('');
     try {
+      if (mode === 'forgot') {
+        const requestingCode = resetStage === 'email';
+        const response = await fetch(`/api/auth/password-reset/${requestingCode ? 'request' : 'confirm'}`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestingCode
+            ? { email: form.email }
+            : { email: form.email, code: form.code, password: form.password }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not reset your password. Please try again.');
+        if (requestingCode) {
+          setResetStage('code');
+          setForm(current => ({ ...current, code: '', password: '' }));
+          setNotice('If an account exists for this email, a reset code has been sent.');
+        } else {
+          setMode('login');
+          setResetStage('email');
+          setForm(current => ({ ...current, code: '', password: '' }));
+          setNotice('Password updated. Please sign in with your new password.');
+        }
+        return;
+      }
+
       const response = await fetch(`/api/auth/${mode === 'register' ? 'register' : 'login'}`, {
         method: 'POST',
         credentials: 'same-origin',
@@ -108,7 +138,8 @@ export default function AuthProvider({ children }) {
       if (!response.ok) throw new Error(result.error || 'Could not sign in. Please try again.');
       setUser(result.user);
       setOpen(false);
-      setForm({ name: '', email: '', password: '' });
+      setForm({ name: '', email: '', password: '', code: '' });
+      setNotice('');
       const action = pendingAction.current;
       pendingAction.current = null;
       if (action) action();
@@ -122,13 +153,16 @@ export default function AuthProvider({ children }) {
   const switchMode = nextMode => {
     setMode(nextMode);
     setError('');
+    setNotice('');
     setAcceptedTerms(false);
-    setForm(current => ({ ...current, password: '' }));
+    setResetStage('email');
+    setForm(current => ({ ...current, password: '', code: '' }));
   };
 
   const chooseEmail = () => {
     setMethod('email');
     setError('');
+    setNotice('');
   };
 
   const googleSignIn = async () => {
@@ -187,30 +221,37 @@ export default function AuthProvider({ children }) {
             </div>
             {error && <p className="auth-error" role="status">{error}</p>}
           </> : <>
-            <button className="auth-back" type="button" onClick={() => { setMethod('choose'); setError(''); }} disabled={busy}>← All sign-in options</button>
-            <h2 id="auth-title">{mode === 'register' ? 'Create your account' : 'Sign in with email'}</h2>
-            <p className="auth-intro">{mode === 'register' ? 'Create an account to continue with your cart and checkout.' : 'Sign in to continue with your cart and checkout.'}</p>
+            {mode === 'forgot'
+              ? <button className="auth-back" type="button" onClick={() => { setMode('login'); setResetStage('email'); setError(''); setNotice(''); setForm(current => ({ ...current, password: '', code: '' })); }} disabled={busy}>← Back to sign in</button>
+              : <button className="auth-back" type="button" onClick={() => { setMethod('choose'); setError(''); setNotice(''); }} disabled={busy}>← All sign-in options</button>}
+            <h2 id="auth-title">{mode === 'register' ? 'Create your account' : mode === 'forgot' ? 'Reset your password' : 'Sign in with email'}</h2>
+            <p className="auth-intro">{mode === 'register' ? 'Create an account to continue with your cart and checkout.' : mode === 'forgot' ? resetStage === 'email' ? 'Enter your account email and we’ll send a one-time reset code.' : 'Enter the 6-digit code from your email and choose a new password.' : 'Sign in to continue with your cart and checkout.'}</p>
             <form onSubmit={submit} className="auth-form">
               {mode === 'register' && <label>Your name
                 <input required type="text" autoComplete="name" minLength={2} maxLength={100} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} />
               </label>}
               <label>Email address
-                <input required type="email" autoComplete="email" maxLength={254} value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
+                <input required type="email" autoComplete="email" maxLength={254} readOnly={mode === 'forgot' && resetStage === 'code'} value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} />
               </label>
-              <label>Password
-                <input required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} minLength={mode === 'register' ? 10 : 1} maxLength={128} value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} />
-                {mode === 'register' && <small>Use at least 10 characters.</small>}
-              </label>
+              {mode === 'forgot' && resetStage === 'code' && <label>6-digit reset code
+                <input required type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={form.code} onChange={event => setForm({ ...form, code: event.target.value.replace(/\D/g, '').slice(0, 6) })} />
+              </label>}
+              {(mode !== 'forgot' || resetStage === 'code') && <label>{mode === 'forgot' ? 'New password' : 'Password'}
+                <input required type="password" autoComplete={mode === 'register' || mode === 'forgot' ? 'new-password' : 'current-password'} minLength={mode === 'login' ? 1 : 10} maxLength={128} value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} />
+                {(mode === 'register' || mode === 'forgot') && <small>Use at least 10 characters.</small>}
+              </label>}
+              {mode === 'login' && <button className="auth-forgot" type="button" onClick={() => { setMode('forgot'); setResetStage('email'); setError(''); setNotice(''); setForm(current => ({ ...current, password: '', code: '' })); }}>Forgot password?</button>}
               {mode === 'register' && <label className="auth-terms"><input required type="checkbox" checked={acceptedTerms} onChange={event => setAcceptedTerms(event.target.checked)} /><span>I agree to the <Link href="/terms" target="_blank">Terms &amp; Conditions</Link> and have read the <Link href="/privacy" target="_blank">Privacy Policy</Link>.</span></label>}
               {error && <p className="auth-error" role="alert">{error}</p>}
-              <button className="btn alt auth-submit" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'register' ? 'Create account' : 'Continue'}</button>
+              {notice && <p className="auth-notice" role="status">{notice}</p>}
+              <button className="btn alt auth-submit" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'register' ? 'Create account' : mode === 'forgot' ? resetStage === 'email' ? 'Send reset code' : 'Reset password' : 'Continue'}</button>
             </form>
-            <p className="auth-switch">
+            {mode !== 'forgot' && <p className="auth-switch">
               {mode === 'register' ? 'Already have an account?' : 'New to The Gifter’s Hub?'}{' '}
               <button type="button" onClick={() => switchMode(mode === 'register' ? 'login' : 'register')} disabled={busy}>
                 {mode === 'register' ? 'Sign in' : 'Create account'}
               </button>
-            </p>
+            </p>}
           </>}
         </section>
       </div>}

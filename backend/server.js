@@ -54,6 +54,20 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many sign-in attempts. Please try again in 15 minutes.' },
 });
+const passwordResetRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many password reset requests. Please try again in 15 minutes.' },
+});
+const passwordResetVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many password reset attempts. Please try again in 15 minutes.' },
+});
 
 function dbRequired(req, res, next) {
   if (!database) return res.status(503).json({ error: 'Account services are unavailable until MongoDB is configured.' });
@@ -98,6 +112,12 @@ function readCookie(req, name) {
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function hashPasswordResetCode(email, code) {
+  return crypto.createHmac('sha256', process.env.BREVO_API_KEY)
+    .update(`${email}:${code}`)
+    .digest('hex');
 }
 
 async function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
@@ -399,6 +419,136 @@ app.post('/api/auth/login', authLimiter, dbRequired, async (req, res, next) => {
 
     await issueSession(user, res);
     res.json({ user: publicUser(user) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/auth/password-reset/request', passwordResetRequestLimiter, dbRequired, async (req, res, next) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid email address.' });
+    }
+    if (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) {
+      return res.status(503).json({ error: 'Password reset email is not configured yet. Please contact support.' });
+    }
+
+    const users = database.collection('users');
+    const user = await users.findOne({ email }, { projection: { _id: 1 } });
+    if (!user) {
+      return res.json({ message: 'If an account exists for this email, a reset code has been sent.' });
+    }
+
+    const resetCodes = database.collection('password_reset_codes');
+    const now = new Date();
+    const existing = await resetCodes.findOne({ _id: email });
+    if (existing && existing.createdAt > new Date(now.getTime() - 60 * 1000)) {
+      return res.json({ message: 'If an account exists for this email, a reset code has been sent.' });
+    }
+
+    const code = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = hashPasswordResetCode(email, code);
+    await resetCodes.replaceOne({ _id: email }, {
+      _id: email,
+      otpHash,
+      attempts: 0,
+      createdAt: now,
+      expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
+    }, { upsert: true });
+
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        signal: AbortSignal.timeout(10000),
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          sender: {
+            name: process.env.BREVO_SENDER_NAME || 'The Gifters Hub',
+            email: process.env.BREVO_SENDER_EMAIL,
+          },
+          to: [{ email }],
+          subject: 'Your password reset code',
+          textContent: `Your password reset code is ${code}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
+          htmlContent: `<p>Your password reset code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">${code}</p><p>This code expires in 10 minutes. If you did not request this, you can ignore this email.</p>`,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Brevo returned status ${response.status}.`);
+      }
+    } catch (deliveryError) {
+      await resetCodes.deleteOne({ _id: email, otpHash });
+      console.error('Password reset email delivery failed:', deliveryError.message);
+      return res.status(502).json({ error: 'Could not send the reset code. Please try again later.' });
+    }
+
+    res.json({ message: 'If an account exists for this email, a reset code has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/auth/password-reset/confirm', passwordResetVerifyLimiter, dbRequired, async (req, res, next) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const code = req.body.code;
+    const password = req.body.password;
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        typeof code !== 'string' || !/^\d{6}$/.test(code)) {
+      return res.status(400).json({ error: 'Enter the email address and 6-digit reset code.' });
+    }
+    if (typeof password !== 'string' || password.length < 10 || password.length > 128) {
+      return res.status(400).json({ error: 'Use a password between 10 and 128 characters.' });
+    }
+
+    if (!process.env.BREVO_API_KEY) {
+      return res.status(503).json({ error: 'Password reset email is not configured yet. Please contact support.' });
+    }
+    const resetCodes = database.collection('password_reset_codes');
+    const challenge = await resetCodes.findOne({ _id: email, expiresAt: { $gt: new Date() }, attempts: { $lt: 5 } });
+    if (!challenge) {
+      return res.status(400).json({ error: 'That reset code is invalid or expired. Request a new code.' });
+    }
+    const user = await database.collection('users').findOne({ email }, { projection: { _id: 1 } });
+    if (!user) {
+      return res.status(400).json({ error: 'That reset code is invalid or expired. Request a new code.' });
+    }
+
+    const submittedHash = hashPasswordResetCode(email, code);
+    const expected = Buffer.from(challenge.otpHash, 'hex');
+    const submitted = Buffer.from(submittedHash, 'hex');
+    if (expected.length !== submitted.length || !crypto.timingSafeEqual(expected, submitted)) {
+      await resetCodes.updateOne(
+        { _id: email, otpHash: challenge.otpHash, attempts: { $lt: 5 } },
+        { $inc: { attempts: 1 } },
+      );
+      return res.status(400).json({ error: 'That reset code is invalid or expired. Request a new code.' });
+    }
+
+    const credentials = await hashPassword(password);
+    const consumed = await resetCodes.deleteOne({
+      _id: email,
+      otpHash: challenge.otpHash,
+      expiresAt: { $gt: new Date() },
+      attempts: { $lt: 5 },
+    });
+    if (!consumed.deletedCount) {
+      return res.status(400).json({ error: 'That reset code is invalid or expired. Request a new code.' });
+    }
+
+    const result = await database.collection('users').updateOne(
+      { _id: user._id },
+      { $set: { passwordSalt: credentials.salt, passwordHash: credentials.hash } },
+    );
+    if (!result.matchedCount) {
+      return res.status(400).json({ error: 'That reset code is invalid or expired. Request a new code.' });
+    }
+    await database.collection('sessions').deleteMany({ userId: user._id });
+    res.json({ message: 'Password updated. Please sign in with your new password.' });
   } catch (error) {
     next(error);
   }
@@ -2037,6 +2187,7 @@ async function start() {
       database.collection('users').createIndex({ firebaseUid: 1 }, { unique: true, sparse: true }),
       database.collection('sessions').createIndex({ tokenHash: 1 }, { unique: true }),
       database.collection('sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      database.collection('password_reset_codes').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       database.collection('orders').createIndex({ orderId: 1 }, { unique: true }),
       database.collection('orders').createIndex({ userId: 1, createdAt: -1 }),
       database.collection('products').createIndex({ slug: 1 }, { unique: true }),

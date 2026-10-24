@@ -31,13 +31,26 @@ const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=1
 
 export default function Shell({ children }) {
   const { count, setOpen } = useCart(), { user, openLogin, logout, authError } = useAuth(), router = useRouter(), pathname = usePathname();
+  const [activeNav, setActiveNav] = useState(null);
   return (<>
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
     <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}`}><div className="wrap bar">
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
-      <nav className="main" aria-label="Main navigation">{NAV.map(([name, href, subcategories]) => <div className="nav-item" key={name}>
-        <Link className="nav-link" href={href}>{name}<span aria-hidden="true">⌄</span></Link>
-        <div className="nav-dropdown" aria-label={`${name} subcategories`}>
+      <nav
+        className="main"
+        aria-label="Main navigation"
+        onMouseLeave={() => setActiveNav(null)}
+        onBlur={event => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setActiveNav(null);
+        }}
+      >{NAV.map(([name, href, subcategories]) => <div
+        className={`nav-item${activeNav === name ? ' is-open' : ''}`}
+        key={name}
+        onMouseEnter={() => setActiveNav(name)}
+        onFocus={() => setActiveNav(name)}
+      >
+        <Link className="nav-link" href={href} aria-haspopup="true" aria-expanded={activeNav === name}>{name}</Link>
+        <div className="nav-dropdown" aria-label={`${name} subcategories`} aria-hidden={activeNav !== name}>
           {subcategories.map(([subcategory, subcategoryHref]) => <Link key={subcategory} href={subcategoryHref}>{subcategory}</Link>)}
         </div>
       </div>)}</nav>
