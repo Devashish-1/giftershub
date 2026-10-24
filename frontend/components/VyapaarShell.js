@@ -13,6 +13,7 @@ const NAVIGATION = [
   { label: 'Stock Adjustments', href: '/admin/vyapaar/stock', icon: '↕' },
   { label: 'Purchases', href: '/admin/vyapaar/purchases', icon: '↓' },
   { label: 'Sales & Invoices', href: '/admin/vyapaar/sales', icon: '▧' },
+  { label: 'Analytics & Alerts', href: '/admin/vyapaar/analytics', icon: '⌁' },
   { label: 'Returns', href: '/admin/vyapaar/returns', icon: '↩' },
   { label: 'Expenses', href: '/admin/vyapaar/expenses', icon: '−' },
   { label: 'Cash & Bank', href: '/admin/vyapaar/cashbook', icon: '₹' },

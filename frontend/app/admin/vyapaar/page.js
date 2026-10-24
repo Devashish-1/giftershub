@@ -9,8 +9,11 @@ function money(value) {
 
 export default function VyapaarOverview() {
   const [overview, setOverview] = useState(null);
+  const [alerts, setAlerts] = useState([]);
+  const [alertError, setAlertError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [alertsLoading, setAlertsLoading] = useState(true);
 
   const loadOverview = useCallback(async () => {
     setLoading(true);
@@ -27,7 +30,23 @@ export default function VyapaarOverview() {
     }
   }, []);
 
+  const loadAlerts = useCallback(async () => {
+    setAlertsLoading(true);
+    setAlertError('');
+    try {
+      const response = await fetch('/api/admin/vyapaar/alerts', { credentials: 'same-origin' });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not load business alerts.');
+      setAlerts(result.alerts);
+    } catch (requestError) {
+      setAlertError(requestError.message || 'Could not load business alerts.');
+    } finally {
+      setAlertsLoading(false);
+    }
+  }, []);
+
   useEffect(() => { loadOverview(); }, [loadOverview]);
+  useEffect(() => { loadAlerts(); }, [loadAlerts]);
 
   return (
     <div className="vyapaar-content">
@@ -60,6 +79,18 @@ export default function VyapaarOverview() {
               <article><span>Saved suppliers</span><b>{overview.summary.supplierCount ?? 0}</b><small>Reusable contact records</small></article>
             </div>
           </details>
+          <section className="sales-analytics-dashboard-alerts">
+            <div className="vyapaar-section-heading"><div><span className="vyapaar-eyebrow">BUSINESS HEALTH</span><h2>Alerts</h2></div><Link href="/admin/vyapaar/analytics">Analytics →</Link></div>
+            {alertError && <p className="admin-error" role="alert">{alertError}</p>}
+            {alertsLoading
+              ? <p className="admin-loading">Checking alerts…</p>
+              : alerts.length
+                ? <div className="sales-analytics-alerts">{alerts.map(alert => <Link href={alert.href} key={alert.id}>
+                  <span aria-hidden="true">!</span><div><b>{alert.title}</b><small>{alert.detail}</small></div><i aria-hidden="true">→</i>
+                </Link>)}</div>
+                : !alertError && <p className="sales-analytics-all-clear">No current alerts. Inventory and recorded sales are within the configured checks.</p>}
+            <p className="vyapaar-disclaimer">Checks: reorder levels, 30% weekly sales drop, invoices unpaid over 30 days, and 10% sales-return rate.</p>
+          </section>
           <section className="vyapaar-quick-actions" aria-labelledby="vyapaar-actions-title">
             <div className="vyapaar-section-heading"><span className="vyapaar-eyebrow">GET STARTED</span><h2 id="vyapaar-actions-title">Business actions</h2></div>
             <div className="vyapaar-action-grid">
@@ -71,6 +102,7 @@ export default function VyapaarOverview() {
               <Link href="/admin/vyapaar/expenses"><span aria-hidden="true">−</span><b>Record an expense</b><small>Post a paid expense to a cash or bank account.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/cashbook"><span aria-hidden="true">₹</span><b>Cash &amp; bank</b><small>Track account movements and transfers.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/reports"><span aria-hidden="true">▥</span><b>Reports</b><small>Review operational totals and export CSV.</small><i aria-hidden="true">→</i></Link>
+              <Link href="/admin/vyapaar/analytics"><span aria-hidden="true">⌁</span><b>Analytics &amp; alerts</b><small>Track sales trends, GST estimates, and business alerts.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/parties"><span aria-hidden="true">♧</span><b>Manage parties</b><small>Maintain customer and supplier contact records.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/barcodes"><span aria-hidden="true">▤</span><b>Barcode labels</b><small>Print item labels from the catalogue.</small><i aria-hidden="true">→</i></Link>
               <Link href="/admin/vyapaar/activity"><span aria-hidden="true">◷</span><b>Activity log</b><small>Review successful administrator changes.</small><i aria-hidden="true">→</i></Link>

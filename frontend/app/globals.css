@@ -757,6 +757,46 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .vyapaar-return-history article strong{flex:none;color:var(--dark);font-size:11px}
 .vyapaar-return-lookup{margin:0}
 .vyapaar-report-cards{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:16px}
+.sales-analytics-toolbar{display:flex;align-items:end;gap:10px;margin-bottom:16px}
+.sales-analytics-toolbar label{display:grid;gap:5px;color:var(--muted);font-size:11px}
+.sales-analytics-toolbar select{min-width:220px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--text);font:inherit;font-size:12px}
+.sales-analytics-metrics{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
+.sales-analytics-panel{min-width:0;padding:20px;border:1px solid var(--line);border-radius:15px;background:#fff}
+.sales-analytics-chart{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(23px,1fr);align-items:end;gap:7px;min-height:210px;padding:18px 0 0;overflow-x:auto}
+.sales-analytics-bar-column{display:grid;grid-template-rows:17px 1fr 21px;align-items:end;gap:7px;min-width:23px;height:190px;text-align:center}
+.sales-analytics-bar-column>span{overflow:hidden;color:var(--muted);font-size:8px;text-overflow:ellipsis;white-space:nowrap}
+.sales-analytics-bar-track{display:flex;align-items:end;justify-content:center;height:100%;border-bottom:1px solid var(--line);background:linear-gradient(to top,#faf6f2 1px,transparent 1px);background-size:100% 25%}
+.sales-analytics-bar-track i{display:block;width:min(70%,24px);min-height:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#c57d55,#8e3825)}
+.sales-analytics-bar-column>small{overflow:hidden;color:var(--muted);font-size:8px;text-overflow:ellipsis;white-space:nowrap}
+.sales-analytics-chart.weekly,.sales-analytics-chart.monthly{grid-auto-columns:minmax(45px,1fr)}
+.sales-analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:16px 0}
+.sales-analytics-list{display:grid}
+.sales-analytics-list article{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #f1ece8}
+.sales-analytics-rank,.sales-analytics-category-mark{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:#fbf2ea;color:var(--primary);font-size:11px;font-weight:700}
+.sales-analytics-list article>div{display:grid;gap:4px;min-width:0}
+.sales-analytics-list article b,.sales-analytics-list article strong{overflow:hidden;color:var(--dark);font-size:11px;text-overflow:ellipsis}
+.sales-analytics-list article small{color:var(--muted);font-size:9px}
+.sales-analytics-list article strong{white-space:nowrap}
+.sales-analytics-list article i{display:block;height:4px;margin-top:3px;overflow:hidden;border-radius:99px;background:#f3eee9}
+.sales-analytics-list article i span{display:block;height:100%;border-radius:inherit;background:#b96b49}
+.sales-analytics-tax{display:grid;gap:0}
+.sales-analytics-tax article,.sales-analytics-tax>strong{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid #f1ece8;color:var(--muted);font-size:11px}
+.sales-analytics-tax article b,.sales-analytics-tax>strong b{color:var(--dark)}
+.sales-analytics-tax>strong{margin-top:5px;border-top:1px solid var(--line);color:var(--dark)}
+.sales-analytics-alert-count{display:grid;place-items:center;min-width:25px;height:25px;padding:0 6px;border-radius:99px;background:#f8eee7;color:#9c482b;font-size:11px;font-weight:700}
+.sales-analytics-alerts{display:grid;gap:8px}
+.sales-analytics-alerts>a{display:grid;grid-template-columns:25px minmax(0,1fr) auto;align-items:start;gap:10px;padding:12px;border:1px solid #f0e3d9;border-radius:10px;background:#fffaf6}
+.sales-analytics-alerts>a>span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#f3dfd1;color:#9b3e25;font-weight:700}
+.sales-analytics-alerts>a>div{display:grid;gap:5px}
+.sales-analytics-alerts b{color:var(--dark);font-size:11px}
+.sales-analytics-alerts small{color:var(--muted);font-size:9px;line-height:1.5}
+.sales-analytics-alerts i{color:var(--primary);font-style:normal}
+.sales-analytics-all-clear{padding:14px;border:1px solid #dbeade;border-radius:10px;background:#f6fbf5;color:#42694a;font-size:11px;line-height:1.5}
+.sales-analytics-links{display:flex;justify-content:flex-end;gap:18px;margin-top:16px}
+.sales-analytics-links a{color:var(--primary);font-size:11px;font-weight:600}
+.sales-analytics-dashboard-alerts{margin:0 0 23px;padding:20px;border:1px solid var(--line);border-radius:15px;background:#fff}
+.sales-analytics-dashboard-alerts .vyapaar-section-heading{margin-bottom:12px}
+.sales-analytics-dashboard-alerts .sales-analytics-alerts{grid-template-columns:repeat(2,minmax(0,1fr))}
 .vyapaar-label-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .vyapaar-label-picker label{display:flex;align-items:center;gap:10px;padding:11px;border:1px solid var(--line);border-radius:9px;cursor:pointer}
 .vyapaar-label-picker label>span{display:grid;gap:3px;min-width:0}
@@ -845,6 +885,7 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .vyapaar-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
  .vyapaar-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .vyapaar-module-grid{grid-template-columns:1fr}
+ .sales-analytics-grid{grid-template-columns:1fr}
  .admin-stock-form{grid-template-columns:1fr 1fr}
  .admin-stock-form .admin-stock-reason{grid-column:1/-1}
 }
@@ -861,6 +902,12 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .vyapaar-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
  .vyapaar-action-grid{grid-template-columns:1fr}
  .vyapaar-report-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sales-analytics-toolbar{align-items:stretch;flex-wrap:wrap}
+ .sales-analytics-toolbar label{flex:1}
+ .sales-analytics-toolbar select{width:100%;min-width:0}
+ .sales-analytics-chart{gap:5px}
+ .sales-analytics-chart.daily{grid-auto-columns:minmax(22px,1fr)}
+ .sales-analytics-dashboard-alerts .sales-analytics-alerts{grid-template-columns:1fr}
  .vyapaar-label-picker{grid-template-columns:1fr}
  .vyapaar-action-grid>a{min-height:110px}
  .admin-stock-form{grid-template-columns:1fr 1fr}

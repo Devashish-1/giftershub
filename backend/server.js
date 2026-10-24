@@ -2978,7 +2978,7 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
       for (const inputLine of lines) {
         const product = await productCollection.findOne(
           { slug: inputLine.slug, archived: { $ne: true }, available: true },
-          { session, projection: { slug: 1, name: 1, sku: 1, hsnCode: 1, barcode: 1, unit: 1, price: 1, taxRate: 1, purchasePrice: 1, extraCost: 1, stock: 1 } },
+          { session, projection: { slug: 1, name: 1, sku: 1, hsnCode: 1, barcode: 1, unit: 1, category: 1, price: 1, taxRate: 1, purchasePrice: 1, extraCost: 1, stock: 1 } },
         );
         if (!product) {
           const unavailable = new Error(`"${inputLine.slug}" is no longer available.`);
@@ -3009,6 +3009,7 @@ app.post('/api/admin/sales', requireAdmin, async (req, res, next) => {
         saleLines.push({
           slug: product.slug,
           name: product.name,
+          category: product.category || 'Uncategorized',
           sku: product.sku || '',
           hsnCode: product.hsnCode || '',
           quantity: inputLine.quantity,
@@ -3689,6 +3690,213 @@ async function recordVyapaarReturn({ kind, req, res, next }) {
 
 app.post('/api/admin/vyapaar/returns/sales', requireAdmin, (req, res, next) => recordVyapaarReturn({ kind: 'sale', req, res, next }));
 app.post('/api/admin/vyapaar/returns/purchases', requireAdmin, (req, res, next) => recordVyapaarReturn({ kind: 'purchase', req, res, next }));
+
+async function buildVyapaarAlerts(now) {
+  const salesCollection = database.collection('vyapaar_sales');
+  const [lowStock, unpaid, recentSales, priorSales, recentReturns, recentReturnSales] = await Promise.all([
+    database.collection('products').find({
+      archived: { $ne: true },
+      $expr: {
+        $or: [
+          { $lte: [{ $ifNull: ['$stock', 0] }, 0] },
+          { $and: [
+            { $gt: [{ $ifNull: ['$lowStockThreshold', 0] }, 0] },
+            { $lte: [{ $ifNull: ['$stock', 0] }, '$lowStockThreshold'] },
+          ] },
+        ],
+      },
+    }, { projection: { _id: 0, slug: 1, name: 1, stock: 1, unit: 1, lowStockThreshold: 1 } }).sort({ stock: 1 }).limit(50).toArray(),
+    salesCollection.aggregate([
+      { $match: { balanceDuePaise: { $gt: 0 }, createdAt: { $lt: new Date(now.getTime() - 30 * 86400000) } } },
+      { $group: { _id: null, count: { $sum: 1 }, balancePaise: { $sum: '$balanceDuePaise' } } },
+    ]).toArray(),
+    salesCollection.aggregate([
+      { $match: { createdAt: { $gte: new Date(now.getTime() - 7 * 86400000), $lt: now } } },
+      { $group: { _id: null, revenuePaise: { $sum: { $ifNull: ['$totalPaise', 0] } } } },
+    ]).toArray(),
+    salesCollection.aggregate([
+      { $match: { createdAt: { $gte: new Date(now.getTime() - 14 * 86400000), $lt: new Date(now.getTime() - 7 * 86400000) } } },
+      { $group: { _id: null, revenuePaise: { $sum: { $ifNull: ['$totalPaise', 0] } } } },
+    ]).toArray(),
+    database.collection('vyapaar_sales_returns').aggregate([
+      { $match: { createdAt: { $gte: new Date(now.getTime() - 30 * 86400000), $lt: now } } },
+      { $group: { _id: null, count: { $sum: 1 }, creditPaise: { $sum: { $ifNull: ['$creditPaise', 0] } } } },
+    ]).toArray(),
+    salesCollection.aggregate([
+      { $match: { createdAt: { $gte: new Date(now.getTime() - 30 * 86400000), $lt: now } } },
+      { $group: { _id: null, revenuePaise: { $sum: { $ifNull: ['$totalPaise', 0] } } } },
+    ]).toArray(),
+  ]);
+
+  const recentRevenue = recentSales[0]?.revenuePaise || 0;
+  const priorRevenue = priorSales[0]?.revenuePaise || 0;
+  const returnCredit = recentReturns[0]?.creditPaise || 0;
+  const thirtyDayRevenue = recentReturnSales[0]?.revenuePaise || 0;
+  const returnRate = thirtyDayRevenue > 0 ? returnCredit / thirtyDayRevenue : 0;
+  const alerts = [];
+  if (lowStock.length) alerts.push({
+    id: 'low-stock', severity: 'warning', title: `${lowStock.length === 50 ? '50+' : lowStock.length} item${lowStock.length === 1 ? '' : 's'} low or out of stock`,
+    detail: 'Stock is at or below its configured reorder threshold.', href: '/admin/vyapaar/stock',
+  });
+  if (priorRevenue > 0 && recentRevenue < priorRevenue * 0.7) alerts.push({
+    id: 'sales-drop', severity: 'warning', title: 'Sales are down more than 30%',
+    detail: `Last 7 days: ₹${(recentRevenue / 100).toFixed(2)} vs ₹${(priorRevenue / 100).toFixed(2)} in the previous 7 days.`,
+    href: '/admin/vyapaar/analytics',
+  });
+  if (unpaid[0]?.count) alerts.push({
+    id: 'overdue-invoices', severity: 'warning', title: `${unpaid[0].count} invoice${unpaid[0].count === 1 ? '' : 's'} overdue`,
+    detail: `Outstanding balance older than 30 days: ₹${(unpaid[0].balancePaise / 100).toFixed(2)}.`,
+    href: '/admin/vyapaar/sales',
+  });
+  if (returnRate >= 0.1 && (recentReturns[0]?.count || 0) > 0) alerts.push({
+    id: 'high-returns', severity: 'warning', title: 'Sales return rate is at least 10%',
+    detail: `${(returnRate * 100).toFixed(1)}% of recorded sales value was credited in returns over the last 30 days.`,
+    href: '/admin/vyapaar/returns',
+  });
+  return alerts;
+}
+
+app.get('/api/admin/vyapaar/alerts', requireAdmin, async (req, res, next) => {
+  try {
+    res.json({ alerts: await buildVyapaarAlerts(new Date()) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/admin/vyapaar/analytics', requireAdmin, async (req, res, next) => {
+  try {
+    const period = typeof req.query.period === 'string' ? req.query.period : 'daily';
+    if (!['daily', 'weekly', 'monthly'].includes(period)) {
+      return res.status(400).json({ error: 'Choose a daily, weekly, or monthly analytics period.' });
+    }
+
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    if (period === 'daily') start.setUTCDate(start.getUTCDate() - 29);
+    if (period === 'weekly') {
+      start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7) - 77);
+    }
+    if (period === 'monthly') start.setUTCMonth(start.getUTCMonth() - 11, 1);
+    const end = new Date(start);
+    if (period === 'daily') end.setUTCDate(end.getUTCDate() + 30);
+    if (period === 'weekly') end.setUTCDate(end.getUTCDate() + 84);
+    if (period === 'monthly') end.setUTCMonth(end.getUTCMonth() + 12, 1);
+    const format = period === 'daily' ? '%Y-%m-%d' : period === 'weekly' ? '%G-W%V' : '%Y-%m';
+    const salesCollection = database.collection('vyapaar_sales');
+    const range = { createdAt: { $gte: start, $lt: end } };
+    const alertsPromise = buildVyapaarAlerts(now);
+    const [trend, topProducts, slowMovers, categories, taxByRate] = await Promise.all([
+      salesCollection.aggregate([
+        { $match: range },
+        { $group: {
+          _id: { $dateToString: { format, date: '$createdAt', timezone: 'UTC' } },
+          revenuePaise: { $sum: { $ifNull: ['$totalPaise', 0] } },
+          taxPaise: { $sum: { $ifNull: ['$taxPaise', 0] } },
+          invoices: { $sum: 1 },
+        } },
+        { $sort: { _id: 1 } },
+      ]).toArray(),
+      salesCollection.aggregate([
+        { $match: range },
+        { $unwind: '$lines' },
+        { $lookup: { from: 'products', localField: 'lines.slug', foreignField: 'slug', as: 'catalogItem' } },
+        { $group: {
+          _id: '$lines.slug',
+          name: { $first: '$lines.name' },
+          category: { $first: { $ifNull: ['$lines.category', { $ifNull: [{ $arrayElemAt: ['$catalogItem.category', 0] }, 'Uncategorized'] }] } },
+          units: { $sum: '$lines.quantity' },
+          revenuePaise: { $sum: { $ifNull: ['$lines.totalPaise', 0] } },
+        } },
+        { $sort: { revenuePaise: -1 } },
+        { $limit: 10 },
+      ]).toArray(),
+      database.collection('products').aggregate([
+        { $match: { archived: { $ne: true }, available: true, stock: { $gt: 0 } } },
+        { $lookup: {
+          from: 'vyapaar_sales',
+          let: { productSlug: '$slug' },
+          pipeline: [
+            { $match: range },
+            { $unwind: '$lines' },
+            { $match: { $expr: { $eq: ['$lines.slug', '$$productSlug'] } } },
+            { $group: { _id: null, units: { $sum: '$lines.quantity' } } },
+          ],
+          as: 'periodSales',
+        } },
+        { $addFields: { soldUnits: { $ifNull: [{ $arrayElemAt: ['$periodSales.units', 0] }, 0] } } },
+        { $project: { _id: 0, slug: 1, name: 1, category: 1, stock: 1, soldUnits: 1 } },
+        { $sort: { soldUnits: 1, stock: -1, name: 1 } },
+        { $limit: 10 },
+      ]).toArray(),
+      salesCollection.aggregate([
+        { $match: range },
+        { $unwind: '$lines' },
+        { $lookup: { from: 'products', localField: 'lines.slug', foreignField: 'slug', as: 'catalogItem' } },
+        { $group: {
+          _id: { $ifNull: ['$lines.category', { $ifNull: [{ $arrayElemAt: ['$catalogItem.category', 0] }, 'Uncategorized'] }] },
+          units: { $sum: '$lines.quantity' },
+          revenuePaise: { $sum: { $ifNull: ['$lines.totalPaise', 0] } },
+        } },
+        { $sort: { revenuePaise: -1 } },
+      ]).toArray(),
+      salesCollection.aggregate([
+        { $match: range },
+        { $unwind: '$lines' },
+        { $group: {
+          _id: { $ifNull: ['$lines.taxRate', 0] },
+          taxPaise: { $sum: { $ifNull: ['$lines.taxPaise', 0] } },
+        } },
+        { $sort: { _id: 1 } },
+      ]).toArray(),
+    ]);
+    const alerts = await alertsPromise;
+
+    const buckets = [];
+    const cursor = new Date(start);
+    while (cursor < end) {
+      let key;
+      if (period === 'daily') {
+        key = cursor.toISOString().slice(0, 10);
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+      } else if (period === 'monthly') {
+        key = cursor.toISOString().slice(0, 7);
+        cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+      } else {
+        const thursday = new Date(cursor);
+        thursday.setUTCDate(thursday.getUTCDate() + 3 - ((thursday.getUTCDay() + 6) % 7));
+        const week = Math.ceil((((thursday - new Date(Date.UTC(thursday.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7);
+        key = `${thursday.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+        cursor.setUTCDate(cursor.getUTCDate() + 7);
+      }
+      buckets.push(key);
+    }
+    const trendByPeriod = new Map(trend.map(item => [item._id, item]));
+    const series = buckets.map(key => {
+      const item = trendByPeriod.get(key);
+      return { period: key, revenue: (item?.revenuePaise || 0) / 100, tax: (item?.taxPaise || 0) / 100, invoices: item?.invoices || 0 };
+    });
+    res.json({
+      period,
+      totals: {
+        revenue: series.reduce((sum, item) => sum + item.revenue, 0),
+        invoices: series.reduce((sum, item) => sum + item.invoices, 0),
+        averageOrderValue: series.reduce((sum, item) => sum + item.revenue, 0) / Math.max(1, series.reduce((sum, item) => sum + item.invoices, 0)),
+        tax: series.reduce((sum, item) => sum + item.tax, 0),
+      },
+      series,
+      topProducts: topProducts.map(item => ({ slug: item._id, name: item.name, category: item.category, units: item.units, revenue: item.revenuePaise / 100 })),
+      slowMovers,
+      categories: categories.map(item => ({ name: item._id || 'Uncategorized', units: item.units, revenue: item.revenuePaise / 100 })),
+      taxByRate: taxByRate.map(item => ({ rate: item._id, tax: item.taxPaise / 100 })),
+      alerts,
+      alertThresholds: { salesDropPercent: 30, overdueDays: 30, returnRatePercent: 10 },
+      disclaimer: 'Analytics summarize Vyapaar invoices recorded in this system. Tax figures are operational estimates, not statutory GST filings. Older invoices use the tax data saved at issue time.',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/api/admin/vyapaar/reports', requireAdmin, async (req, res, next) => {
   try {
