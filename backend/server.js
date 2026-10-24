@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { promisify } = require('util');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const rateLimit = require('express-rate-limit');
 const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
@@ -133,6 +133,43 @@ async function passwordMatches(password, salt, expectedHash) {
   const actual = await scrypt(password, salt, 64);
   const expected = Buffer.from(expectedHash, 'hex');
   return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
+}
+
+async function sendOrderUpdateEmail(order, subject, heading) {
+  if (!order.userId || !order.email) return;
+  const user = await database.collection('users').findOne(
+    { _id: order.userId },
+    { projection: { 'preferences.orderEmail': 1 } },
+  );
+  if (!user?.preferences?.orderEmail) return;
+  if (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL) {
+    throw new Error('Brevo is not configured for order notifications.');
+  }
+  const safe = value => String(value || '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+  const status = order.status || 'pending';
+  const paymentStatus = order.paymentStatus || 'pending';
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    signal: AbortSignal.timeout(10000),
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: {
+        name: process.env.BREVO_SENDER_NAME || 'The Gifters Hub',
+        email: process.env.BREVO_SENDER_EMAIL,
+      },
+      to: [{ email: order.email }],
+      subject,
+      textContent: `${heading}\nOrder ${order.orderId}\nOrder status: ${status}\nPayment status: ${paymentStatus}`,
+      htmlContent: `<p>${safe(heading)}</p><p>Order <strong>${safe(order.orderId)}</strong></p><p>Order status: ${safe(status)}<br>Payment status: ${safe(paymentStatus)}</p>`,
+    }),
+  });
+  if (!response.ok) throw new Error(`Brevo returned status ${response.status}.`);
 }
 
 async function findCurrentUser(req) {
@@ -680,14 +717,19 @@ function validateAddress(input) {
   const phone = typeof input.phone === 'string' ? input.phone.trim() : '';
   const pincode = typeof input.pincode === 'string' ? input.pincode.trim() : '';
   const address = typeof input.address === 'string' ? input.address.trim() : '';
+  const locality = typeof input.locality === 'string' ? input.locality.trim() : '';
+  const city = typeof input.city === 'string' ? input.city.trim() : '';
+  const state = typeof input.state === 'string' ? input.state.trim() : '';
+  const country = typeof input.country === 'string' ? input.country.trim() : '';
   if (!['Home', 'Work', 'Other'].includes(label) ||
       name.length < 2 || name.length > 100 ||
       !/^\d{10}$/.test(phone) ||
       !/^[1-9]\d{5}$/.test(pincode) ||
-      address.length < 8 || address.length > 500) {
+      address.length < 8 || address.length > 500 ||
+      locality.length > 100 || city.length > 100 || state.length > 100 || country.length > 100) {
     return null;
   }
-  return { label, name, phone, pincode, address };
+  return { label, name, phone, pincode, address, locality, city, state, country };
 }
 
 app.get('/api/account/profile', requireUser, async (req, res, next) => {
@@ -730,9 +772,13 @@ app.get('/api/account/addresses', requireUser, async (req, res, next) => {
   try {
     const user = await database.collection('users').findOne(
       { _id: req.user._id },
-      { projection: { addresses: 1 } },
+      { projection: { addresses: 1, defaultAddressId: 1 } },
     );
-    res.json({ addresses: user?.addresses || [] });
+    const addresses = user?.addresses || [];
+    const defaultAddressId = addresses.some(address => address.id === user.defaultAddressId)
+      ? user.defaultAddressId
+      : addresses[0]?.id || '';
+    res.json({ addresses, defaultAddressId });
   } catch (error) {
     next(error);
   }
@@ -751,7 +797,35 @@ app.post('/api/account/addresses', requireUser, async (req, res, next) => {
       { $push: { addresses: address }, $set: { updatedAt: new Date() } },
     );
     if (!result.matchedCount) return res.status(409).json({ error: 'You can save up to 10 addresses.' });
-    res.status(201).json({ address });
+    await database.collection('users').updateOne(
+      {
+        _id: req.user._id,
+        $or: [
+          { defaultAddressId: { $exists: false } },
+          { defaultAddressId: null },
+          { defaultAddressId: '' },
+        ],
+      },
+      { $set: { defaultAddressId: address.id } },
+    );
+    const user = await database.collection('users').findOne(
+      { _id: req.user._id },
+      { projection: { defaultAddressId: 1 } },
+    );
+    res.status(201).json({ address, defaultAddressId: user?.defaultAddressId || address.id });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/account/addresses/:addressId/default', requireUser, async (req, res, next) => {
+  try {
+    const result = await database.collection('users').updateOne(
+      { _id: req.user._id, 'addresses.id': req.params.addressId },
+      { $set: { defaultAddressId: req.params.addressId, updatedAt: new Date() } },
+    );
+    if (!result.matchedCount) return res.status(404).json({ error: 'That saved address could not be found.' });
+    res.json({ defaultAddressId: req.params.addressId });
   } catch (error) {
     next(error);
   }
@@ -769,6 +843,10 @@ app.put('/api/account/addresses/:addressId', requireUser, async (req, res, next)
         'addresses.$.phone': address.phone,
         'addresses.$.pincode': address.pincode,
         'addresses.$.address': address.address,
+        'addresses.$.locality': address.locality,
+        'addresses.$.city': address.city,
+        'addresses.$.state': address.state,
+        'addresses.$.country': address.country,
         updatedAt: new Date(),
       } },
     );
@@ -781,11 +859,21 @@ app.put('/api/account/addresses/:addressId', requireUser, async (req, res, next)
 
 app.delete('/api/account/addresses/:addressId', requireUser, async (req, res, next) => {
   try {
-    const result = await database.collection('users').updateOne(
+    const users = database.collection('users');
+    const result = await users.updateOne(
       { _id: req.user._id, 'addresses.id': req.params.addressId },
       { $pull: { addresses: { id: req.params.addressId } }, $set: { updatedAt: new Date() } },
     );
     if (!result.matchedCount) return res.status(404).json({ error: 'That saved address could not be found.' });
+    const user = await users.findOne({ _id: req.user._id }, { projection: { addresses: 1, defaultAddressId: 1 } });
+    if (user.defaultAddressId === req.params.addressId) {
+      const defaultAddressId = user.addresses?.[0]?.id || '';
+      await users.updateOne(
+        { _id: req.user._id, defaultAddressId: req.params.addressId },
+        { $set: { defaultAddressId, updatedAt: new Date() } },
+      );
+      return res.json({ defaultAddressId });
+    }
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -803,6 +891,201 @@ app.get('/api/account/orders', requireUser, async (req, res, next) => {
       .limit(50)
       .toArray();
     res.json({ orders });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/coupons', requireUser, async (req, res, next) => {
+  try {
+    const offers = Object.entries(coupons).map(([code, offer]) => ({
+      code,
+      description: offer.type === 'pct' ? `${offer.value}% off` : `₹${offer.value} off`,
+      minimumSpend: offer.min || 0,
+    }));
+    const redemptions = await database.collection('orders')
+      .find(
+        { userId: req.user._id, couponCode: { $exists: true, $ne: '' } },
+        { projection: { _id: 0, orderId: 1, couponCode: 1, off: 1, total: 1, status: 1, createdAt: 1 } },
+      )
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .toArray();
+    res.json({ offers, redemptions });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/preferences', requireUser, async (req, res, next) => {
+  try {
+    res.json({
+      email: req.user.email,
+      orderEmail: req.user.preferences?.orderEmail === true,
+      emailConfigured: Boolean(process.env.BREVO_API_KEY && process.env.BREVO_SENDER_EMAIL),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/account/preferences', requireUser, async (req, res, next) => {
+  try {
+    if (typeof req.body.orderEmail !== 'boolean') {
+      return res.status(400).json({ error: 'Choose whether to receive order updates by email.' });
+    }
+    if (req.body.orderEmail && (!process.env.BREVO_API_KEY || !process.env.BREVO_SENDER_EMAIL)) {
+      return res.status(503).json({ error: 'Order email is not configured yet. Please try again later.' });
+    }
+    await database.collection('users').updateOne(
+      { _id: req.user._id },
+      { $set: { 'preferences.orderEmail': req.body.orderEmail, updatedAt: new Date() } },
+    );
+    res.json({ orderEmail: req.body.orderEmail });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/export', requireUser, async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    const [user, orders] = await Promise.all([
+      database.collection('users').findOne(
+        { _id: req.user._id },
+        { projection: { name: 1, email: 1, phone: 1, addresses: 1, defaultAddressId: 1, preferences: 1, createdAt: 1, updatedAt: 1 } },
+      ),
+      database.collection('orders').find(
+        { userId: req.user._id },
+        { projection: { _id: 0, orderId: 1, customer: 1, email: 1, lines: 1, sub: 1, off: 1, couponCode: 1, ship: 1, giftFee: 1, total: 1, giftMessage: 1, status: 1, paymentMethod: 1, paymentStatus: 1, createdAt: 1 } },
+      ).sort({ createdAt: -1 }).toArray(),
+    ]);
+    if (!user) return res.status(404).json({ error: 'Your account could not be found.' });
+    res.set('Content-Disposition', 'attachment; filename="gifters-hub-account-data.json"');
+    res.json({
+      exportedAt: new Date().toISOString(),
+      profile: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        addresses: user.addresses || [],
+        defaultAddressId: user.defaultAddressId || user.addresses?.[0]?.id || '',
+        notifications: { orderEmail: user.preferences?.orderEmail === true },
+        createdAt: user.createdAt || null,
+        updatedAt: user.updatedAt || null,
+      },
+      orders,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/sessions', requireUser, async (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    const token = readCookie(req, SESSION_COOKIE);
+    const tokenHash = hashToken(token);
+    const sessions = database.collection('sessions');
+    const current = await sessions.findOne({ userId: req.user._id, tokenHash });
+    if (!current) return res.status(401).json({ error: 'Your current session could not be found. Please sign in again.' });
+    const activeSessions = await sessions.find(
+      { userId: req.user._id, expiresAt: { $gt: new Date() } },
+      { projection: { createdAt: 1, expiresAt: 1, tokenHash: 1 } },
+    ).sort({ createdAt: -1 }).toArray();
+    res.json({
+      sessions: activeSessions.map(session => ({
+        id: session._id.toString(),
+        current: session._id.equals(current._id),
+        createdAt: session.createdAt,
+        expiresAt: session.expiresAt,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/account/sessions/others', requireUser, async (req, res, next) => {
+  try {
+    const token = readCookie(req, SESSION_COOKIE);
+    if (!/^[a-f0-9]{64}$/.test(token)) return res.status(401).json({ error: 'Please sign in again to manage sessions.' });
+    const result = await database.collection('sessions').deleteMany({
+      userId: req.user._id,
+      tokenHash: { $ne: hashToken(token) },
+    });
+    res.json({ revoked: result.deletedCount });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/account/sessions/:sessionId', requireUser, async (req, res, next) => {
+  try {
+    if (!ObjectId.isValid(req.params.sessionId)) return res.status(400).json({ error: 'Choose a valid session.' });
+    const token = readCookie(req, SESSION_COOKIE);
+    const sessions = database.collection('sessions');
+    const current = await sessions.findOne({ userId: req.user._id, tokenHash: hashToken(token) });
+    const sessionId = new ObjectId(req.params.sessionId);
+    if (current?._id.equals(sessionId)) {
+      return res.status(400).json({ error: 'You cannot revoke the session you are using. Sign out to end it.' });
+    }
+    const result = await sessions.deleteOne({ _id: sessionId, userId: req.user._id });
+    if (!result.deletedCount) return res.status(404).json({ error: 'That session could not be found.' });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/search', requireUser, async (req, res, next) => {
+  try {
+    const query = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 80).toLocaleLowerCase() : '';
+    if (query.length < 2) return res.status(400).json({ error: 'Enter at least 2 characters to search your account.' });
+    const user = await database.collection('users').findOne(
+      { _id: req.user._id },
+      { projection: { name: 1, email: 1, phone: 1, addresses: 1 } },
+    );
+    if (!user) return res.status(404).json({ error: 'Your account could not be found.' });
+
+    const results = [];
+    const matches = values => values.some(value => typeof value === 'string' && value.toLocaleLowerCase().includes(query));
+    if (matches([user.name, user.email, user.phone])) {
+      results.push({
+        title: 'Personal details',
+        detail: [user.name, user.email, user.phone].filter(Boolean).join(' · '),
+        href: '/account/profile',
+      });
+    }
+    for (const address of user.addresses || []) {
+      const searchable = [address.label, address.name, address.phone, address.pincode, address.address, address.locality, address.city, address.state, address.country];
+      if (matches(searchable)) {
+        results.push({
+          title: `${address.label || 'Saved'} address`,
+          detail: searchable.filter(Boolean).join(', '),
+          href: '/account/addresses',
+        });
+      }
+    }
+    const orders = await database.collection('orders')
+      .find(
+        { userId: req.user._id },
+        { projection: { _id: 0, orderId: 1, status: 1, paymentStatus: 1, lines: 1 } },
+      )
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .toArray();
+    for (const order of orders) {
+      const itemNames = (order.lines || []).map(line => line.name).filter(Boolean);
+      if (matches([order.orderId, order.status, order.paymentStatus, ...itemNames])) {
+        results.push({
+          title: `Order ${order.orderId}`,
+          detail: [order.status, order.paymentStatus, ...itemNames].filter(Boolean).join(' · '),
+          href: '/account/orders',
+        });
+      }
+    }
+    res.json({ results: results.slice(0, 20) });
   } catch (error) {
     next(error);
   }
@@ -2294,9 +2577,25 @@ app.patch('/api/admin/orders/:orderId', requireAdmin, async (req, res, next) => 
     if (!Object.keys(changes).length) return res.status(400).json({ error: 'Provide an order or payment status to update.' });
 
     const orders = database.collection('orders');
+    const previousOrder = await orders.findOne(
+      { orderId: req.params.orderId },
+      { projection: { status: 1, paymentStatus: 1 } },
+    );
+    if (!previousOrder) return res.status(404).json({ error: 'Order not found.' });
     const result = await orders.updateOne({ orderId: req.params.orderId }, { $set: changes });
     if (!result.matchedCount) return res.status(404).json({ error: 'Order not found.' });
     const order = await orders.findOne({ orderId: req.params.orderId });
+    if (previousOrder.status !== order.status || previousOrder.paymentStatus !== order.paymentStatus) {
+      try {
+        await sendOrderUpdateEmail(
+          order,
+          `Update for order ${order.orderId}`,
+          'There is an update on your order.',
+        );
+      } catch (deliveryError) {
+        console.error(`Order update email failed for ${order.orderId}:`, deliveryError.message);
+      }
+    }
     res.json({
       id: order._id.toString(),
       orderId: order.orderId,
@@ -2308,12 +2607,42 @@ app.patch('/api/admin/orders/:orderId', requireAdmin, async (req, res, next) => 
   }
 });
 
-app.get('/api/pincode/:pin', (req, res) => {
+app.get('/api/pincode/:pin', async (req, res) => {
   if (!/^[1-9]\d{5}$/.test(req.params.pin)) return res.status(400).json({ ok: false, message: 'Enter a valid 6-digit pincode' });
-  const days = req.params.pin.startsWith('14') ? 2 : 4;
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  res.json({ ok: true, eta: date.toDateString().slice(0, 10), cod: true });
+  try {
+    const response = await fetch(`https://api.postalpincode.in/pincode/${req.params.pin}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) {
+      return res.status(502).json({ ok: false, message: 'Pincode lookup is temporarily unavailable. Please enter the location manually.' });
+    }
+    const result = await response.json();
+    const office = result?.[0]?.Status === 'Success' ? result[0].PostOffice?.[0] : null;
+    if (!office || !office.Name || !office.State || !office.Country) {
+      return res.status(404).json({ ok: false, message: 'We could not find this pincode. Please check it or enter the location manually.' });
+    }
+    const days = req.params.pin.startsWith('14') ? 2 : 4;
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return res.json({
+      ok: true,
+      eta: date.toDateString().slice(0, 10),
+      cod: true,
+      location: {
+        locality: office.Name,
+        city: office.District || office.Block || office.Region || '',
+        state: office.State,
+        country: office.Country,
+      },
+    });
+  } catch (error) {
+    console.error('Pincode lookup failed:', error.message);
+    const timedOut = error.name === 'TimeoutError' || error.name === 'AbortError';
+    return res.status(timedOut ? 504 : 502).json({
+      ok: false,
+      message: 'Pincode lookup is temporarily unavailable. Please enter the location manually.',
+    });
+  }
 });
 
 app.post('/api/cart/price', async (req, res, next) => {
@@ -2353,6 +2682,7 @@ app.post('/api/orders', requireUser, async (req, res, next) => {
     const order = {
       orderId: `GH${crypto.randomBytes(5).toString('hex').toUpperCase()}`,
       userId: req.user._id,
+      couponCode: total.couponOk && typeof coupon === 'string' ? coupon.trim().toUpperCase() : '',
       customer: {
         name: customer.name.trim(),
         phone: customer.phone,
@@ -2368,6 +2698,11 @@ app.post('/api/orders', requireUser, async (req, res, next) => {
       createdAt: new Date(),
     };
     await database.collection('orders').insertOne(order);
+    try {
+      await sendOrderUpdateEmail(order, `Order ${order.orderId} confirmed`, 'We received your order.');
+    } catch (deliveryError) {
+      console.error(`Order confirmation email failed for ${order.orderId}:`, deliveryError.message);
+    }
     res.status(201).json({ id: order.orderId, total: order.total });
   } catch (error) {
     next(error);

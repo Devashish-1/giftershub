@@ -31,8 +31,12 @@ const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=1
 
 export default function Shell({ children }) {
   const { count, setOpen } = useCart(), { user, openLogin, logout, authError } = useAuth(), router = useRouter(), pathname = usePathname();
+  const isAccountPage = pathname === '/account' || pathname.startsWith('/account/');
+  const showFooter = pathname === '/account' || !pathname.startsWith('/account/');
   const [activeNav, setActiveNav] = useState(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [accountSearchQuery, setAccountSearchQuery] = useState('');
+  const [accountSearch, setAccountSearch] = useState({ results: [], error: '', searched: false, busy: false });
   const accountControl = useRef(null);
   useEffect(() => {
     if (!accountMenuOpen) return undefined;
@@ -49,11 +53,32 @@ export default function Shell({ children }) {
       document.removeEventListener('pointerdown', closeOutside);
     };
   }, [accountMenuOpen]);
+  useEffect(() => {
+    setAccountSearchQuery('');
+    setAccountSearch({ results: [], error: '', searched: false, busy: false });
+  }, [pathname]);
+  const searchAccount = async event => {
+    event.preventDefault();
+    const query = accountSearchQuery.trim();
+    if (query.length < 2) {
+      setAccountSearch({ results: [], error: 'Enter at least 2 characters to search your account.', searched: true, busy: false });
+      return;
+    }
+    setAccountSearch({ results: [], error: '', searched: false, busy: true });
+    try {
+      const response = await fetch(`/api/account/search?q=${encodeURIComponent(query)}`, { credentials: 'same-origin' });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not search your account.');
+      setAccountSearch({ results: result.results, error: '', searched: true, busy: false });
+    } catch (error) {
+      setAccountSearch({ results: [], error: error.message || 'Could not search your account.', searched: true, busy: false });
+    }
+  };
   return (<>
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
-    <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}`}><div className="wrap bar">
+    <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}${isAccountPage ? ' account-top' : ''}`}><div className="wrap bar">
       <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
-      <nav
+      {!isAccountPage && <nav
         className="main"
         aria-label="Main navigation"
         onMouseLeave={() => setActiveNav(null)}
@@ -70,9 +95,29 @@ export default function Shell({ children }) {
         <div className="nav-dropdown" aria-label={`${name} subcategories`} aria-hidden={activeNav !== name}>
           {subcategories.map(([subcategory, subcategoryHref]) => <Link key={subcategory} href={subcategoryHref}>{subcategory}</Link>)}
         </div>
-      </div>)}</nav>
+      </div>)}      </nav>}
       <div className="tools">
-        <form className="search" role="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><label className="sr-only" htmlFor="header-search">Search products</label><input id="header-search" name="q" placeholder="Search designs" /><button type="submit" aria-label="Search catalogue">Search</button></form>
+        {isAccountPage
+          ? <div className="account-search-wrap">
+            <form className="search account-search" role="search" onSubmit={searchAccount}>
+              <label className="sr-only" htmlFor="header-search">Search your account details</label>
+              <input id="header-search" value={accountSearchQuery} onChange={event => {
+                setAccountSearchQuery(event.target.value);
+                setAccountSearch({ results: [], error: '', searched: false, busy: false });
+              }} placeholder="Search your account details" autoComplete="off" />
+              <button type="submit" aria-label="Search account" disabled={accountSearch.busy}>{accountSearch.busy ? 'Searching…' : 'Search'}</button>
+            </form>
+            {(accountSearch.error || accountSearch.searched) && <div className="account-search-results" role="status">
+              {accountSearch.error
+                ? <p>{accountSearch.error}</p>
+                : accountSearch.results.length
+                  ? accountSearch.results.map((result, index) => <Link key={`${result.href}-${result.title}-${index}`} href={result.href} onClick={() => setAccountSearch({ results: [], error: '', searched: false, busy: false })}>
+                    <strong>{result.title}</strong><span>{result.detail}</span>
+                  </Link>)
+                  : <p>No matching account details found.</p>}
+            </div>}
+          </div>
+          : <form className="search" role="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><label className="sr-only" htmlFor="header-search">Search products</label><input id="header-search" name="q" placeholder="Search designs" /><button type="submit" aria-label="Search catalogue">Search</button></form>}
         {user
           ? <div className="account-control" ref={accountControl}>
             <button className="account-icon" type="button" aria-label="Account menu" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(current => !current)}>
@@ -85,7 +130,10 @@ export default function Shell({ children }) {
               <Link role="menuitem" href="/account/profile" onClick={() => setAccountMenuOpen(false)}>Personal details</Link>
               <Link role="menuitem" href="/account/addresses" onClick={() => setAccountMenuOpen(false)}>Addresses</Link>
               <Link role="menuitem" href="/account/orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
+              <Link role="menuitem" href="/account/coupons" onClick={() => setAccountMenuOpen(false)}>Coupons &amp; rewards</Link>
               <Link role="menuitem" href="/account/payments" onClick={() => setAccountMenuOpen(false)}>Payment methods</Link>
+              <Link role="menuitem" href="/account/notifications" onClick={() => setAccountMenuOpen(false)}>Email notifications</Link>
+              <Link role="menuitem" href="/account/privacy" onClick={() => setAccountMenuOpen(false)}>Privacy controls</Link>
               <Link role="menuitem" href="/account/security" onClick={() => setAccountMenuOpen(false)}>Security</Link>
               <button role="menuitem" type="button" onClick={() => { setAccountMenuOpen(false); logout(); }}>Sign out</button>
             </div>}
@@ -93,18 +141,18 @@ export default function Shell({ children }) {
           : <button className="login-btn" onClick={openLogin}>Sign in</button>}
         <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
       </div>
-      <nav className="mobile-categories" aria-label="Browse categories">
+      {!isAccountPage && <nav className="mobile-categories" aria-label="Browse categories">
         <Link href="/gifts">Gifts by occasion</Link>
         <Link href={shopCategoryHref('god-frames')}>God Frames</Link>
         <Link href={shopCategoryHref('family-frames')}>Family Frames</Link>
         <Link href={shopCategoryHref('crystal-bubble')}>Crystal Bubble</Link>
         <Link href={shopCategoryHref('murtis-and-idols')}>Murtis &amp; Idols</Link>
         {DEITY_LINKS.map(([subject, href]) => <Link key={`mobile-${subject}`} href={href}>{subject}</Link>)}
-      </nav>
+      </nav>}
     </div></header>
     {authError && <div className="auth-global-error" role="status">{authError}</div>}
     <main>{children}</main>
-    <footer className="site-footer">
+    {showFooter && <footer className="site-footer">
       <div className="wrap footer-grid">
         <div className="footer-brand">
           <Link href="/" className="logo"><img src="/logo-mark.png" alt="" /><span>The Gifter’s Hub<small>GIFTS &amp; DECOR</small></span></Link>
@@ -129,7 +177,7 @@ export default function Shell({ children }) {
         </div>
       </div>
       <div className="wrap footer-bottom"><span>© 2026 The Gifter’s Hub · Gifts &amp; Decor</span><span>Retail catalogue · Prices coming soon</span></div>
-    </footer>
+    </footer>}
     <nav className="bottom">
       <Link href="/"><span>⌂</span>Home</Link><Link href="/shop"><span>▦</span>Shop</Link>
       <Link href="/gifts"><span>♡</span>Gifts</Link>

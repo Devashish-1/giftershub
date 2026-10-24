@@ -6,6 +6,8 @@ import { useAuth } from '../../components/AuthProvider';
 export default function Checkout() {
   const { items, clear } = useCart(), { user, loading, openLogin } = useAuth(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false), [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [defaultAddressId, setDefaultAddressId] = useState('');
   const [savedDetailsError, setSavedDetailsError] = useState('');
   useEffect(() => { if (!loading && !user && items.length) openLogin(); }, [loading, user, items.length, openLogin]);
   useEffect(() => {
@@ -20,17 +22,20 @@ export default function Checkout() {
       fetch('/api/account/addresses', { credentials: 'same-origin' }).then(async response => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Could not load saved addresses.');
-        return result.addresses;
+        return result;
       }),
-    ]).then(([profile, addresses]) => {
+    ]).then(([profile, addressResult]) => {
       if (!active) return;
+      const addresses = addressResult.addresses || [];
       setSavedAddresses(addresses);
-      const firstAddress = addresses[0];
+      const preferredAddress = addresses.find(address => address.id === addressResult.defaultAddressId) || addresses[0];
+      setSelectedAddressId(preferredAddress?.id || '');
+      setDefaultAddressId(preferredAddress?.id || '');
       setF(current => ({
-        name: current.name || profile.name || '',
-        phone: current.phone || profile.phone || firstAddress?.phone || '',
-        pincode: current.pincode || firstAddress?.pincode || '',
-        address: current.address || firstAddress?.address || '',
+        name: current.name || preferredAddress?.name || profile.name || '',
+        phone: current.phone || preferredAddress?.phone || profile.phone || '',
+        pincode: current.pincode || preferredAddress?.pincode || '',
+        address: current.address || preferredAddress?.address || '',
       }));
     }).catch(error => {
       if (active) setSavedDetailsError(error.message || 'Could not load saved checkout details.');
@@ -52,7 +57,7 @@ export default function Checkout() {
     }
   };
   const set = k => e => setF({ ...f, [k]: e.target.value });
-  if (done) return <div className="wrap form"><h1>Thank you!</h1><p>Order <b>{done.id}</b> is confirmed. Total: ₹{done.total}. We will WhatsApp you tracking details.</p><Link className="btn" href="/shop">Continue shopping</Link></div>;
+  if (done) return <div className="wrap form"><h1>Thank you!</h1><p>Order <b>{done.id}</b> is confirmed. Total: ₹{done.total}. You can receive order updates by email from your account notification settings.</p><Link className="btn" href="/shop">Continue shopping</Link></div>;
   if (loading) return <div className="wrap form"><p>Checking your account…</p></div>;
   if (!user) return <div className="wrap form"><h1>Sign in to checkout</h1><p>Your cart is saved while you sign in or create an account.</p><button className="btn alt" type="button" onClick={openLogin}>Sign in or create account</button></div>;
   if (!items.length) return <div className="wrap form"><p>Your cart is empty.</p><Link className="btn" href="/shop">Shop now</Link></div>;
@@ -60,10 +65,11 @@ export default function Checkout() {
     <h1>Delivery details</h1>
     {savedDetailsError && <p className="account-message account-error" role="status">{savedDetailsError}</p>}
     {savedAddresses.length > 0 && <label className="checkout-saved-address">Use a saved address
-      <select defaultValue="" onChange={event => {
+      <select value={selectedAddressId} onChange={event => {
         const address = savedAddresses.find(value => value.id === event.target.value);
+        setSelectedAddressId(event.target.value);
         if (address) setF(current => ({ ...current, name: address.name, phone: address.phone, pincode: address.pincode, address: address.address }));
-      }}><option value="">Choose an address</option>{savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label} · {address.address}</option>)}</select>
+      }}><option value="">Enter a different address</option>{savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.id === defaultAddressId ? ' · Default' : ''} · {address.address}</option>)}</select>
     </label>}
     <input required placeholder="Full name" value={f.name} onChange={set('name')} />
     <input required placeholder="10-digit mobile" inputMode="numeric" maxLength={10} value={f.phone} onChange={set('phone')} />

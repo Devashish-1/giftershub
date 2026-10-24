@@ -24,6 +24,15 @@ nav.main{display:flex;gap:clamp(12px,1.8vw,25px);font-size:14px;color:var(--mute
 .nav-dropdown a:hover,.nav-dropdown a:focus-visible{background:var(--alt);color:var(--primary);outline:0}
 .tools{display:flex;gap:12px;margin-left:16px;justify-content:flex-end;align-items:center}
 .search{position:relative}.search input{width:170px;padding:9px 16px;border:1px solid var(--line);border-radius:999px;font:inherit;font-size:13px;background:var(--alt);transition:width .3s var(--ease),background .2s}.search input:focus{width:240px;background:#fff;outline:0;border-color:var(--primary)}
+.account-search-wrap{position:relative;width:min(320px,34vw)}
+.account-search{width:100%}
+.account-search input,.account-search input:focus{width:100%;min-width:0;background:#fff}
+.account-search-results{position:absolute;z-index:70;top:calc(100% + 8px);left:0;right:0;display:grid;gap:3px;max-height:min(60vh,360px);overflow:auto;padding:8px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 14px 35px #321c1824}
+.account-search-results>a{display:grid;gap:3px;padding:9px 10px;border-radius:8px}
+.account-search-results>a:hover,.account-search-results>a:focus-visible{background:var(--alt);outline:0}
+.account-search-results strong{font-size:12px;color:var(--dark)}
+.account-search-results span,.account-search-results p{color:var(--muted);font-size:11px;line-height:1.45}
+.account-search-results p{padding:8px}
 .cartbtn{position:relative;padding:9px 18px;background:var(--primary);color:#fff;border-radius:999px;font-size:13px;font-weight:600;transition:background .2s}.cartbtn:hover{background:var(--dark)}
 .cartbtn i{position:absolute;top:-6px;right:-4px;background:#fff;color:var(--primary);font-style:normal;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;box-shadow:0 1px 4px #0003}
 .login-btn{border:1px solid var(--line);border-radius:999px;padding:8px 13px;color:var(--dark);font-size:12px;font-weight:600;white-space:nowrap}
@@ -76,6 +85,12 @@ nav.main{display:flex;gap:clamp(12px,1.8vw,25px);font-size:14px;color:var(--mute
 .account-form input[readonly]{background:var(--alt);color:var(--muted)}
 .account-form>small,.account-form>p{color:var(--muted);font-size:11px}
 .account-form .btn{justify-self:start;padding:11px 18px}
+.pincode-lookup-message,.pincode-lookup-error{margin:0;font-size:11px}
+.pincode-lookup-message{color:var(--muted)}
+.pincode-lookup-error{color:#9b2421}
+.pincode-suggestion{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--alt)}
+.pincode-suggestion p{font-size:12px;line-height:1.5}
+.pincode-suggestion button{justify-self:start;color:var(--primary);font-size:12px;font-weight:600}
 .account-columns{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:16px;align-items:start}
 .account-address-list,.account-order-list,.account-security{display:grid;gap:12px}
 .account-address{display:grid;gap:5px}
@@ -85,6 +100,16 @@ nav.main{display:flex;gap:clamp(12px,1.8vw,25px);font-size:14px;color:var(--mute
 .account-address>div,.account-form-actions{display:flex;gap:12px;align-items:center;margin-top:7px}
 .account-address>div button,.account-form-actions>button:not(.btn){color:var(--primary);font-size:11px;font-weight:600}
 .account-address>div button:disabled{opacity:.5}
+.account-coupon-list,.account-session-list{display:grid;gap:8px;margin:14px 0}
+.account-coupon,.account-session{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px}
+.account-coupon{flex-wrap:wrap}
+.account-coupon strong,.account-coupon span{font-size:12px}
+.account-coupon small,.account-session span{color:var(--muted);font-size:11px}
+.account-session>div{display:grid;gap:3px}
+.account-session strong{font-size:12px}
+.account-session button{color:var(--primary);font-size:11px;font-weight:600}
+.account-checkbox{display:flex!important;grid-template-columns:auto 1fr;align-items:center;gap:9px!important}
+.account-checkbox input{width:17px;height:17px;accent-color:var(--primary)}
 .account-empty{padding:20px;border:1px dashed var(--line);border-radius:12px}
 .account-order{display:grid;gap:10px}
 .account-order>div{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -1096,6 +1121,11 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .mobile-categories::-webkit-scrollbar{display:none}
  .mobile-categories a{flex:none;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--dark);font-size:10px;white-space:nowrap}
  .mobile-categories a:hover,.mobile-categories a:focus-visible{border-color:var(--primary);color:var(--primary);outline:0}
+ .account-top .bar{grid-template-rows:64px auto;padding-bottom:9px;row-gap:9px}
+ .account-top .bar .account-search-wrap{grid-column:1/-1;grid-row:2;width:100%;min-width:0}
+ .account-top .bar .account-search{display:flex;width:100%;min-width:0}
+ .account-top .bar .account-search input,.account-top .bar .account-search input:focus{width:100%;min-width:0}
+ .account-top .bar .mobile-categories{display:none}
  .admin-top .bar{grid-template-rows:64px;padding-bottom:0;row-gap:0}
  .admin-top .search,.admin-top .mobile-categories{display:none}
  .admin-top .bar .login-btn,.admin-top .bar .account-control{grid-column:2}
@@ -1127,10 +1157,17 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .mobile-categories::-webkit-scrollbar{display:none}
  .mobile-categories a{flex:none;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--dark);font-size:10px;white-space:nowrap}
  .mobile-categories a:hover,.mobile-categories a:focus-visible{border-color:var(--primary);color:var(--primary);outline:0}
+ .account-top .bar{grid-template-rows:64px auto;padding-bottom:9px}
+ .account-top .bar .account-search-wrap{grid-column:1/-1;grid-row:2;width:100%;min-width:0}
+ .account-top .bar .account-search{display:flex;width:100%;min-width:0}
+ .account-top .bar .account-search input,.account-top .bar .account-search input:focus{width:100%;min-width:0}
+ .account-top .bar .mobile-categories{display:none}
  .admin-top .bar{grid-template-rows:64px;padding-bottom:0;row-gap:0}
  .admin-top .search,.admin-top .mobile-categories{display:none}
  .admin-top .bar .login-btn,.admin-top .bar .account-control{grid-column:2}
  .admin-top .bar .cartbtn{grid-column:3}
+ .scrolled .bar{height:auto}
+ .scrolled .admin-top .bar{height:64px}
 }
 @media(max-width:700px){
  .shop{padding-top:24px}

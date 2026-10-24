@@ -43,7 +43,7 @@ export default function PrivacyPage() {
       </section>
       <section>
         <h2>5. Retention and your choices</h2>
-        <p>You can update your name, mobile number and saved delivery addresses in your account, or request account deletion from its security page. Deleting an account removes its personal account data and sessions; personal delivery details are erased from past orders, while anonymized order items and totals may be retained for store records, support, disputes or legal and accounting requirements.</p>
+        <p>You can update your profile and saved addresses, choose a default delivery address, download a copy of your account and order data, and revoke other active sessions from the account privacy controls. You can opt in to order and payment status emails from notification settings. You can also request account deletion from the security page. Deleting an account removes its personal account data and sessions; personal delivery details are erased from past orders, while anonymized order items and totals may be retained for store records, support, disputes or legal and accounting requirements.</p>
       </section>
       <section>
         <h2>6. Children</h2>
