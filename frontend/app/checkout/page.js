@@ -5,7 +5,38 @@ import { useCart } from '../../components/CartProvider';
 import { useAuth } from '../../components/AuthProvider';
 export default function Checkout() {
   const { items, clear } = useCart(), { user, loading, openLogin } = useAuth(), [f, setF] = useState({ name: '', phone: '', pincode: '', address: '' }), [msg, setMsg] = useState(''), [err, setErr] = useState(''), [done, setDone] = useState(null), [busy, setBusy] = useState(false), [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [savedDetailsError, setSavedDetailsError] = useState('');
   useEffect(() => { if (!loading && !user && items.length) openLogin(); }, [loading, user, items.length, openLogin]);
+  useEffect(() => {
+    if (!user) return undefined;
+    let active = true;
+    Promise.all([
+      fetch('/api/account/profile', { credentials: 'same-origin' }).then(async response => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not load saved personal details.');
+        return result.profile;
+      }),
+      fetch('/api/account/addresses', { credentials: 'same-origin' }).then(async response => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not load saved addresses.');
+        return result.addresses;
+      }),
+    ]).then(([profile, addresses]) => {
+      if (!active) return;
+      setSavedAddresses(addresses);
+      const firstAddress = addresses[0];
+      setF(current => ({
+        name: current.name || profile.name || '',
+        phone: current.phone || profile.phone || firstAddress?.phone || '',
+        pincode: current.pincode || firstAddress?.pincode || '',
+        address: current.address || firstAddress?.address || '',
+      }));
+    }).catch(error => {
+      if (active) setSavedDetailsError(error.message || 'Could not load saved checkout details.');
+    });
+    return () => { active = false; };
+  }, [user]);
   const submit = async e => {
     e.preventDefault(); setBusy(true); setErr('');
     try {
@@ -27,6 +58,13 @@ export default function Checkout() {
   if (!items.length) return <div className="wrap form"><p>Your cart is empty.</p><Link className="btn" href="/shop">Shop now</Link></div>;
   return (<form className="wrap form" onSubmit={submit}>
     <h1>Delivery details</h1>
+    {savedDetailsError && <p className="account-message account-error" role="status">{savedDetailsError}</p>}
+    {savedAddresses.length > 0 && <label className="checkout-saved-address">Use a saved address
+      <select defaultValue="" onChange={event => {
+        const address = savedAddresses.find(value => value.id === event.target.value);
+        if (address) setF(current => ({ ...current, name: address.name, phone: address.phone, pincode: address.pincode, address: address.address }));
+      }}><option value="">Choose an address</option>{savedAddresses.map(address => <option key={address.id} value={address.id}>{address.label} · {address.address}</option>)}</select>
+    </label>}
     <input required placeholder="Full name" value={f.name} onChange={set('name')} />
     <input required placeholder="10-digit mobile" inputMode="numeric" maxLength={10} value={f.phone} onChange={set('phone')} />
     <input required placeholder="Pincode" maxLength={6} value={f.pincode} onChange={set('pincode')} />

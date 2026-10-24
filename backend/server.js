@@ -673,6 +673,207 @@ async function requireAdmin(req, res, next) {
   }
 }
 
+function validateAddress(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+  const label = typeof input.label === 'string' ? input.label.trim() : '';
+  const name = typeof input.name === 'string' ? input.name.trim() : '';
+  const phone = typeof input.phone === 'string' ? input.phone.trim() : '';
+  const pincode = typeof input.pincode === 'string' ? input.pincode.trim() : '';
+  const address = typeof input.address === 'string' ? input.address.trim() : '';
+  if (!['Home', 'Work', 'Other'].includes(label) ||
+      name.length < 2 || name.length > 100 ||
+      !/^\d{10}$/.test(phone) ||
+      !/^[1-9]\d{5}$/.test(pincode) ||
+      address.length < 8 || address.length > 500) {
+    return null;
+  }
+  return { label, name, phone, pincode, address };
+}
+
+app.get('/api/account/profile', requireUser, async (req, res, next) => {
+  try {
+    res.json({
+      profile: {
+        name: req.user.name,
+        email: req.user.email,
+        phone: req.user.phone || '',
+        hasPassword: Boolean(req.user.passwordHash),
+        isAdmin: req.user.role === 'admin',
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/account/profile', requireUser, async (req, res, next) => {
+  try {
+    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : '';
+    if (name.length < 2 || name.length > 100) {
+      return res.status(400).json({ error: 'Name must be between 2 and 100 characters.' });
+    }
+    if (phone && !/^\d{10}$/.test(phone)) {
+      return res.status(400).json({ error: 'Enter a valid 10-digit mobile number.' });
+    }
+    await database.collection('users').updateOne(
+      { _id: req.user._id },
+      { $set: { name, phone, updatedAt: new Date() } },
+    );
+    res.json({ profile: { name, email: req.user.email, phone, hasPassword: Boolean(req.user.passwordHash), isAdmin: req.user.role === 'admin' } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/addresses', requireUser, async (req, res, next) => {
+  try {
+    const user = await database.collection('users').findOne(
+      { _id: req.user._id },
+      { projection: { addresses: 1 } },
+    );
+    res.json({ addresses: user?.addresses || [] });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/account/addresses', requireUser, async (req, res, next) => {
+  try {
+    const address = validateAddress(req.body);
+    if (!address) return res.status(400).json({ error: 'Enter a valid address, contact name, mobile number, and pincode.' });
+    address.id = crypto.randomUUID();
+    const result = await database.collection('users').updateOne(
+      {
+        _id: req.user._id,
+        $expr: { $lt: [{ $size: { $ifNull: ['$addresses', []] } }, 10] },
+      },
+      { $push: { addresses: address }, $set: { updatedAt: new Date() } },
+    );
+    if (!result.matchedCount) return res.status(409).json({ error: 'You can save up to 10 addresses.' });
+    res.status(201).json({ address });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/account/addresses/:addressId', requireUser, async (req, res, next) => {
+  try {
+    const address = validateAddress(req.body);
+    if (!address) return res.status(400).json({ error: 'Enter a valid address, contact name, mobile number, and pincode.' });
+    const result = await database.collection('users').updateOne(
+      { _id: req.user._id, 'addresses.id': req.params.addressId },
+      { $set: {
+        'addresses.$.label': address.label,
+        'addresses.$.name': address.name,
+        'addresses.$.phone': address.phone,
+        'addresses.$.pincode': address.pincode,
+        'addresses.$.address': address.address,
+        updatedAt: new Date(),
+      } },
+    );
+    if (!result.matchedCount) return res.status(404).json({ error: 'That saved address could not be found.' });
+    res.json({ address: { ...address, id: req.params.addressId } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/account/addresses/:addressId', requireUser, async (req, res, next) => {
+  try {
+    const result = await database.collection('users').updateOne(
+      { _id: req.user._id, 'addresses.id': req.params.addressId },
+      { $pull: { addresses: { id: req.params.addressId } }, $set: { updatedAt: new Date() } },
+    );
+    if (!result.matchedCount) return res.status(404).json({ error: 'That saved address could not be found.' });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/account/orders', requireUser, async (req, res, next) => {
+  try {
+    const orders = await database.collection('orders')
+      .find(
+        { userId: req.user._id },
+        { projection: { _id: 0, orderId: 1, status: 1, paymentMethod: 1, paymentStatus: 1, lines: 1, total: 1, createdAt: 1 } },
+      )
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .toArray();
+    res.json({ orders });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/account', requireUser, async (req, res, next) => {
+  try {
+    if (req.user.role === 'admin') {
+      return res.status(403).json({ error: 'Administrator accounts are managed through backend credentials and cannot be deleted here.' });
+    }
+    if (req.body.confirmation !== 'DELETE') {
+      return res.status(400).json({ error: 'Type DELETE to confirm account removal.' });
+    }
+    if (req.user.passwordHash) {
+      if (typeof req.body.password !== 'string' ||
+          !await passwordMatches(req.body.password, req.user.passwordSalt, req.user.passwordHash)) {
+        return res.status(401).json({ error: 'Enter your current password to delete this account.' });
+      }
+    } else {
+      if (!firebaseAuth || typeof req.body.idToken !== 'string' || req.body.idToken.length > 12000) {
+        return res.status(401).json({ error: 'Verify your Google account again before deleting this account.' });
+      }
+      let identity;
+      try {
+        identity = await firebaseAuth.verifyIdToken(req.body.idToken, Boolean(firebaseServiceAccount));
+      } catch (error) {
+        if (['auth/argument-error', 'auth/id-token-expired', 'auth/id-token-revoked', 'auth/invalid-id-token'].includes(error.code)) {
+          return res.status(401).json({ error: 'Google account verification failed. Please try again.' });
+        }
+        throw error;
+      }
+      if (identity.uid !== req.user.firebaseUid ||
+          identity.firebase?.sign_in_provider !== 'google.com' ||
+          identity.email_verified !== true) {
+        return res.status(401).json({ error: 'Verify the Google account linked to this profile.' });
+      }
+    }
+
+    const session = mongoClient.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await database.collection('orders').updateMany(
+          { userId: req.user._id },
+          {
+            $unset: { userId: '', email: '' },
+            $set: {
+              'customer.name': 'Deleted customer',
+              'customer.phone': '',
+              'customer.pincode': '',
+              'customer.address': '',
+              giftMessage: '',
+            },
+          },
+          { session },
+        );
+        await database.collection('sessions').deleteMany({ userId: req.user._id }, { session });
+        await database.collection('password_reset_codes').deleteOne({ _id: req.user.email }, { session });
+        await database.collection('users').deleteOne({ _id: req.user._id }, { session });
+      });
+    } finally {
+      await session.endSession();
+    }
+    const options = sessionCookieOptions();
+    delete options.maxAge;
+    res.clearCookie(SESSION_COOKIE, options);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/admin/overview', requireAdmin, async (req, res, next) => {
   try {
     const usersPage = Number(req.query.usersPage || 1);

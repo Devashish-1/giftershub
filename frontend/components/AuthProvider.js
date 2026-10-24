@@ -1,12 +1,14 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { signInWithGoogle } from '../lib/firebase';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
 export default function AuthProvider({ children }) {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -92,10 +94,15 @@ export default function AuthProvider({ children }) {
         throw new Error(result.error || 'Could not sign out. Please try again.');
       }
       setUser(null);
+      router.replace('/');
     } catch (requestError) {
       setError(requestError.message || 'Could not sign out. Please try again.');
     }
-  }, []);
+  }, [router]);
+  const finishAccountDeletion = useCallback(() => {
+    setUser(null);
+    router.replace('/');
+  }, [router]);
 
   const submit = async event => {
     event.preventDefault();
@@ -143,6 +150,7 @@ export default function AuthProvider({ children }) {
       const action = pendingAction.current;
       pendingAction.current = null;
       if (action) action();
+      else router.push('/account');
     } catch (requestError) {
       setError(requestError.message || 'Could not connect to the account service. Please try again.');
     } finally {
@@ -183,6 +191,7 @@ export default function AuthProvider({ children }) {
       const action = pendingAction.current;
       pendingAction.current = null;
       if (action) action();
+      else router.push('/account');
     } catch (requestError) {
       const message = requestError.code === 'auth/unauthorized-domain'
         ? 'Add this website domain to Firebase Authentication’s authorized domains.'
@@ -196,7 +205,7 @@ export default function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, openLogin, requireAuth, logout, authError: error }}>
+    <AuthContext.Provider value={{ user, loading, openLogin, requireAuth, logout, finishAccountDeletion, authError: error }}>
       {children}
       {open && <div className="auth-overlay" onMouseDown={event => {
         if (event.target === event.currentTarget && !busy) setOpen(false);

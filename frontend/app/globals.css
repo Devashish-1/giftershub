@@ -31,6 +31,79 @@ nav.main{display:flex;gap:clamp(12px,1.8vw,25px);font-size:14px;color:var(--mute
 .account-control{display:flex;align-items:center;gap:8px;white-space:nowrap}
 .account-greeting{max-width:110px;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--muted)}
 .account-link{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:11px}
+.account-control{position:relative}
+.account-icon{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--dark);transition:border-color .2s,color .2s}
+.account-icon:hover,.account-icon:focus-visible,.account-icon[aria-expanded=true]{border-color:var(--primary);color:var(--primary);outline:0}
+.account-icon svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}
+.account-menu{position:absolute;z-index:60;top:calc(100% + 10px);right:0;display:grid;gap:3px;width:235px;padding:9px;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 14px 35px #321c1824}
+.account-menu-user{display:grid;gap:2px;padding:9px 10px 11px;border-bottom:1px solid var(--line);margin-bottom:3px}
+.account-menu-user strong{overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.account-menu-user span{overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:11px}
+.account-menu a,.account-menu>button{display:block;padding:8px 10px;border-radius:8px;text-align:left;font-size:12px}
+.account-menu a:hover,.account-menu a:focus-visible,.account-menu>button:hover,.account-menu>button:focus-visible{background:var(--alt);color:var(--primary);outline:0}
+.account-menu>button{border-top:1px solid var(--line);border-radius:0;margin-top:3px;padding-top:11px}
+.account-page{max-width:1000px;margin:46px auto 72px;min-height:52vh}
+.account-heading{display:flex;justify-content:space-between;align-items:end;gap:24px}
+.account-eyebrow{color:var(--primary);font-size:10px;font-weight:700;letter-spacing:.18em}
+.account-heading h1{margin-top:7px;color:var(--dark);font-size:clamp(32px,5vw,44px)}
+.account-heading p{margin-top:7px;color:var(--muted);font-size:13px}
+.account-tabs{display:flex;gap:7px;overflow:auto;margin:24px 0;padding-bottom:5px;scrollbar-width:thin}
+.account-tabs a{flex:none;padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;white-space:nowrap}
+.account-tabs a:hover,.account-tabs a[aria-current=page]{border-color:var(--primary);background:var(--alt);color:var(--primary)}
+.account-message{margin:14px 0;padding:10px 13px;border-radius:10px;font-size:12px}
+.account-error{background:#fff1f0;color:#9b2421}
+.account-notice{background:#eef8f0;color:#23653b}
+.account-overview{display:grid;gap:18px}
+.account-welcome,.account-panel{padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.account-welcome{background:linear-gradient(125deg,#fffaf5,#fbf3f1)}
+.account-welcome>span{color:var(--muted);font-size:11px}
+.account-welcome h2{margin-top:4px;color:var(--dark);font-size:28px}
+.account-welcome p{color:var(--muted);font-size:12px}
+.account-welcome>a,.account-card>b,.account-empty a{display:inline-block;margin-top:11px;color:var(--primary);font-size:12px;font-weight:600}
+.account-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.account-card{min-height:130px;padding:18px;border:1px solid var(--line);border-radius:14px;transition:border-color .2s,transform .2s}
+.account-card:hover{transform:translateY(-2px);border-color:var(--gold)}
+.account-card>span{font-weight:600;font-size:14px}
+.account-card p{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.5}
+.account-card>b{margin-top:12px}
+.account-signout{padding:9px 15px;border:1px solid var(--line);border-radius:999px;color:var(--dark);font-size:12px;font-weight:600}
+.account-signout:hover{border-color:var(--primary);color:var(--primary)}
+.account-panel h2{font-size:20px;color:var(--dark)}
+.account-form{display:grid;gap:14px}
+.account-form label{display:grid;gap:5px;font-size:12px;font-weight:600}
+.account-form input,.account-form textarea,.account-form select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:13px}
+.account-form input:focus,.account-form textarea:focus,.account-form select:focus{outline:0;border-color:var(--primary)}
+.account-form input[readonly]{background:var(--alt);color:var(--muted)}
+.account-form>small,.account-form>p{color:var(--muted);font-size:11px}
+.account-form .btn{justify-self:start;padding:11px 18px}
+.account-columns{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:16px;align-items:start}
+.account-address-list,.account-order-list,.account-security{display:grid;gap:12px}
+.account-address{display:grid;gap:5px}
+.account-address>span,.account-status{justify-self:start;padding:4px 9px;border-radius:999px;background:var(--alt);color:var(--primary);font-size:10px;font-weight:600}
+.account-address strong{font-size:13px}
+.account-address p,.account-empty{color:var(--muted);font-size:12px}
+.account-address>div,.account-form-actions{display:flex;gap:12px;align-items:center;margin-top:7px}
+.account-address>div button,.account-form-actions>button:not(.btn){color:var(--primary);font-size:11px;font-weight:600}
+.account-address>div button:disabled{opacity:.5}
+.account-empty{padding:20px;border:1px dashed var(--line);border-radius:12px}
+.account-order{display:grid;gap:10px}
+.account-order>div{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.account-order>div:first-child span,.account-order>div:first-child b{font-size:12px}
+.account-order>div:first-child b,.account-order>p{color:var(--muted)}
+.account-order>p{font-size:12px}
+.account-order>div:last-child span{color:var(--muted);font-size:11px;text-transform:capitalize}
+.account-order>div:last-child strong{font-size:13px}
+.account-payment-placeholder{max-width:600px;padding:30px}
+.account-payment-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:50%;background:var(--alt);color:var(--primary);font-size:21px}
+.account-payment-placeholder h2{margin-top:15px}
+.account-payment-placeholder p,.account-security p{margin:7px 0 15px;color:var(--muted);font-size:12px}
+.account-security{max-width:700px}
+.account-danger{border-color:#ecd7d5}
+.account-danger h2{color:#8e2d2a}
+.account-delete{justify-self:start;padding:10px 14px;border:1px solid #b83a35;border-radius:9px;background:#fff;color:#a02f2b;font-size:12px;font-weight:600}
+.account-delete:hover:not(:disabled){background:#fff4f2}
+.account-delete:disabled{cursor:not-allowed;opacity:.5}
+.account-danger .account-form{margin-top:14px}
 .auth-global-error{position:relative;z-index:29;background:#fff3ed;color:var(--dark);padding:8px 16px;text-align:center;font-size:12px}
 .auth-overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:#211512a8;backdrop-filter:blur(5px);overflow:auto}
 .auth-dialog{position:relative;width:min(100%,440px);padding:36px;background:#fff;border:1px solid #f1e3df;border-radius:22px;box-shadow:0 24px 90px #1d0e0d45;animation:rise .25s var(--ease) both}
@@ -1098,6 +1171,19 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .product-details dl{grid-template-columns:repeat(2,minmax(0,1fr))}
  .product-help{padding:13px}
  .vyapaar-secondary-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .account-page{margin:28px auto 56px}
+ .account-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .account-columns{grid-template-columns:1fr}
+ .account-welcome,.account-panel{padding:18px}
+ .account-heading h1{font-size:34px}
+ .account-menu{right:-54px}
+}
+@media(max-width:390px){
+ .account-cards{grid-template-columns:1fr}
+ .account-icon{width:36px;height:36px}
+ .account-menu{right:-48px;width:min(235px,calc(100vw - 26px))}
 }
 @media(max-width:360px){
  .bar .logo span{font-size:9px}

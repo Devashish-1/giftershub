@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCart } from './CartProvider';
 import { inr } from '../lib/api';
 import { GOD_FRAME_SUBJECTS } from '../lib/catalog';
@@ -32,6 +32,23 @@ const MAP_EMBED_URL = 'https://maps.google.com/maps?q=28.6297333%2C76.996915&z=1
 export default function Shell({ children }) {
   const { count, setOpen } = useCart(), { user, openLogin, logout, authError } = useAuth(), router = useRouter(), pathname = usePathname();
   const [activeNav, setActiveNav] = useState(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountControl = useRef(null);
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined;
+    const closeOnEscape = event => {
+      if (event.key === 'Escape') setAccountMenuOpen(false);
+    };
+    const closeOutside = event => {
+      if (!accountControl.current?.contains(event.target)) setAccountMenuOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    document.addEventListener('pointerdown', closeOutside);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.removeEventListener('pointerdown', closeOutside);
+    };
+  }, [accountMenuOpen]);
   return (<>
     <div className="ann">New catalogue collection · Retail prices coming soon</div>
     <header className={`top${pathname.startsWith('/admin') ? ' admin-top' : ''}`}><div className="wrap bar">
@@ -57,7 +74,22 @@ export default function Shell({ children }) {
       <div className="tools">
         <form className="search" role="search" onSubmit={e => { e.preventDefault(); router.push(`/shop?q=${encodeURIComponent(new FormData(e.target).get('q'))}`); }}><label className="sr-only" htmlFor="header-search">Search products</label><input id="header-search" name="q" placeholder="Search designs" /><button type="submit" aria-label="Search catalogue">Search</button></form>
         {user
-          ? <div className="account-control"><span className="account-greeting">Hi, {user.name.split(' ')[0]}</span><button className="account-link" onClick={logout}>Sign out</button></div>
+          ? <div className="account-control" ref={accountControl}>
+            <button className="account-icon" type="button" aria-label="Account menu" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen(current => !current)}>
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c.6-4 3.2-6 7.5-6s6.9 2 7.5 6" /></svg>
+            </button>
+            {accountMenuOpen && <div className="account-menu" role="menu" aria-label="Account">
+              <div className="account-menu-user"><strong>{user.name}</strong><span>{user.email}</span></div>
+              {user.role === 'admin' && <Link role="menuitem" href="/admin" onClick={() => setAccountMenuOpen(false)}>Admin dashboard</Link>}
+              <Link role="menuitem" href="/account" onClick={() => setAccountMenuOpen(false)}>Account overview</Link>
+              <Link role="menuitem" href="/account/profile" onClick={() => setAccountMenuOpen(false)}>Personal details</Link>
+              <Link role="menuitem" href="/account/addresses" onClick={() => setAccountMenuOpen(false)}>Addresses</Link>
+              <Link role="menuitem" href="/account/orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
+              <Link role="menuitem" href="/account/payments" onClick={() => setAccountMenuOpen(false)}>Payment methods</Link>
+              <Link role="menuitem" href="/account/security" onClick={() => setAccountMenuOpen(false)}>Security</Link>
+              <button role="menuitem" type="button" onClick={() => { setAccountMenuOpen(false); logout(); }}>Sign out</button>
+            </div>}
+          </div>
           : <button className="login-btn" onClick={openLogin}>Sign in</button>}
         <button className="cartbtn" onClick={() => setOpen(true)}>Cart{count > 0 && <i>{count}</i>}</button>
       </div>

@@ -23,11 +23,11 @@ export default function PrivacyPage() {
       <section>
         <h2>1. Information we collect</h2>
         <ul>
-          <li><strong>Account information:</strong> email address and password credentials when you create an account. Passwords are stored as protected password hashes, not as plain text.</li>
+          <li><strong>Account information:</strong> name, email address, optional mobile number, saved delivery addresses, and protected password hashes or Firebase account identifiers used for sign-in.</li>
           <li><strong>Order and delivery information:</strong> recipient name, mobile number, delivery address, pincode, products ordered, order total and any gift message you choose to provide.</li>
           <li><strong>Technical information:</strong> essential session-cookie information used to keep you signed in and protect account and checkout requests.</li>
         </ul>
-        <p>Google and phone sign-in are not active at this time. Online payment details are not collected through this website because online payments are not enabled.</p>
+        <p>Google sign-in is available through Firebase. Phone sign-in is not enabled. Online payments and saved cards are not enabled, and card numbers and CVV are not collected or stored through this website.</p>
       </section>
       <section>
         <h2>2. How we use information</h2>
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
       </section>
       <section>
         <h2>5. Retention and your choices</h2>
-        <p>We keep account and order information for as long as needed to operate the service, provide support, resolve disputes and meet legal or accounting requirements. You may contact us to request access, correction or deletion of account information. Some order records may need to be retained where the law requires it.</p>
+        <p>You can update your name, mobile number and saved delivery addresses in your account, or request account deletion from its security page. Deleting an account removes its personal account data and sessions; personal delivery details are erased from past orders, while anonymized order items and totals may be retained for store records, support, disputes or legal and accounting requirements.</p>
       </section>
       <section>
         <h2>6. Children</h2>
