@@ -470,20 +470,29 @@ app.get('/health', (req, res) => res.json({ ok: true, database: database ? 'conn
 
 app.get('/api/products', async (req, res, next) => {
   try {
-    const { category, subject, q, sort, min, max } = req.query;
-    const minimum = min === undefined ? null : Number(min);
-    const maximum = max === undefined ? null : Number(max);
+    const { category, subject, q, sort, min, max, design, finish, size, lights } = req.query;
+    const minimum = min === undefined || min === '' ? null : Number(min);
+    const maximum = max === undefined || max === '' ? null : Number(max);
     if ((minimum !== null && (!Number.isFinite(minimum) || minimum < 0)) ||
         (maximum !== null && (!Number.isFinite(maximum) || maximum < 0))) {
       return res.status(400).json({ error: 'Invalid price filter.' });
     }
+    if (lights !== undefined && lights !== '' && !['with', 'without'].includes(lights)) {
+      return res.status(400).json({ error: 'Invalid lighting filter.' });
+    }
     let list = (await getProducts()).filter(product =>
       (!category || product.category === category) &&
       (!subject || product.subject === subject) &&
+      (!design || product.details?.Model === design) &&
+      (!finish || (product.options?.Colour || product.options?.Color || []).includes(finish)) &&
+      (!size || product.details?.Size === size) &&
+      (!lights || (/\blight(?:s|ed)?\b/i.test(`${product.name} ${product.details?.Model || ''}`) === (lights === 'with'))) &&
       (!q || (product.name + product.desc).toLowerCase().includes(String(q).toLowerCase())) &&
       (minimum === null || (Number.isFinite(product.price) && product.price >= minimum)) &&
       (maximum === null || (Number.isFinite(product.price) && product.price <= maximum)));
     const sorters = {
+      name: (a, b) => a.name.localeCompare(b.name),
+      name_desc: (a, b) => b.name.localeCompare(a.name),
       low: (a, b) => a.price == null ? (b.price == null ? 0 : 1) : b.price == null ? -1 : a.price - b.price,
       high: (a, b) => a.price == null ? (b.price == null ? 0 : 1) : b.price == null ? -1 : b.price - a.price,
       rating: (a, b) => b.rating - a.rating,

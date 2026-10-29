@@ -21,13 +21,26 @@ export default async function ShopProductListing({ category = '', subject = '', 
   const occasion = GIFT_OCCASIONS.find(item => item.slug === searchParams.occasion);
   const activeCategory = category || searchParams.category || occasion?.category || '';
   const activeSubject = subject || searchParams.subject || occasion?.subject || '';
+  const facetSubject = subject || occasion?.subject || '';
+  const showSubjectFilter = !subject && !occasion?.subject;
   const query = {
     ...Object.fromEntries(Object.entries(searchParams).filter(([key, value]) =>
-      ['q', 'sort', 'min', 'max'].includes(key) && value)),
+      ['q', 'sort', 'min', 'max', 'design', 'finish', 'size', 'lights'].includes(key) && value)),
     ...(activeCategory ? { category: activeCategory } : {}),
     ...(activeSubject ? { subject: activeSubject } : {}),
   };
+  const facetQuery = new URLSearchParams({
+    ...(activeCategory ? { category: activeCategory } : {}),
+    ...(facetSubject ? { subject: facetSubject } : {}),
+  });
+  const facetProducts = (await get('/api/products?' + facetQuery.toString())) || [];
   const list = (await get('/api/products?' + new URLSearchParams(query).toString())) || [];
+  const subjects = [...new Set(facetProducts.map(product => product.subject).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const designs = [...new Set(facetProducts.map(product => product.details?.Model).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const finishes = [...new Set(facetProducts.flatMap(product => product.options?.Colour || product.options?.Color || []))].sort((a, b) => a.localeCompare(b));
+  const sizes = [...new Set(facetProducts.map(product => product.details?.Size).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const displaySubjectFilter = showSubjectFilter && subjects.length > 1;
+  const hasPrices = facetProducts.some(product => Number.isFinite(product.price));
   const activeCategoryDetails = SHOP_CATEGORIES.find(item => item.slug === activeCategory);
   const title = occasion?.heading || (activeSubject
     ? `${activeSubject} Frames`
@@ -41,17 +54,6 @@ export default async function ShopProductListing({ category = '', subject = '', 
         : activeCategory
           ? shopCategoryHref(activeCategory)
           : '/shop';
-  const link = (options) => {
-    const params = new URLSearchParams(Object.entries(searchParams).filter(([key, value]) =>
-      ['q', 'sort', 'min', 'max', 'occasion'].includes(key) && value));
-    for (const [key, value] of Object.entries(options)) {
-      if (value) params.set(key, value);
-      else params.delete(key);
-    }
-    const suffix = params.toString();
-    return suffix ? `${basePath}?${suffix}` : basePath;
-  };
-
   return (<div className="wrap shop">
     <JsonLd data={{
       '@context': 'https://schema.org',
@@ -87,8 +89,10 @@ export default async function ShopProductListing({ category = '', subject = '', 
       <label className="sr-only" htmlFor="shop-search">Search products</label>
       <input id="shop-search" type="search" name="q" defaultValue={searchParams.q || ''} placeholder="Search by design or deity" />
       {activeCategory && <input type="hidden" name="category" value={activeCategory} />}
-      {activeSubject && <input type="hidden" name="subject" value={activeSubject} />}
+      {activeSubject && !displaySubjectFilter && <input type="hidden" name="subject" value={activeSubject} />}
       {searchParams.occasion && <input type="hidden" name="occasion" value={searchParams.occasion} />}
+      {['design', 'finish', 'size', 'lights', 'sort', 'min', 'max'].map(key =>
+        searchParams[key] ? <input key={key} type="hidden" name={key} value={searchParams[key]} /> : null)}
       <button type="submit" className="btn">Search</button>
     </form>
     {activeCategory === 'god-frames' && <section className="shop-filters" aria-label="Browse god frames by artwork">
@@ -100,22 +104,57 @@ export default async function ShopProductListing({ category = '', subject = '', 
           aria-current={activeSubject === item ? 'page' : undefined}>{item}</Link>)}</div>
       </div>
     </section>}
-    {list.some(product => Number.isFinite(product.price)) && <section className="shop-filters" aria-label="Filter products by price">
-      <div className="filter-group">
-        <h2>Price</h2>
-        <div className="filters">{PRICE_RANGES.map(([name, min, max]) => {
-          const active = (searchParams.min || '') === (min || '') && (searchParams.max || '') === (max || '');
-          return <Link key={name} href={link({ min, max })} className={active ? 'on' : ''} aria-current={active ? 'page' : undefined}>{name}</Link>;
-        })}</div>
+    <form className="shop-filters catalogue-filter-panel" action={basePath} aria-label="Filter and sort products">
+      {activeCategory && <input type="hidden" name="category" value={activeCategory} />}
+      {activeSubject && <input type="hidden" name="subject" value={activeSubject} />}
+      {searchParams.q && <input type="hidden" name="q" value={searchParams.q} />}
+      {searchParams.occasion && <input type="hidden" name="occasion" value={searchParams.occasion} />}
+      <div className="catalogue-filter-grid">
+        {displaySubjectFilter && <label>
+          <span>Deity</span>
+          <select name="subject" defaultValue={searchParams.subject || ''}><option value="">All deities</option>{subjects.map(item => <option key={item} value={item}>{item}</option>)}</select>
+        </label>}
+        <label>
+          <span>Design</span>
+          <select name="design" defaultValue={searchParams.design || ''}><option value="">All designs</option>{designs.map(item => <option key={item} value={item}>{item}</option>)}</select>
+        </label>
+        {finishes.length > 0 && <label>
+          <span>Finish</span>
+          <select name="finish" defaultValue={searchParams.finish || ''}><option value="">All finishes</option>{finishes.map(item => <option key={item} value={item}>{item}</option>)}</select>
+        </label>}
+        {sizes.length > 0 && <label>
+          <span>Size</span>
+          <select name="size" defaultValue={searchParams.size || ''}><option value="">All sizes</option>{sizes.map(item => <option key={item} value={item}>{item}</option>)}</select>
+        </label>}
+        <label>
+          <span>Lighting</span>
+          <select name="lights" defaultValue={searchParams.lights || ''}><option value="">Any lighting</option><option value="with">With lights</option><option value="without">Without lights</option></select>
+        </label>
+        <label>
+          <span>Sort by</span>
+          <select name="sort" defaultValue={searchParams.sort || ''}>
+            <option value="">Featured</option><option value="name">Name: A to Z</option><option value="name_desc">Name: Z to A</option>
+            {hasPrices && <><option value="low">Price: low to high</option><option value="high">Price: high to low</option></>}
+          </select>
+        </label>
+        {hasPrices && <>
+          <label>
+            <span>Minimum price</span>
+            <select name="min" defaultValue={searchParams.min || ''}><option value="">No minimum</option>{PRICE_RANGES.filter(([, min]) => min).map(([name, min]) => <option key={min} value={min}>{name}</option>)}</select>
+          </label>
+          <label>
+            <span>Maximum price</span>
+            <select name="max" defaultValue={searchParams.max || ''}><option value="">No maximum</option>{PRICE_RANGES.filter(([, , max]) => max).map(([name, , max]) => <option key={max} value={max}>{name}</option>)}</select>
+          </label>
+        </>}
+        <button className="btn catalogue-filter-submit" type="submit">Apply filters</button>
       </div>
-    </section>}
+    </form>
     <div className="toolbar">
       <span>{occasion ? `Curated for ${occasion.title}` : activeSubject ? `Artwork: ${activeSubject}` : 'Browse this collection'}</span>
-      {(searchParams.min || searchParams.max || searchParams.q || occasion) && <Link className="clear-filters" href={occasion ? `/shop?occasion=${occasion.slug}` : basePath}>Clear search &amp; filters</Link>}
-      {list.some(product => Number.isFinite(product.price)) && (
-        <div aria-label="Sort products">{[['Featured', ''], ['Price: low to high', 'low'], ['Price: high to low', 'high']].map(([name, sort]) =>
-          <Link key={name} href={link({ sort })} className={(searchParams.sort || '') === sort ? 'on' : ''}>{name}</Link>)}</div>
-      )}
+      <span className="catalogue-result-count">Showing {list.length} {list.length === 1 ? 'design' : 'designs'}</span>
+      {(searchParams.min || searchParams.max || searchParams.q || searchParams.design || searchParams.finish || searchParams.size || searchParams.lights || searchParams.sort || (searchParams.subject && !subject) || occasion) &&
+        <Link className="clear-filters" href={occasion ? `/shop?occasion=${occasion.slug}` : basePath}>Clear search &amp; filters</Link>}
     </div>
     {occasion && <p className="gifting-collection-description">{occasion.description} The current retail catalogue is not yet available to order.</p>}
     {list.length ? <>

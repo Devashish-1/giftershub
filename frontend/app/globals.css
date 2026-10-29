@@ -291,6 +291,14 @@ footer{border-top:1px solid var(--line);margin-top:72px;padding:36px 0;font-size
 .shop-filters .filters{margin:0}
 .shop-filters .filters a{background:#fff}
 .shop-filters .filters a.on{background:var(--primary);color:#fff}
+.catalogue-filter-panel{margin-top:16px}
+.catalogue-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end;gap:12px}
+.catalogue-filter-grid label{display:grid;min-width:0;gap:6px}
+.catalogue-filter-grid label>span{font-size:11px;font-weight:600;color:var(--muted)}
+.catalogue-filter-grid select{width:100%;min-width:0;min-height:42px;padding:9px 30px 9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);font:inherit;font-size:12px}
+.catalogue-filter-grid select:focus{outline:2px solid #9b2f2a30;border-color:var(--primary)}
+.catalogue-filter-submit{min-height:42px;padding:10px 16px;white-space:nowrap}
+.catalogue-result-count{color:var(--muted);font-size:12px}
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin:20px 0 28px;font-size:13px;color:var(--muted)}.toolbar a{margin-left:16px}.toolbar a.on,.toolbar a:hover{color:var(--primary);font-weight:600}
 /* pdp */
 .pdp{display:grid;grid-template-columns:1.05fr 1fr;gap:64px;padding:40px 0}.product-gallery{position:sticky;top:96px;align-self:start}.pdp .img{aspect-ratio:1;border-radius:20px;position:relative}
@@ -1189,6 +1197,9 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
 .product-help>div{display:flex;flex-wrap:wrap;gap:9px}
 .product-help a{padding:7px 11px;border:1px solid #ead9cc;border-radius:999px;background:#fff;color:var(--dark);font-size:11px;font-weight:600}
 .product-help a:hover{border-color:var(--primary);color:var(--primary)}
+.product-help a.product-whatsapp-link{display:inline-flex;align-items:center;gap:8px;border-color:#1f9d58;background:#198f50;color:#fff}
+.product-help a.product-whatsapp-link:hover{border-color:#147a43;background:#147a43;color:#fff}
+.product-whatsapp-link span{font-size:14px}
 .product-share{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
 .product-share>span{width:100%;color:var(--muted);font-size:11px}
 .product-share a{padding:7px 11px;border:1px solid #ead9cc;border-radius:999px;background:#fff;color:var(--dark);font-size:11px;font-weight:600}
@@ -1371,6 +1382,10 @@ body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .zoom{c
  .shop-search{gap:7px}
  .shop-search .btn{padding:10px 14px}
  .shop-filters{padding:14px}
+ .catalogue-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .catalogue-filter-grid label>span{font-size:10px}
+ .catalogue-filter-grid select{font-size:11px}
+ .catalogue-filter-submit{grid-column:1/-1}
  .shop-filters .filters{flex-wrap:nowrap;overflow-x:auto;padding:1px 1px 5px}
  .shop-filters .filters a{flex:none;white-space:nowrap}
  .toolbar{align-items:flex-start}

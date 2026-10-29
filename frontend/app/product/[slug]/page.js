@@ -115,7 +115,12 @@ export default async function PDP({ params }) {
         <aside className="product-help">
           <span className="eyebrow">Need help choosing?</span>
           <p>Ask us about this design or its product details.</p>
-          <div><a href="tel:+919555532044">Call +91 95555 32044</a><a href="https://wa.me/919555532044" target="_blank" rel="noreferrer">WhatsApp ↗</a></div>
+          <div>
+            <a href="tel:+919555532044">Call +91 95555 32044</a>
+            <a className="product-whatsapp-link" href={`https://wa.me/919555532044?text=${encodeURIComponent(`Hi! I'm interested in ${p.name}. Could you share details and availability? ${absoluteUrl(`/product/${encodeURIComponent(p.slug)}`)}`)}`} target="_blank" rel="noreferrer">
+              Ask about this design on WhatsApp <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </aside>
         <ProductShareLinks product={p} />
         {p.stock !== null && p.stock < 20 && <div className="bad" style={{ marginBottom: 12 }}>Only {p.stock} left</div>}
