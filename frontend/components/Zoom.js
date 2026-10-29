@@ -1,10 +1,13 @@
 'use client';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-export default function Zoom({ slug, name, image, gallery = [], options = {} }) {
+export default function Zoom({ slug, name, image, gallery = [], options = {}, variantImages = [] }) {
   const images = gallery.length ? gallery : [image || `/products/${slug}.webp`];
-  const colours = options.Colour || options.Color || [];
-  const hasColourVariants = colours.length > 1 && colours.length === images.length;
+  const colours = options.Colour?.length ? options.Colour : options.Color || [];
+  const colourImages = variantImages.length === colours.length
+    ? variantImages
+    : colours.length === images.length ? images : [];
+  const hasColourVariants = colours.length > 1 && colourImages.length === colours.length;
   const [selected, setSelected] = useState(images[0]);
   const [on, setOn] = useState(false), [o, setO] = useState('50% 50%');
   useEffect(() => setSelected(images[0]), [slug, images[0]]);
@@ -23,9 +26,9 @@ export default function Zoom({ slug, name, image, gallery = [], options = {} }) 
         </button>)}
       </div>}
       {hasColourVariants && <div className="product-colour-options">
-        <div className="lbl">Available colours</div>
+        <div className="lbl">Available finishes</div>
         <div className="chips">{colours.map((colour, index) => (
-          <button key={colour} type="button" className={`chip ${selected === images[index] ? 'on' : ''}`} aria-pressed={selected === images[index]} onClick={() => setSelected(images[index])}>{colour}</button>
+          <button key={colour} type="button" className={`chip ${selected === colourImages[index] ? 'on' : ''}`} aria-pressed={selected === colourImages[index]} onClick={() => setSelected(colourImages[index])}>{colour}</button>
         ))}</div>
       </div>}
     </div>

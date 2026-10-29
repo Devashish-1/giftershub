@@ -3545,6 +3545,36 @@ async function start() {
       await database.collection('products').bulkWrite(products.map(product => ({
         updateOne: { filter: { slug: product.slug }, update: { $setOnInsert: product }, upsert: true },
       })));
+      const catalogMigrationId = 'legacy-product-presentation-v1';
+      const catalogMigration = await database.collection('catalog_migrations').findOne({ _id: catalogMigrationId });
+      if (!catalogMigration) {
+        await database.collection('products').bulkWrite(products.map(product => {
+          const presentation = {
+            name: product.name,
+            category: product.category,
+            subject: product.subject,
+            details: product.details,
+            desc: product.desc,
+            image: product.image,
+            gallery: product.gallery,
+            options: product.options || {},
+          };
+          if (product.variantImages) presentation.variantImages = product.variantImages;
+          return {
+            updateOne: {
+              filter: { slug: product.slug },
+              update: {
+                $set: presentation,
+                ...(!product.variantImages ? { $unset: { variantImages: '' } } : {}),
+              },
+            },
+          };
+        }));
+        await database.collection('catalog_migrations').insertOne({
+          _id: catalogMigrationId,
+          appliedAt: new Date(),
+        });
+      }
       await database.collection('vyapaar_categories').bulkWrite(PRODUCT_CATEGORIES.map(slug => ({
         updateOne: {
           filter: { slug },

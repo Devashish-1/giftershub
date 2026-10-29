@@ -12,6 +12,7 @@ export default function ProductCard({ p, priority = false }) {
   const priceAvailable = p.available !== false && Number.isFinite(p.price) && p.price > 0;
   const image = p.image || `/products/${p.slug}.webp`;
   const alternateImage = p.gallery?.find(src => src !== image);
+  const colours = p.options?.Colour?.length ? p.options.Colour : p.options?.Color || [];
   const isWished = wish.includes(p.slug);
   const off = priceAvailable && Number.isFinite(p.mrp) && p.mrp > p.price
     ? Math.round((1 - p.price / p.mrp) * 100)
@@ -31,7 +32,7 @@ export default function ProductCard({ p, priority = false }) {
       <div className="meta">
         <h3><Link href={`/product/${p.slug}`}>{p.name}</Link></h3>
         {p.subject && <span className="product-card-subject">{p.subject}</span>}
-        {p.options?.Colour?.length > 1 && <span className="product-card-subject">Available in {p.options.Colour.length} colours</span>}
+        {colours.length > 1 && <span className="product-card-subject">Available in {colours.length} finishes</span>}
         {priceAvailable && <><div className="pr"><b>{inr(p.price)}</b>{Number.isFinite(p.mrp) && <s>{inr(p.mrp)}</s>}{off > 0 && <em>{off}% off</em>}</div><small className="gst-included-note">Inclusive of GST</small></>}
       </div>
     </div>
