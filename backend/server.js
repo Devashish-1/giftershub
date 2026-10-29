@@ -29,7 +29,7 @@ const products = [
 ];
 const INITIAL_COUPONS = [
   { code: 'GIFTHUB10', type: 'pct', value: 10 },
-  { code: 'UPI5', type: 'pct', value: 5 },D
+  { code: 'UPI5', type: 'pct', value: 5 },
 ];
 const mongoClient = process.env.MONGODB_URI
   ? new MongoClient(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 })
