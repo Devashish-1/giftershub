@@ -510,7 +510,7 @@ app.get('/api/products/:slug', async (req, res, next) => {
 const PRODUCT_CATEGORIES = ['god-frames', 'family-frames', 'crystal-bubble'];
 const PRODUCT_STATUSES = ['active', 'coming-soon', 'out-of-stock'];
 const PRODUCT_TAX_RATES = [0, 5, 12, 18, 28];
-const PRODUCT_IMAGE_PATH = /^\/products\/[A-Za-z0-9][A-Za-z0-9._-]*\.(?:webp|png|jpe?g)$/i;
+const PRODUCT_IMAGE_PATH = /^\/products\/(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*\.(?:webp|png|jpe?g)$/i;
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

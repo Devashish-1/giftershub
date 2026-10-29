@@ -123,7 +123,7 @@ function ProductEditor({ product, categories, units, saving, onClose, onSave }) 
             <label>Unit<select name="unit" value={form.unit} onChange={update}>{units.map(unit => <option key={unit} value={unit}>{unit}</option>)}</select></label>
             <label>Low-stock threshold<input name="lowStockThreshold" type="number" min="0" step="1" value={form.lowStockThreshold} onChange={update} /></label>
           </div>
-          <label>Main image path<input name="image" value={form.image} onChange={update} placeholder="/products/image-name.webp" pattern="/products/[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpe?g)" required /></label>
+          <label>Main image path<input name="image" value={form.image} onChange={update} placeholder="/products/image-name.webp" pattern="/products/(?:[A-Za-z0-9][A-Za-z0-9._-]*/)*[A-Za-z0-9][A-Za-z0-9._-]*\.(webp|png|jpe?g)" required /></label>
           <label>Gallery image paths<small>Comma-separated paths from /products</small><input name="gallery" value={form.gallery} onChange={update} placeholder="/products/image-1.webp, /products/image-2.webp" /></label>
           <div className="admin-form-row">
             <label>Selling price (₹, GST included)<input name="price" type="number" min="0" step="0.01" value={form.price} onChange={update} /></label>

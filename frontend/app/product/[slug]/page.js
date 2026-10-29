@@ -101,7 +101,7 @@ export default async function PDP({ params }) {
       <span aria-hidden="true">/</span><span aria-current="page">{p.name}</span>
     </nav>
     <div className="pdp">
-      <Zoom slug={p.slug} name={p.name} image={p.image} gallery={p.gallery} />
+      <Zoom slug={p.slug} name={p.name} image={p.image} gallery={p.gallery} options={p.options} />
       <div>
         <div className="lbl">{p.category.replace('-', ' ')}</div>
         <h1 style={{ marginTop: 8 }}>{p.name}</h1>

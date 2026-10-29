@@ -1,8 +1,10 @@
 'use client';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-export default function Zoom({ slug, name, image, gallery = [] }) {
+export default function Zoom({ slug, name, image, gallery = [], options = {} }) {
   const images = gallery.length ? gallery : [image || `/products/${slug}.webp`];
+  const colours = options.Colour || options.Color || [];
+  const hasColourVariants = colours.length > 1 && colours.length === images.length;
   const [selected, setSelected] = useState(images[0]);
   const [on, setOn] = useState(false), [o, setO] = useState('50% 50%');
   useEffect(() => setSelected(images[0]), [slug, images[0]]);
@@ -19,6 +21,12 @@ export default function Zoom({ slug, name, image, gallery = [] }) {
         {images.map((src, index) => <button key={src} type="button" className={selected === src ? 'selected' : ''} aria-label={`View ${name}, image ${index + 1}`} aria-pressed={selected === src} onClick={() => setSelected(src)}>
           <Image src={src} alt="" width={80} height={80} loading="lazy" fetchPriority="low" sizes="80px" />
         </button>)}
+      </div>}
+      {hasColourVariants && <div className="product-colour-options">
+        <div className="lbl">Available colours</div>
+        <div className="chips">{colours.map((colour, index) => (
+          <button key={colour} type="button" className={`chip ${selected === images[index] ? 'on' : ''}`} aria-pressed={selected === images[index]} onClick={() => setSelected(images[index])}>{colour}</button>
+        ))}</div>
       </div>}
     </div>
   );

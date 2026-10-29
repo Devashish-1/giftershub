@@ -31,6 +31,7 @@ export default function ProductCard({ p, priority = false }) {
       <div className="meta">
         <h3><Link href={`/product/${p.slug}`}>{p.name}</Link></h3>
         {p.subject && <span className="product-card-subject">{p.subject}</span>}
+        {p.options?.Colour?.length > 1 && <span className="product-card-subject">Available in {p.options.Colour.length} colours</span>}
         {priceAvailable && <><div className="pr"><b>{inr(p.price)}</b>{Number.isFinite(p.mrp) && <s>{inr(p.mrp)}</s>}{off > 0 && <em>{off}% off</em>}</div><small className="gst-included-note">Inclusive of GST</small></>}
       </div>
     </div>
