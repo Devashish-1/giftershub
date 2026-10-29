@@ -19,6 +19,12 @@ const NAV = [
   ['Crystal Bubble', shopCategoryHref('crystal-bubble'), [['All Crystal Bubble Frames', shopCategoryHref('crystal-bubble')]]],
   ['Murtis & Idols', shopCategoryHref('murtis-and-idols'), DEITY_LINKS],
 ];
+const NAV_DESCRIPTIONS = {
+  'God Frames': 'Devotional art for your home',
+  'Family Frames': 'Photo displays for home and gifting',
+  'Crystal Bubble': 'Keepsakes with a little sparkle',
+  'Murtis & Idols': 'Explore sacred forms by deity',
+};
 const SOCIAL = [
   ['Instagram', 'https://www.instagram.com/thegiftershub/'],
   ['Facebook', 'https://www.facebook.com/p/thegiftershub-61563390688639'],
@@ -223,7 +229,9 @@ export default function Shell({ children }) {
           <Link className="mobile-navigation-feature" href="/gifts" onClick={() => setMobileMenuOpen(false)}>Gifts by occasion <span aria-hidden="true">→</span></Link>
           {NAV.map(([name, href, subcategories]) => (
             <section key={name}>
-              <Link className="mobile-navigation-category" href={href} onClick={() => setMobileMenuOpen(false)}>{name}</Link>
+              <Link className="mobile-navigation-category" href={href} onClick={() => setMobileMenuOpen(false)}>
+                <span>{name}<small>{NAV_DESCRIPTIONS[name]}</small></span>
+              </Link>
               <div className="mobile-navigation-subcategories">
                 {subcategories.filter(([, subcategoryHref]) => subcategoryHref !== href).map(([subcategory, subcategoryHref]) => (
                   <Link key={`${name}-${subcategory}`} href={subcategoryHref} onClick={() => setMobileMenuOpen(false)}>{subcategory}</Link>
